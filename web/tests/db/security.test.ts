@@ -486,6 +486,26 @@ describe("settings and reference data", () => {
   });
 });
 
+describe("rate limiter (used by 'show phone number')", () => {
+  it("cannot be called or read by visitors or users", async () => {
+    expect((await anon.rpc("check_rate_limit", { p_key: "x:test", p_max: 1, p_window_seconds: 60 })).error).not.toBeNull();
+    expect((await alice.client.rpc("check_rate_limit", { p_key: "x:test", p_max: 1, p_window_seconds: 60 })).error).not.toBeNull();
+    expect((await alice.client.from("rate_limits").select("key")).data ?? []).toHaveLength(0);
+  });
+
+  it("allows up to the limit, then blocks", async () => {
+    const key = `test:${runId}`;
+    const results: boolean[] = [];
+    for (let i = 0; i < 4; i++) {
+      const { data, error } = await service.rpc("check_rate_limit", { p_key: key, p_max: 3, p_window_seconds: 3600 });
+      expect(error).toBeNull();
+      results.push(data as boolean);
+    }
+    expect(results).toEqual([true, true, true, false]);
+    await service.from("rate_limits").delete().eq("key", key);
+  });
+});
+
 describe("photo storage", () => {
   // 1x1 transparent PNG
   const png = Buffer.from(
