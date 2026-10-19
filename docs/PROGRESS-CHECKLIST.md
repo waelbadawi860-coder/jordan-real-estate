@@ -11,7 +11,8 @@ Legend: [x] done and verified · [ ] not done · (you) = needs your action
 - [x] Created Next.js 16.4.2 app in `web/` and installed packages (Supabase, next-intl, zod, lucide-react, Supabase CLI, Vitest, Playwright)
 - [x] Confirmed `npm run dev` serves the starter page at http://localhost:3000 (HTTP 200)
 - [x] First Git commit (one repository at project root, branch `main`)
-- [ ] (you) Create empty private GitHub repository and push the code
+- [x] (you) Created private GitHub repository `waelbadawi860-coder/jordan-real-estate`; code pushed to `main`
+- [x] **Stage 1 complete**
 
 ## Stage 2 — Database and authentication
 - [ ] Not started
