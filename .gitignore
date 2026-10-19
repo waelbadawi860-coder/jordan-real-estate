@@ -1,0 +1,11 @@
+﻿# Secrets - never commit
+.env*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+.next/
+
+# OS / editor
+.DS_Store
+Thumbs.db
