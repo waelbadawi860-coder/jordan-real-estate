@@ -538,6 +538,85 @@ describe("stage 4 rules", () => {
   });
 });
 
+describe("stage 5: admin functions", () => {
+  it("are refused for visitors and ordinary users", async () => {
+    for (const client of [anon, alice.client]) {
+      expect((await client.rpc("admin_overview")).error).not.toBeNull();
+      expect((await client.rpc("admin_search_users", { p_query: "test" })).error).not.toBeNull();
+      expect((await client.rpc("admin_set_listing_expiry", { p_listing_id: 1, p_expires_at: new Date().toISOString() })).error).not.toBeNull();
+      expect((await client.rpc("admin_anonymize_user", { p_user_id: bob.id, p_reason: "x" })).error).not.toBeNull();
+      expect(
+        (await client.rpc("record_admin_action", { p_actor: alice.id, p_action: "x", p_entity_type: "x", p_entity_id: "x", p_details: {} })).error,
+      ).not.toBeNull();
+    }
+  });
+
+  it("let admins see the overview and search users (with emails)", async () => {
+    const overview = await admin.client.rpc("admin_overview");
+    expect(overview.error).toBeNull();
+    expect(overview.data).toHaveProperty("live_listings");
+
+    const search = await admin.client.rpc("admin_search_users", { p_query: alice.email });
+    expect(search.error).toBeNull();
+    expect(search.data?.[0]?.email).toBe(alice.email);
+  });
+
+  it("contact messages are visible to admins only", async () => {
+    const { data: msg } = await service
+      .from("contact_messages")
+      .insert({ topic: "general", message: "Automated test message" })
+      .select("id")
+      .single();
+    expect((await alice.client.from("contact_messages").select("id").eq("id", msg!.id)).data ?? []).toHaveLength(0);
+    expect((await anon.from("contact_messages").select("id").eq("id", msg!.id)).data ?? []).toHaveLength(0);
+    expect((await admin.client.from("contact_messages").select("id").eq("id", msg!.id)).data).toHaveLength(1);
+
+    const resolve = await admin.client.from("contact_messages").update({ status: "resolved" }).eq("id", msg!.id).select("resolved_by");
+    expect(resolve.data?.[0]?.resolved_by).toBe(admin.id);
+    await service.from("contact_messages").delete().eq("id", msg!.id);
+  });
+
+  it("admins can end or extend a listing's publication, and it is audited", async () => {
+    const { data: live } = await service.from("listings").select("id").eq("seller_id", bob.id).eq("status", "published").limit(1).single();
+    const end = await admin.client.rpc("admin_set_listing_expiry", {
+      p_listing_id: live!.id,
+      p_expires_at: new Date(Date.now() - 1000).toISOString(),
+    });
+    expect(end.data).toBe("expired");
+    const extend = await admin.client.rpc("admin_set_listing_expiry", {
+      p_listing_id: live!.id,
+      p_expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+    });
+    expect(extend.data).toBe("published");
+    const log = await admin.client
+      .from("admin_audit_logs")
+      .select("id")
+      .eq("action", "listing_expiry_change")
+      .eq("entity_id", String(live!.id));
+    expect(log.data!.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("completing a deletion removes personal data but keeps the listing record", async () => {
+    const leaver = await createUser("anon-me");
+    const listing = await createListing(leaver, "Listing of a deleted user");
+    await makeSubmittable(leaver, listing.id);
+    await service.from("profiles").update({ phone: "+962791111111" }).eq("id", leaver.id);
+
+    const done = await admin.client.rpc("admin_anonymize_user", { p_user_id: leaver.id, p_reason: "User request" });
+    expect(done.error).toBeNull();
+    const { data: profile } = await service.from("profiles").select("display_name, phone, status").eq("id", leaver.id).single();
+    expect(profile).toEqual({ display_name: "مستخدم محذوف", phone: null, status: "deleted" });
+    expect((await service.from("listing_contacts").select("listing_id").eq("listing_id", listing.id)).data).toHaveLength(0);
+    expect((await service.from("listings").select("id").eq("id", listing.id)).data).toHaveLength(1);
+
+    const self = await admin.client.rpc("admin_anonymize_user", { p_user_id: admin.id, p_reason: "x" });
+    expect(self.error?.message).toContain("cannot_change_own_status");
+
+    await service.from("listings").delete().eq("seller_id", leaver.id);
+    await service.auth.admin.deleteUser(leaver.id);
+  });
+});
+
 describe("rate limiter (used by 'show phone number')", () => {
   it("cannot be called or read by visitors or users", async () => {
     expect((await anon.rpc("check_rate_limit", { p_key: "x:test", p_max: 1, p_window_seconds: 60 })).error).not.toBeNull();

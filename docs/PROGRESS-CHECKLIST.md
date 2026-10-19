@@ -95,7 +95,35 @@ Legend: [x] done and verified · [ ] not done · (you) = needs your action
 10. Make yourself an administrator for Stage 5 (in a terminal, inside the `web` folder):
     `npm run make-admin -- your-email@example.com`
 
-## Stages 5–8
+## Stage 5 — Administrator dashboard (`/admin`)
+- [x] Access checked on the server for every page/action, and again in the database; non-admins get "page not found"; admin pages hidden from search engines
+- [x] Overview: listings awaiting review, live, expired, sold/rented, new listings/users (7 days), users, suspensions, deletion requests, open reports and messages
+- [x] Listings: search by ID/title, status, city, date range, seller; review queue (oldest first); full listing view incl. private photos, contact phone, reports and status history
+- [x] Moderation: approve & publish (copies photos to public), reject with reason (shown to seller + notification), take down, archive, extend 30 days, end now
+- [x] Users: search by email/name/phone, status filter; detail page with listings and reports; suspend (optionally taking down their listings) / reactivate with reason; complete deletion (removes name, phone, contact numbers, favourites; replaces the login email and blocks login; keeps withdrawn listings and audit records)
+- [x] Reports & messages: listing reports, user reports, contact messages — mark reviewing / resolved / dismissed with internal note
+- [x] Public "Contact us / report an issue" page: report a listing (reason + details), general message form; limited per visitor, spam trap
+- [x] Settings editable without code: site names, contact email, expiry days, renewal window, posting/photo/report limits, photo size, approval required, document versions
+- [x] Cities, neighborhoods and property types: add, rename, reorder, deactivate
+- [x] Audit log viewer (every admin action and settings change, with before/after values)
+- [x] CSV export (listings, users, reports) — opens correctly in Excel with Arabic, protected against formula injection, every export logged
+- [x] "Admin dashboard" tab in My account for administrators
+- [x] Automated tests: **99 passed** — 50 database security, 34 unit, 15 smoke (logged-in + admin pages, CSV exports)
+- [x] Production build succeeds
+- [ ] (you) Manual check below, then confirm Stage 5
+
+### Manual check (15 minutes) — `npm run dev`, then http://localhost:3000
+1. If you haven't yet, make yourself admin (terminal, inside the `web` folder): `npm run make-admin -- your-email@example.com`, then log out and in again.
+2. **حسابي** → new tab **لوحة الإدارة** (Admin dashboard) → the overview shows "awaiting review" = your Stage 4 listing.
+3. Click **مراجعة** (Review) → open your listing → **موافقة ونشر** (Approve). Open the home page: your listing appears with its photos.
+4. Back in the admin listing page → type a reason → **إيقاف النشر** (Take down) → it disappears from the site; **My listings** shows "Rejected" with your reason.
+5. Open a demo listing on the public site → **الإبلاغ عن هذا الإعلان** → choose a reason → send. In **البلاغات والرسائل** (Reports) the report appears → mark it **تم الحل** (Resolved).
+6. **الإعدادات** (Settings): change "listing duration" to 45 → Save → **سجل العمليات** (Audit log) shows the change with old and new value. Set it back to 30.
+7. **المدن والمناطق**: add a test neighborhood to Amman → it appears in the search form's neighborhood list within a few minutes. Untick "Active" to hide it again.
+8. **التصدير** (Export): download "Listings" → open in Excel → Arabic titles display correctly.
+9. Log in with a normal (non-admin) account, or log out, and visit http://localhost:3000/admin → "page not found".
+
+## Stages 6–8
 - [ ] Not started
 
 ## Known limitations / open items

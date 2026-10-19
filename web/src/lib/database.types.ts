@@ -113,6 +113,63 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: number
+          message: string
+          name: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          topic: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: never
+          message: string
+          name?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          topic: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: never
+          message?: string
+          name?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          topic?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_messages_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favourites: {
         Row: {
           created_at: string
@@ -752,6 +809,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_anonymize_user: {
+        Args: { p_reason: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_overview: { Args: never; Returns: Json }
+      admin_search_users: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_query?: string
+          p_status?: Database["public"]["Enums"]["account_status"]
+        }
+        Returns: {
+          created_at: string
+          deletion_requested_at: string
+          display_name: string
+          email: string
+          id: string
+          last_sign_in_at: string
+          listing_count: number
+          phone: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: Database["public"]["Enums"]["account_status"]
+          status_reason: string
+          total_count: number
+        }[]
+      }
+      admin_set_listing_expiry: {
+        Args: { p_expires_at: string; p_listing_id: number }
+        Returns: Database["public"]["Enums"]["listing_status"]
+      }
       admin_set_user_status: {
         Args: {
           p_reason: string
@@ -799,6 +887,16 @@ export type Database = {
           display_name: string
           member_since: string
         }[]
+      }
+      record_admin_action: {
+        Args: {
+          p_action: string
+          p_actor: string
+          p_details: Json
+          p_entity_id: string
+          p_entity_type: string
+        }
+        Returns: undefined
       }
       renew_listing: { Args: { p_listing_id: number }; Returns: string }
       request_account_deletion: { Args: never; Returns: undefined }
