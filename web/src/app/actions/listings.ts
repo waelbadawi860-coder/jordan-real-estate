@@ -42,6 +42,8 @@ function dbErrorKey(error: { code?: string; message?: string } | null): string {
     "invalid_status_transition",
     "account_not_active",
     "listing_not_found",
+    "agreement_required",
+    "transaction_details_required",
   ]) {
     if (message.includes(key)) return key;
   }

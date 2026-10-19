@@ -1,10 +1,11 @@
-import { Gauge, Heart, LayoutList, UserRound } from "lucide-react";
+import { Gauge, HandCoins, Heart, LayoutList, UserRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getOwnProfile, requireUser } from "@/lib/auth";
+import { hasAnyCommission, isCommissionEnabled } from "@/lib/data/commission";
 
 // Everything under /my is private: the server checks the login on every
 // request, and the database only ever returns the user's own rows.
@@ -13,12 +14,14 @@ export const instant = false;
 export default async function MyLayout({ children, params }: LayoutProps<"/[lang]/my">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  await requireUser(lang, "/my/listings");
-  const [dict, profile] = await Promise.all([getDictionary(lang), getOwnProfile()]);
+  const user = await requireUser(lang, "/my/listings");
+  const [dict, profile, hasCommissions] = await Promise.all([getDictionary(lang), getOwnProfile(), hasAnyCommission(user.id)]);
+  const showCommissions = hasCommissions || (await isCommissionEnabled());
 
   const tabs = [
     { href: "/my/listings", label: dict.account.navListings, icon: LayoutList },
     { href: "/my/favourites", label: dict.account.navFavourites, icon: Heart },
+    ...(showCommissions ? [{ href: "/my/commissions", label: dict.commission.nav, icon: HandCoins }] : []),
     { href: "/my/account", label: dict.account.navAccount, icon: UserRound },
     // Only a convenience link: the admin pages check permissions themselves.
     ...(profile?.role === "admin" && profile.status === "active" ? [{ href: "/admin", label: dict.admin.title, icon: Gauge }] : []),

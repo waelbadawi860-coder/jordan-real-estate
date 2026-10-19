@@ -6,6 +6,7 @@ import { StatusActions } from "@/components/status-actions";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireUser } from "@/lib/auth";
+import { getCommissionTerms, isCommissionEnabled } from "@/lib/data/commission";
 import { getMyListings } from "@/lib/data/owner";
 import { getReferenceData } from "@/lib/data/public";
 import { formatDate, formatPrice, t } from "@/lib/format";
@@ -36,7 +37,9 @@ export default async function MyListingsPage({ params }: PageProps<"/[lang]/my/l
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const user = await requireUser(lang, "/my/listings");
-  const [dict, listings, ref] = await Promise.all([getDictionary(lang), getMyListings(user.id), getReferenceData()]);
+  const [dict, listings, ref, terms] = await Promise.all([getDictionary(lang), getMyListings(user.id), getReferenceData(), getCommissionTerms()]);
+  const commissionOn = await isCommissionEnabled();
+  const currentAgreementId = terms.agreement?.id ?? -1;
   const m = dict.myListings;
   const windowDays = Number(ref.settings.renewal_window_days ?? 7);
   const requireApproval = ref.settings.require_listing_approval !== false;
@@ -100,6 +103,8 @@ export default async function MyListingsPage({ params }: PageProps<"/[lang]/my/l
                     publicHref={listingPath(lang, l.id, l.title)}
                     showSubmit
                     requireApproval={requireApproval}
+                    needsAgreement={commissionOn && !l.acceptedVersionIds.includes(currentAgreementId)}
+                    hasAgreement={l.acceptedVersionIds.length > 0}
                     dict={dict}
                   />
                 </div>

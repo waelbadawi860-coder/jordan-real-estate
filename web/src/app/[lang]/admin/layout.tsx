@@ -1,4 +1,4 @@
-import { ClipboardList, Download, Flag, Gauge, Home, MapPin, ScrollText, Settings, Users } from "lucide-react";
+import { ClipboardList, Download, FileSignature, Flag, Gauge, HandCoins, Home, MapPin, Percent, ScrollText, Settings, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -26,6 +26,9 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
     { href: "/admin/listings", label: n.listings, icon: ClipboardList },
     { href: "/admin/users", label: n.users, icon: Users },
     { href: "/admin/reports", label: n.reports, icon: Flag },
+    { href: "/admin/commissions", label: n.commissions, icon: HandCoins },
+    { href: "/admin/agreements", label: n.agreements, icon: FileSignature },
+    { href: "/admin/rules", label: n.rules, icon: Percent },
     { href: "/admin/settings", label: n.settings, icon: Settings },
     { href: "/admin/locations", label: n.locations, icon: MapPin },
     { href: "/admin/types", label: n.types, icon: Home },

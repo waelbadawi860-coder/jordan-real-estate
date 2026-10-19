@@ -43,6 +43,7 @@ function useRun(a: AdminText) {
           invalidTransition: a.errors.invalidTransition,
           ownAccount: a.errors.ownAccount,
           duplicate: a.locations.duplicate,
+          draftAgreement: a.settings.draftAgreement,
         };
         setFeedback({ ok: false, text: map[result.error] ?? a.errors.generic });
       }

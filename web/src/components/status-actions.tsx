@@ -13,8 +13,10 @@ type Confirm =
   | { kind: "sold" | "rented" | "archived" | "delete"; message: string }
   | { kind: "withdrawn"; message: string };
 
-const errorKeyToText = (dict: Pick<Dictionary, "preview" | "form">, key: string) =>
+const errorKeyToText = (dict: Pick<Dictionary, "preview" | "form" | "commission">, key: string) =>
   ({
+    agreement_required: dict.commission.errors.agreement_required,
+    transaction_details_required: dict.commission.errors.transaction_details_required,
     contact_required: dict.preview.needContact,
     images_required: dict.preview.needPhotos,
     account_not_active: dict.form.errors.accountInactive,
@@ -33,6 +35,8 @@ export function StatusActions({
   showPreview = true,
   showSubmit = false,
   requireApproval,
+  needsAgreement = false,
+  hasAgreement = false,
   dict,
 }: {
   locale: Locale;
@@ -44,7 +48,11 @@ export function StatusActions({
   showPreview?: boolean;
   showSubmit?: boolean;
   requireApproval: boolean;
-  dict: Pick<Dictionary, "myListings" | "preview" | "form">;
+  /** Commissions are on and this listing hasn't accepted the current agreement: submitting goes via the preview page. */
+  needsAgreement?: boolean;
+  /** Published under a commission agreement: selling/renting is reported with transaction details. */
+  hasAgreement?: boolean;
+  dict: Pick<Dictionary, "myListings" | "preview" | "form" | "commission">;
 }) {
   const m = dict.myListings;
   const router = useRouter();
@@ -83,10 +91,15 @@ export function StatusActions({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        {showSubmit && (status === "draft" || status === "rejected" || status === "withdrawn") && (
+        {showSubmit && !needsAgreement && (status === "draft" || status === "rejected" || status === "withdrawn") && (
           <button type="button" disabled={pending} className={primary} onClick={() => run(() => changeStatusAction(listingId, "pending_approval"))}>
             {status === "draft" ? (requireApproval ? dict.preview.submit : dict.preview.submitDirect) : m.resubmit}
           </button>
+        )}
+        {needsAgreement && (status === "draft" || status === "rejected" || status === "withdrawn") && showPreview && (
+          <Link href={localePath(locale, `/my/listings/${listingId}`)} className={primary}>
+            {status === "draft" ? dict.preview.submit : m.resubmit}
+          </Link>
         )}
         {status === "published" && (
           <Link href={publicHref} className={btn}>
@@ -108,7 +121,12 @@ export function StatusActions({
             {m.renew}
           </button>
         )}
-        {(status === "published" || status === "expired") && (
+        {hasAgreement && (status === "published" || status === "expired") && (
+          <Link href={localePath(locale, `/my/listings/${listingId}/transaction`)} className={btn}>
+            {dealType === "sale" ? m.markSold : m.markRented}
+          </Link>
+        )}
+        {!hasAgreement && (status === "published" || status === "expired") && (
           <button
             type="button"
             disabled={pending}

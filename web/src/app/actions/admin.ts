@@ -10,7 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Every admin action starts by confirming, on the server, that the caller is
 // an active administrator. The database repeats the check (RLS + is_admin()).
 
-export type AdminResult = { ok: true } | { ok: false; error: "notAllowed" | "reasonRequired" | "invalid" | "invalidTransition" | "ownAccount" | "duplicate" | "generic" };
+export type AdminResult = { ok: true } | { ok: false; error: "notAllowed" | "reasonRequired" | "invalid" | "invalidTransition" | "ownAccount" | "duplicate" | "draftAgreement" | "generic" };
 
 const idSchema = z.number().int().positive();
 const uuidSchema = z.string().uuid();
@@ -193,6 +193,13 @@ export async function saveSettingAction(key: unknown, value: unknown): Promise<A
   const actor = await getAdminActor();
   if (!actor) return { ok: false, error: "notAllowed" };
 
+  // Safety: on the live site, commissions can only be switched on once the
+  // current agreement has been marked as reviewed by a lawyer.
+  if (key === "commission_enabled" && parsed.data === true && process.env.NODE_ENV === "production") {
+    const { data: current } = await actor.supabase.from("agreement_versions").select("is_draft").eq("is_current", true).maybeSingle();
+    if (!current || current.is_draft) return { ok: false, error: "draftAgreement" };
+  }
+
   // The audit trigger records who changed what, with old and new values.
   const { data, error } = await actor.supabase
     .from("site_settings")
@@ -202,6 +209,7 @@ export async function saveSettingAction(key: unknown, value: unknown): Promise<A
   if (error) return errorOf(error);
   if (!data?.length) return { ok: false, error: "notAllowed" };
   updateTag("reference-data");
+  updateTag("commission-terms");
   return { ok: true };
 }
 

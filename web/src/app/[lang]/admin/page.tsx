@@ -75,9 +75,12 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
           </li>
         ))}
       </ul>
-      <p className="rounded-2xl border border-dashed border-border bg-surface p-4 text-sm text-muted">
-        <span className="font-bold text-foreground">{o.commissions}:</span> {o.commissionsNote}
-      </p>
+      <Link
+        href={localePath(lang, "/admin/commissions")}
+        className="rounded-2xl border border-border bg-surface p-4 text-sm font-bold text-brand hover:bg-brand-soft"
+      >
+        {o.commissions} →
+      </Link>
     </div>
   );
 }

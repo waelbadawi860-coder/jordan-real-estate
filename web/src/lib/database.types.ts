@@ -39,6 +39,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      accepted_agreements: {
+        Row: {
+          accepted_at: string
+          agreement_text_sha256: string
+          agreement_version_id: number
+          evidence: Json
+          id: number
+          listing_id: number | null
+          listing_title: string
+          rule_id: number
+          rule_snapshot: Json
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          agreement_text_sha256: string
+          agreement_version_id: number
+          evidence?: Json
+          id?: never
+          listing_id?: number | null
+          listing_title: string
+          rule_id: number
+          rule_snapshot: Json
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          agreement_text_sha256?: string
+          agreement_version_id?: number
+          evidence?: Json
+          id?: never
+          listing_id?: number | null
+          listing_title?: string
+          rule_id?: number
+          rule_snapshot?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accepted_agreements_agreement_version_id_fkey"
+            columns: ["agreement_version_id"]
+            isOneToOne: false
+            referencedRelation: "agreement_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accepted_agreements_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accepted_agreements_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "commission_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accepted_agreements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_audit_logs: {
         Row: {
           action: string
@@ -71,6 +139,56 @@ export type Database = {
           {
             foreignKeyName: "admin_audit_logs_actor_id_fkey"
             columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agreement_versions: {
+        Row: {
+          body_ar: string
+          body_en: string
+          created_at: string
+          created_by: string | null
+          id: number
+          is_current: boolean
+          is_draft: boolean
+          legal_review_note: string | null
+          title_ar: string
+          title_en: string
+          version_label: string
+        }
+        Insert: {
+          body_ar: string
+          body_en: string
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          is_current?: boolean
+          is_draft?: boolean
+          legal_review_note?: string | null
+          title_ar: string
+          title_en: string
+          version_label: string
+        }
+        Update: {
+          body_ar?: string
+          body_en?: string
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          is_current?: boolean
+          is_draft?: boolean
+          legal_review_note?: string | null
+          title_ar?: string
+          title_en?: string
+          version_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_versions_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -112,6 +230,230 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      commission_events: {
+        Row: {
+          actor_id: string | null
+          amount: number | null
+          commission_id: number
+          created_at: string
+          event: string
+          from_status: Database["public"]["Enums"]["commission_status"] | null
+          id: number
+          note: string | null
+          to_status: Database["public"]["Enums"]["commission_status"] | null
+        }
+        Insert: {
+          actor_id?: string | null
+          amount?: number | null
+          commission_id: number
+          created_at?: string
+          event: string
+          from_status?: Database["public"]["Enums"]["commission_status"] | null
+          id?: never
+          note?: string | null
+          to_status?: Database["public"]["Enums"]["commission_status"] | null
+        }
+        Update: {
+          actor_id?: string | null
+          amount?: number | null
+          commission_id?: number
+          created_at?: string
+          event?: string
+          from_status?: Database["public"]["Enums"]["commission_status"] | null
+          id?: never
+          note?: string | null
+          to_status?: Database["public"]["Enums"]["commission_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_events_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "commission_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_records: {
+        Row: {
+          accepted_agreement_id: number
+          admin_note: string | null
+          amount_due: number
+          amount_verified: number
+          basis: Database["public"]["Enums"]["commission_basis"]
+          calculated_amount: number
+          created_at: string
+          currency: string
+          deal_type: Database["public"]["Enums"]["deal_type"]
+          dispute_reason: string | null
+          due_date: string
+          id: number
+          listing_id: number
+          percentage: number | null
+          reference: string
+          rule_id: number
+          seller_confirmed_at: string
+          seller_id: string
+          status: Database["public"]["Enums"]["commission_status"]
+          transaction_date: string
+          transaction_value: number | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_agreement_id: number
+          admin_note?: string | null
+          amount_due: number
+          amount_verified?: number
+          basis: Database["public"]["Enums"]["commission_basis"]
+          calculated_amount: number
+          created_at?: string
+          currency?: string
+          deal_type: Database["public"]["Enums"]["deal_type"]
+          dispute_reason?: string | null
+          due_date: string
+          id?: never
+          listing_id: number
+          percentage?: number | null
+          reference: string
+          rule_id: number
+          seller_confirmed_at: string
+          seller_id: string
+          status?: Database["public"]["Enums"]["commission_status"]
+          transaction_date: string
+          transaction_value?: number | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_agreement_id?: number
+          admin_note?: string | null
+          amount_due?: number
+          amount_verified?: number
+          basis?: Database["public"]["Enums"]["commission_basis"]
+          calculated_amount?: number
+          created_at?: string
+          currency?: string
+          deal_type?: Database["public"]["Enums"]["deal_type"]
+          dispute_reason?: string | null
+          due_date?: string
+          id?: never
+          listing_id?: number
+          percentage?: number | null
+          reference?: string
+          rule_id?: number
+          seller_confirmed_at?: string
+          seller_id?: string
+          status?: Database["public"]["Enums"]["commission_status"]
+          transaction_date?: string
+          transaction_value?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_records_accepted_agreement_id_fkey"
+            columns: ["accepted_agreement_id"]
+            isOneToOne: false
+            referencedRelation: "accepted_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "commission_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_rules: {
+        Row: {
+          agreement_version_id: number
+          basis: Database["public"]["Enums"]["commission_basis"]
+          created_at: string
+          created_by: string | null
+          currency: string
+          deal_type: Database["public"]["Enums"]["deal_type"]
+          due_days: number
+          effective_from: string
+          fixed_amount: number | null
+          id: number
+          is_active: boolean
+          max_amount: number | null
+          min_amount: number | null
+          percentage: number | null
+          trigger_event: string
+        }
+        Insert: {
+          agreement_version_id: number
+          basis: Database["public"]["Enums"]["commission_basis"]
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deal_type: Database["public"]["Enums"]["deal_type"]
+          due_days?: number
+          effective_from?: string
+          fixed_amount?: number | null
+          id?: never
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number | null
+          percentage?: number | null
+          trigger_event?: string
+        }
+        Update: {
+          agreement_version_id?: number
+          basis?: Database["public"]["Enums"]["commission_basis"]
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deal_type?: Database["public"]["Enums"]["deal_type"]
+          due_days?: number
+          effective_from?: string
+          fixed_amount?: number | null
+          id?: never
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number | null
+          percentage?: number | null
+          trigger_event?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_rules_agreement_version_id_fkey"
+            columns: ["agreement_version_id"]
+            isOneToOne: false
+            referencedRelation: "agreement_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_messages: {
         Row: {
@@ -580,6 +922,82 @@ export type Database = {
           },
         ]
       }
+      payment_records: {
+        Row: {
+          amount_reported: number
+          bank_reference: string | null
+          commission_id: number
+          created_at: string
+          id: number
+          method: string
+          paid_on: string
+          payer_reference: string | null
+          rejection_reason: string | null
+          reported_by: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          verified_amount: number | null
+          verified_at: string | null
+          verified_by: string | null
+          verified_on: string | null
+        }
+        Insert: {
+          amount_reported: number
+          bank_reference?: string | null
+          commission_id: number
+          created_at?: string
+          id?: never
+          method: string
+          paid_on: string
+          payer_reference?: string | null
+          rejection_reason?: string | null
+          reported_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          verified_amount?: number | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_on?: string | null
+        }
+        Update: {
+          amount_reported?: number
+          bank_reference?: string | null
+          commission_id?: number
+          created_at?: string
+          id?: never
+          method?: string
+          paid_on?: string
+          payer_reference?: string | null
+          rejection_reason?: string | null
+          reported_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          verified_amount?: number | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_records_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "commission_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_records_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_records_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -809,11 +1227,65 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_agreement: {
+        Args: { p_evidence?: Json; p_listing_id: number }
+        Returns: number
+      }
       admin_anonymize_user: {
         Args: { p_reason: string; p_user_id: string }
         Returns: undefined
       }
+      admin_commission_action: {
+        Args: {
+          p_action: string
+          p_amount?: number
+          p_commission_id: number
+          p_note?: string
+        }
+        Returns: Database["public"]["Enums"]["commission_status"]
+      }
+      admin_commission_totals: { Args: never; Returns: Json }
+      admin_create_commission_rule: {
+        Args: {
+          p_basis: Database["public"]["Enums"]["commission_basis"]
+          p_deal_type: Database["public"]["Enums"]["deal_type"]
+          p_due_days: number
+          p_fixed_amount: number
+          p_max_amount: number
+          p_min_amount: number
+          p_percentage: number
+          p_trigger_event: string
+        }
+        Returns: number
+      }
       admin_overview: { Args: never; Returns: Json }
+      admin_publish_agreement: {
+        Args: {
+          p_body_ar: string
+          p_body_en: string
+          p_is_draft: boolean
+          p_legal_review_note: string
+          p_title_ar: string
+          p_title_en: string
+          p_version_label: string
+        }
+        Returns: number
+      }
+      admin_retire_commission_rule: {
+        Args: { p_rule_id: number }
+        Returns: undefined
+      }
+      admin_review_payment: {
+        Args: {
+          p_bank_reference?: string
+          p_decision: string
+          p_payment_id: number
+          p_reason?: string
+          p_verified_amount?: number
+          p_verified_on?: string
+        }
+        Returns: Database["public"]["Enums"]["commission_status"]
+      }
       admin_search_users: {
         Args: {
           p_limit?: number
@@ -848,6 +1320,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      advance_due_commissions: { Args: never; Returns: number }
       can_upload_listing_photo: {
         Args: { p_object_name: string }
         Returns: boolean
@@ -863,6 +1336,21 @@ export type Database = {
       check_rate_limit: {
         Args: { p_key: string; p_max: number; p_window_seconds: number }
         Returns: boolean
+      }
+      commission_amount: {
+        Args: {
+          p_basis: Database["public"]["Enums"]["commission_basis"]
+          p_fixed: number
+          p_max: number
+          p_min: number
+          p_percentage: number
+          p_value: number
+        }
+        Returns: number
+      }
+      commission_due_status: {
+        Args: { p_due_date: string }
+        Returns: Database["public"]["Enums"]["commission_status"]
       }
       expire_listings: { Args: never; Returns: number }
       get_listing_contact: {
@@ -880,6 +1368,25 @@ export type Database = {
         Returns: boolean
       }
       listing_is_public: { Args: { p_listing_id: number }; Returns: boolean }
+      log_commission_event: {
+        Args: {
+          p_amount: number
+          p_commission_id: number
+          p_event: string
+          p_from: Database["public"]["Enums"]["commission_status"]
+          p_note: string
+          p_to: Database["public"]["Enums"]["commission_status"]
+        }
+        Returns: undefined
+      }
+      notify_admins: {
+        Args: { p_data: Json; p_type: string }
+        Returns: undefined
+      }
+      open_commission_dispute: {
+        Args: { p_commission_id: number; p_reason: string }
+        Returns: undefined
+      }
       owns_listing: { Args: { p_listing_id: number }; Returns: boolean }
       public_seller_info: {
         Args: { p_seller_id: string }
@@ -899,6 +1406,25 @@ export type Database = {
         Returns: undefined
       }
       renew_listing: { Args: { p_listing_id: number }; Returns: string }
+      report_payment: {
+        Args: {
+          p_amount: number
+          p_commission_id: number
+          p_method: string
+          p_paid_on: string
+          p_reference: string
+        }
+        Returns: number
+      }
+      report_transaction: {
+        Args: {
+          p_completed_on: string
+          p_confirm: boolean
+          p_listing_id: number
+          p_transaction_value: number
+        }
+        Returns: number
+      }
       request_account_deletion: { Args: never; Returns: undefined }
       setting_bool: {
         Args: { p_default: boolean; p_key: string }
@@ -912,6 +1438,19 @@ export type Database = {
     Enums: {
       account_status: "active" | "suspended" | "deletion_requested" | "deleted"
       app_role: "user" | "admin"
+      commission_basis:
+        | "sale_price"
+        | "annual_rent"
+        | "monthly_rent"
+        | "fixed_amount"
+      commission_status:
+        | "reported"
+        | "not_yet_due"
+        | "pending"
+        | "payment_reported"
+        | "payment_verified"
+        | "disputed"
+        | "waived"
       deal_type: "sale" | "rent"
       listing_status:
         | "draft"
@@ -923,6 +1462,7 @@ export type Database = {
         | "rented"
         | "withdrawn"
         | "archived"
+      payment_status: "reported" | "verified" | "rejected"
       poster_type: "owner" | "agent"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
     }
@@ -1057,6 +1597,21 @@ export const Constants = {
     Enums: {
       account_status: ["active", "suspended", "deletion_requested", "deleted"],
       app_role: ["user", "admin"],
+      commission_basis: [
+        "sale_price",
+        "annual_rent",
+        "monthly_rent",
+        "fixed_amount",
+      ],
+      commission_status: [
+        "reported",
+        "not_yet_due",
+        "pending",
+        "payment_reported",
+        "payment_verified",
+        "disputed",
+        "waived",
+      ],
       deal_type: ["sale", "rent"],
       listing_status: [
         "draft",
@@ -1069,6 +1624,7 @@ export const Constants = {
         "withdrawn",
         "archived",
       ],
+      payment_status: ["reported", "verified", "rejected"],
       poster_type: ["owner", "agent"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
     },

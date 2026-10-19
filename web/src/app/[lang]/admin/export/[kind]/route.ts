@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 // CSV downloads for administrators. Access is checked here on the server, and
 // every export is written to the audit log (who exported what, and when).
-const KINDS = ["listings", "users", "reports"] as const;
+const KINDS = ["listings", "users", "reports", "commissions"] as const;
 type Kind = (typeof KINDS)[number];
 
 export async function GET(_request: NextRequest, { params }: RouteContext<"/[lang]/admin/export/[kind]">) {
@@ -68,6 +68,30 @@ export async function GET(_request: NextRequest, { params }: RouteContext<"/[lan
     }
     rowCount = rows.length;
     csv = toCsv(["id", "email", "display_name", "phone", "role", "status", "created_at", "last_sign_in_at", "listing_count"], rows);
+  } else if (kind === "commissions") {
+    const [cr, pr] = await Promise.all([
+      supabase
+        .from("commission_records")
+        .select("id, reference, listing_id, seller_id, deal_type, basis, percentage, transaction_date, transaction_value, calculated_amount, amount_due, amount_verified, currency, status, due_date, created_at")
+        .order("id")
+        .limit(50000),
+      supabase
+        .from("payment_records")
+        .select("id, commission_id, method, amount_reported, paid_on, payer_reference, status, verified_amount, verified_on, bank_reference, verified_at")
+        .order("id")
+        .limit(50000),
+    ]);
+    if (cr.error || pr.error) return new NextResponse("Export failed", { status: 500 });
+    // Commission rows first, then payment rows; "verified_amount" is cash checked by an admin.
+    const rows = [
+      ...cr.data.map((c) => ["commission", c.id, c.reference, c.listing_id, c.seller_id, c.deal_type, c.basis, c.percentage, c.transaction_date, c.transaction_value, c.calculated_amount, c.amount_due, c.amount_verified, c.currency, c.status, c.due_date, c.created_at, "", "", "", "", ""]),
+      ...pr.data.map((p) => ["payment", p.id, "", "", "", "", p.method, "", p.paid_on, "", "", p.amount_reported, p.verified_amount, "JOD", p.status, "", p.verified_at, p.commission_id, p.payer_reference, p.verified_on, p.bank_reference, ""]),
+    ];
+    rowCount = rows.length;
+    csv = toCsv(
+      ["type", "id", "reference", "listing_id", "seller_id", "deal_type", "basis_or_method", "percentage", "date", "transaction_value", "calculated_amount", "amount_due_or_reported", "amount_verified", "currency", "status", "due_date", "created_or_verified_at", "commission_id", "payer_reference", "verified_on", "bank_reference", "note"],
+      rows,
+    );
   } else {
     const [lr, ur] = await Promise.all([
       supabase.from("listing_reports").select("id, listing_id, reason, details, status, reporter_id, created_at, resolved_at, resolution_note").order("id").limit(50000),

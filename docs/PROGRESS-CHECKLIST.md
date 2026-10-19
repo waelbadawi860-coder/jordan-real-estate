@@ -123,7 +123,32 @@ Legend: [x] done and verified · [ ] not done · (you) = needs your action
 8. **التصدير** (Export): download "Listings" → open in Excel → Arabic titles display correctly.
 9. Log in with a normal (non-admin) account, or log out, and visit http://localhost:3000/admin → "page not found".
 
-## Stages 6–8
+## Stage 6 — Commission system (built, **switched OFF** until legal approval)
+- [x] Agreement versions: bilingual, never edited in place; new versions replace the "current" one; each marked *draft* or *legally reviewed* (review requires a lawyer/firm note). Your draft wording is stored as `draft-2026-10`, labelled "draft – not legally reviewed" wherever it appears
+- [x] Commission rules per deal type: % of sale price / annual rent / monthly rent, or fixed amount; optional minimum and maximum; due days; trigger (transaction completed / contract signed). New rules replace old ones without changing earlier agreements
+- [x] Seller acceptance before submitting (when commissions are on): agreement text + rule in plain words + unticked checkbox; stores exact version, rule snapshot, text fingerprint (SHA-256), time, anonymous IP fingerprint and browser
+- [x] Listing published under an agreement: "Mark sold/rented" opens a transaction form (date, agreed value, confirmation) with a live estimate; the database calculates the official amount and creates the commission with a reference number (e.g. `CM-100017-3F9A2`)
+- [x] Seller commission page: amount due, verified, remaining, due date, CliQ/bank instructions (from Settings), "I paid" report, dispute form, full history
+- [x] Statuses: awaiting confirmation → not yet due → due → payment reported → paid (verified) / disputed / waived. A seller's report never marks anything paid
+- [x] Admin: commission inbox with totals kept separate (estimated outstanding · reported but unverified · **verified received**), confirm transaction, verify payment (amount, date, bank reference required) or reject with reason, adjust amount (reason required; original calculation kept), waive (reason), resolve dispute; CSV export; everything in the audit log and per-commission history
+- [x] Safety: commissions **cannot be switched on in the live site** while the current agreement is an unreviewed draft; withdrawing a listing never creates a commission; sale/rent type locked once an agreement is accepted
+- [x] Public commission policy page (shows "commissions are off" until enabled; marks draft text as draft)
+- [x] Automated tests: **127 passed** (incl. 17 commission database tests; 200-case check that on-screen estimates match the database exactly; 6 commission page smoke tests)
+- [x] Production build succeeds
+- [ ] (you) Manual check below, then confirm Stage 6
+- [ ] (you, before launch) Lawyer reviews: licensing, commission legality, agreement wording, e-signature/click-acceptance, dispute process
+
+### Manual check (20 minutes, development site only)
+1. Admin → **قواعد العمولة** (Rules) → create a **sale** rule: 2%, minimum 100, 7 days. Create a **rent** rule: 50% of monthly rent, 0 days.
+2. Admin → **الإعدادات**: fill CliQ alias and IBAN with **test** values; set "Enable commission system" to ✓ → Save. (On your computer this is allowed with the draft text; on the live site it will be refused until the text is legally reviewed.)
+3. As a seller, create a new listing → add a photo → **متابعة إلى المعاينة**: the agreement box appears with the draft label and "2% من سعر البيع النهائي". Try submitting without ticking → message; tick → submit.
+4. Admin approves it. Seller → **إعلاناتي** → **تم البيع**: a form opens. Enter today's date and 100000 → it shows "العمولة المحسوبة: 2,000 د.أ" → tick → submit → the commission page opens with reference and payment instructions.
+5. Seller reports a payment of 2000 (any reference). Status shows "payment awaiting verification", **not** paid.
+6. Admin → **العمولات** → open it → **تأكيد الصفقة**, then verify the payment (amount 2000, a date, bank reference "TEST") → status "تم الدفع (مؤكَّد)"; the "verified received" total shows 2,000.
+7. Try a dispute on another commission, then adjust the amount with a reason; check **سجل العمليات**.
+8. **Switch commissions OFF again** in Settings when you're done, and delete the test rules' effect by leaving them (they're harmless while off).
+
+## Stages 7–8
 - [ ] Not started
 
 ## Known limitations / open items

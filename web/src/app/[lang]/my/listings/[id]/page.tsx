@@ -1,14 +1,17 @@
 import { Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AcceptAndSubmit } from "@/components/commission/accept-submit";
+import { AgreementBox } from "@/components/commission/agreement-box";
 import { PropertyView } from "@/components/property-view";
 import { StatusActions } from "@/components/status-actions";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getOwnProfile, requireUser } from "@/lib/auth";
+import { getCommissionTerms, isCommissionEnabled } from "@/lib/data/commission";
 import { getMyListing } from "@/lib/data/owner";
 import { getReferenceData } from "@/lib/data/public";
-import { displayPhone, t } from "@/lib/format";
+import { displayPhone, formatDate, t } from "@/lib/format";
 import { canRenewListing } from "@/lib/listing-rules";
 import { listingPath } from "@/lib/paths";
 
@@ -25,11 +28,12 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
   if (!hasLocale(lang) || !/^[0-9]{1,15}$/.test(rawId)) notFound();
   const id = Number(rawId);
   const user = await requireUser(lang, `/my/listings/${id}`);
-  const [dict, listing, ref, profile] = await Promise.all([
+  const [dict, listing, ref, profile, terms] = await Promise.all([
     getDictionary(lang),
     getMyListing(user.id, id),
     getReferenceData(),
     getOwnProfile(),
+    getCommissionTerms(),
   ]);
   if (!listing) notFound();
 
@@ -37,6 +41,15 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
   const city = ref.cities.find((c) => c.id === listing.cityId);
   const hood = ref.neighborhoods.find((n) => n.id === listing.neighborhoodId);
   const canRenew = canRenewListing(listing.status, listing.expiresAt, Number(ref.settings.renewal_window_days ?? 7));
+  const requireApproval = ref.settings.require_listing_approval !== false;
+
+  // Commission agreement: shown before submitting when the system is on.
+  const commissionOn = await isCommissionEnabled();
+  const agreement = terms.agreement;
+  const acceptedCurrent = agreement ? listing.acceptances.find((a) => a.versionId === agreement.id) : undefined;
+  const submittable = ["draft", "rejected", "withdrawn"].includes(listing.status);
+  const needsAgreement = commissionOn && !acceptedCurrent;
+  const rule = terms.rules.find((r) => r.dealType === listing.dealType) ?? null;
 
   return (
     <div className="-mx-4 -my-6">
@@ -57,10 +70,25 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
           publicHref={listingPath(lang, listing.id, listing.title)}
           showPreview={false}
           showSubmit
-          requireApproval={ref.settings.require_listing_approval !== false}
+          requireApproval={requireApproval}
+          needsAgreement={needsAgreement}
+          hasAgreement={listing.acceptances.length > 0}
           dict={dict}
         />
+        {acceptedCurrent && <p className="text-sm text-muted">{t(dict.commission.acceptedOn, { date: formatDate(acceptedCurrent.acceptedAt, lang) })}</p>}
       </div>
+
+      {needsAgreement && submittable && agreement && (
+        <div className="mx-4 mt-4">
+          <AgreementBox agreement={agreement} rule={rule} locale={lang} dict={dict} intro={dict.commission.agreementIntro}>
+            {rule ? (
+              <AcceptAndSubmit listingId={listing.id} requireApproval={requireApproval} dict={dict} />
+            ) : (
+              <p className="font-semibold text-danger">{dict.commission.errors.no_active_rule}</p>
+            )}
+          </AgreementBox>
+        </div>
+      )}
 
       <PropertyView
         listing={{

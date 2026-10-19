@@ -17,7 +17,7 @@ export default async function AdminExportPage({ params }: PageProps<"/[lang]/adm
     <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-4">
       <p>{e.intro}</p>
       <ul className="flex flex-wrap gap-3">
-        {(["listings", "users", "reports"] as const).map((kind) => (
+        {(["listings", "users", "reports", "commissions"] as const).map((kind) => (
           <li key={kind}>
             {/* Plain links: the browser downloads the file directly. */}
             <a

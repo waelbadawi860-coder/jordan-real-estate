@@ -39,13 +39,15 @@ export type MyListingSummary = {
   updatedAt: string;
   photoCount: number;
   thumbUrl: string | null;
+  /** Agreement versions this listing was accepted under (commission system). */
+  acceptedVersionIds: number[];
 };
 
 export async function getMyListings(userId: string): Promise<MyListingSummary[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
-    .select("id, title, status, deal_type, price, rejection_reason, expires_at, updated_at, listing_images(storage_path, thumb_path, position)")
+    .select("id, title, status, deal_type, price, rejection_reason, expires_at, updated_at, listing_images(storage_path, thumb_path, position), accepted_agreements(agreement_version_id)")
     .eq("seller_id", userId)
     .order("updated_at", { ascending: false })
     .limit(200);
@@ -69,6 +71,7 @@ export async function getMyListings(userId: string): Promise<MyListingSummary[]>
       updatedAt: l.updated_at,
       photoCount: l.listing_images.length,
       thumbUrl: image ? (urls.get(image.thumb_path ?? image.storage_path) ?? null) : null,
+      acceptedVersionIds: l.accepted_agreements.map((a) => a.agreement_version_id),
     };
   });
 }
@@ -98,6 +101,7 @@ export type MyListing = {
   updatedAt: string;
   contact: { phone: string; allowCalls: boolean; allowWhatsapp: boolean } | null;
   images: MyListingImage[];
+  acceptances: { versionId: number; acceptedAt: string }[];
 };
 
 function detailsOf(details: Json): { floor: number | null; furnished: boolean | null } {
@@ -115,7 +119,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, poster_type, rejection_reason, expires_at, published_at, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position)",
+      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, poster_type, rejection_reason, expires_at, published_at, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position), accepted_agreements(agreement_version_id, accepted_at)",
     )
     .eq("id", id)
     .eq("seller_id", userId)
@@ -151,6 +155,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
     updatedAt: data.updated_at,
     contact: contact ? { phone: contact.phone, allowCalls: contact.allow_calls, allowWhatsapp: contact.allow_whatsapp } : null,
     images: images.map((i) => ({ id: i.id, url: urls.get(i.storage_path) ?? null, position: i.position })),
+    acceptances: data.accepted_agreements.map((a) => ({ versionId: a.agreement_version_id, acceptedAt: a.accepted_at })),
   };
 }
 

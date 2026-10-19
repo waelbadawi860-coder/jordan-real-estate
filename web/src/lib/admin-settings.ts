@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 // The site settings an admin may edit from the dashboard, with the allowed
-// values for each. The commission switch is deliberately not here: it is
-// added in Stage 6 and stays off until a lawyer approves the model.
+// values for each. Turning commissions on is additionally blocked on the live
+// site while the current agreement is an unreviewed draft (see saveSettingAction).
 
 const int = (min: number, max: number) => z.coerce.number().int().min(min).max(max);
 const bool = z.enum(["true", "false"]).transform((v) => v === "true");
@@ -22,12 +22,24 @@ export const settingSchemas = {
   max_reports_per_24h: int(1, 100),
   terms_version: z.string().trim().min(1).max(40),
   privacy_version: z.string().trim().min(1).max(40),
+  commission_enabled: bool,
+  payment_cliq_alias: z.string().trim().max(60),
+  payment_cliq_holder: z.string().trim().max(100),
+  payment_bank_name: z.string().trim().max(100),
+  payment_bank_account_name: z.string().trim().max(100),
+  // Jordanian IBAN: JO + 2 check digits + 4-letter bank code + 4-digit branch + 18 characters (30 in total).
+  payment_iban: z
+    .string()
+    .transform((s) => s.replace(/\s/g, "").toUpperCase())
+    .pipe(z.string().regex(/^$|^JO\d{2}[A-Z]{4}\d{4}[A-Z0-9]{18}$/)),
+  payment_note_ar: z.string().trim().max(500),
+  payment_note_en: z.string().trim().max(500),
 } as const;
 
 export type EditableSetting = keyof typeof settingSchemas;
 export const editableSettings = Object.keys(settingSchemas) as EditableSetting[];
 
-export const booleanSettings: EditableSetting[] = ["require_listing_approval", "watermark_enabled"];
+export const booleanSettings: EditableSetting[] = ["require_listing_approval", "watermark_enabled", "commission_enabled"];
 export const numberSettings: EditableSetting[] = [
   "listing_expiry_days",
   "renewal_window_days",
