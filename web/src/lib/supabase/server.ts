@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { Database } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env";
 
@@ -8,6 +9,9 @@ import { publicEnv } from "@/lib/env";
 // Acts as the logged-in user (from their session cookie), so RLS still applies.
 // Create a new one per request; never share it.
 export async function createClient() {
+  // User-specific data is never prerendered. This also lets the auth library
+  // read the clock (to check token expiry) without breaking prerendering.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(

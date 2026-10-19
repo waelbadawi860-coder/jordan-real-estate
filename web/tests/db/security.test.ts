@@ -486,6 +486,58 @@ describe("settings and reference data", () => {
   });
 });
 
+describe("stage 4 rules", () => {
+  it("adding a photo to a published listing sends it back for review", async () => {
+    // Carol is temporarily reactivated for this test (other tests need her suspended).
+    await service.from("profiles").update({ status: "active" }).eq("id", carol.id);
+    const listing = await createListing(carol, "Carol published flat");
+    await makeSubmittable(carol, listing.id);
+    await service
+      .from("listings")
+      .update({ status: "published", published_at: new Date().toISOString(), expires_at: new Date(Date.now() + 86_400_000).toISOString() })
+      .eq("id", listing.id);
+
+    const add = await carol.client.from("listing_images").insert({
+      listing_id: listing.id,
+      storage_path: `${carol.id}/${listing.id}/${randomUUID()}.webp`,
+    });
+    expect(add.error).toBeNull();
+    expect(await statusOf(listing.id)).toBe("pending_approval");
+    await service.from("profiles").update({ status: "suspended" }).eq("id", carol.id);
+  });
+
+  it("thumbnails must be in the owner's own folder", async () => {
+    const draft = await createListing(alice, "Alice thumbnail test");
+    const bad = await alice.client.from("listing_images").insert({
+      listing_id: draft.id,
+      storage_path: `${alice.id}/${draft.id}/${randomUUID()}.webp`,
+      thumb_path: `${bob.id}/${draft.id}/${randomUUID()}.webp`,
+    });
+    expect(bad.error?.code).toBe("42501");
+    await service.from("listings").delete().eq("id", draft.id);
+  });
+
+  it("requesting account deletion withdraws the user's live listings", async () => {
+    const extra = await createUser("leaver");
+    const listing = await createListing(extra, "Leaver listing for deletion test");
+    await makeSubmittable(extra, listing.id);
+    await extra.client.rpc("change_listing_status", { p_listing_id: listing.id, p_new_status: "pending_approval" });
+
+    const { error } = await extra.client.rpc("request_account_deletion");
+    expect(error).toBeNull();
+    expect(await statusOf(listing.id)).toBe("withdrawn");
+    const { data } = await service.from("profiles").select("status").eq("id", extra.id).single();
+    expect(data!.status).toBe("deletion_requested");
+
+    // A user awaiting deletion can no longer create listings.
+    const blocked = await extra.client.from("listings").insert(listingInput("Should be blocked listing"));
+    expect(blocked.error).not.toBeNull();
+
+    await service.from("listings").delete().eq("seller_id", extra.id);
+    await service.auth.admin.deleteUser(extra.id);
+  });
+});
+
 describe("rate limiter (used by 'show phone number')", () => {
   it("cannot be called or read by visitors or users", async () => {
     expect((await anon.rpc("check_rate_limit", { p_key: "x:test", p_max: 1, p_window_seconds: 60 })).error).not.toBeNull();

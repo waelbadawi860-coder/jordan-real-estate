@@ -89,10 +89,10 @@ export type ListingCard = {
   imageUrl: string | null;
 };
 
-const CARD_COLUMNS =
-  "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, listing_images(storage_path, position, public_copied_at)";
+export const CARD_COLUMNS =
+  "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, listing_images(storage_path, thumb_path, position, public_copied_at)";
 
-type CardRow = {
+export type CardRow = {
   id: number;
   title: string;
   price: number;
@@ -105,10 +105,10 @@ type CardRow = {
   bathrooms: number | null;
   details: Json;
   published_at: string | null;
-  listing_images: { storage_path: string; position: number; public_copied_at: string | null }[];
+  listing_images: { storage_path: string; thumb_path?: string | null; position: number; public_copied_at: string | null }[];
 };
 
-function rentPeriodOf(details: Json): "monthly" | "yearly" | null {
+export function rentPeriodOf(details: Json): "monthly" | "yearly" | null {
   if (details && typeof details === "object" && !Array.isArray(details)) {
     const period = details.rent_period;
     if (period === "monthly" || period === "yearly") return period;
@@ -116,7 +116,7 @@ function rentPeriodOf(details: Json): "monthly" | "yearly" | null {
   return null;
 }
 
-function toCard(row: CardRow, ref: ReferenceData): ListingCard {
+export function toCard(row: CardRow, ref: ReferenceData): ListingCard {
   const type = ref.propertyTypes.find((t) => t.id === row.property_type_id);
   const city = ref.cities.find((c) => c.id === row.city_id);
   const hood = ref.neighborhoods.find((n) => n.id === row.neighborhood_id);
@@ -136,8 +136,18 @@ function toCard(row: CardRow, ref: ReferenceData): ListingCard {
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
     publishedAt: row.published_at ?? "",
-    imageUrl: image ? publicImageUrl(image.storage_path) : null,
+    imageUrl: image ? publicImageUrl(image.thumb_path ?? image.storage_path) : null,
   };
+}
+
+function extraDetails(details: Json): { floor: number | null; furnished: boolean | null } {
+  if (details && typeof details === "object" && !Array.isArray(details)) {
+    return {
+      floor: typeof details.floor === "number" ? details.floor : null,
+      furnished: typeof details.furnished === "boolean" ? details.furnished : null,
+    };
+  }
+  return { floor: null, furnished: null };
 }
 
 function escapeLike(value: string): string {
@@ -222,6 +232,8 @@ export type ListingDetail = ListingCard & {
   seller: { displayName: string; memberSince: string } | null;
   latitude: number | null;
   longitude: number | null;
+  floor: number | null;
+  furnished: boolean | null;
 };
 
 export async function getListing(id: number): Promise<ListingDetail | null> {
@@ -271,6 +283,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     // Only an approximate location is ever shown publicly (Stage 7).
     latitude: row.latitude === null ? null : Number(row.latitude),
     longitude: row.longitude === null ? null : Number(row.longitude),
+    ...extraDetails(row.details),
   };
 }
 

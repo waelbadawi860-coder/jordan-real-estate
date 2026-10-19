@@ -190,6 +190,7 @@ export type Database = {
           position: number
           public_copied_at: string | null
           storage_path: string
+          thumb_path: string | null
           width: number | null
         }
         Insert: {
@@ -200,6 +201,7 @@ export type Database = {
           position?: number
           public_copied_at?: string | null
           storage_path: string
+          thumb_path?: string | null
           width?: number | null
         }
         Update: {
@@ -210,6 +212,7 @@ export type Database = {
           position?: number
           public_copied_at?: string | null
           storage_path?: string
+          thumb_path?: string | null
           width?: number | null
         }
         Relationships: [

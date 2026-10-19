@@ -244,6 +244,24 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Bilingual templates. Links go to /auth/confirm with a token hash, so they
+# work even when the email is opened on a different device or browser.
+# NOT ACTIVE YET: Supabase only allows custom templates once a custom SMTP
+# provider (Resend) is configured. Uncomment these sections at that point and
+# run `npx supabase config push`. Until then the default emails are used and
+# links arrive at /auth/callback.
+# [auth.email.template.confirmation]
+# subject = "تأكيد بريدك الإلكتروني | Confirm your email"
+# content_path = "./supabase/templates/confirmation.html"
+#
+# [auth.email.template.recovery]
+# subject = "إعادة تعيين كلمة المرور | Reset your password"
+# content_path = "./supabase/templates/recovery.html"
+#
+# [auth.email.template.email_change]
+# subject = "تأكيد تغيير البريد الإلكتروني | Confirm your new email"
+# content_path = "./supabase/templates/email_change.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

@@ -61,7 +61,41 @@ Legend: [x] done and verified · [ ] not done · (you) = needs your action
 7. On your phone browser or Chrome's phone view (F12 → phone icon): everything fits, buttons are easy to tap.
 8. Visit http://localhost:3000/property/999999 → "page not found".
 
-## Stages 4–8
+## Stage 4 — User accounts and listings
+- [x] Register (name, email, password ≥8 with letters+digits, consent checkbox), email confirmation, login, logout, forgot/reset password
+- [x] Consent recorded at registration (`user_consents`, version `draft-2026-10` until legal review)
+- [x] Open-redirect protection on "return to" links after login
+- [x] My account: name, default phone, preferred language, change password, request account deletion (withdraws listings immediately, removes public photos)
+- [x] Add property form adapts to type (bedrooms/furnished only for homes; rent period only for rentals); neighborhoods follow the chosen city; values kept if there's an error
+- [x] Phone accepted as 07XXXXXXXX / +962…; WhatsApp only for mobile numbers
+- [x] Photos: compressed in the browser to WebP (≤1600px) + 480px thumbnail, hidden GPS data removed, progress bar, main-photo choice, delete; max 20
+- [x] Photos become public only when the listing is published, after a server check that each file is a genuine image; removed again when unpublished
+- [x] Preview page, submit for review, back to draft, resubmit after rejection, withdraw (with reason), mark sold/rented, archive, delete draft, renew (last 7 days or expired)
+- [x] Editing text **or adding photos** to an approved listing sends it back for review (database rules)
+- [x] Favourites: save/remove on property pages; favourites page
+- [x] Header shows "My account" when logged in
+- [x] Automated tests: **83 passed** — 45 database security, 29 unit (incl. Arabic/English text consistency), 9 logged-in page smoke tests incl. real photo upload
+- [x] Production build succeeds
+- [ ] (you) Manual check below, then confirm Stage 4
+
+### Manual check (15 minutes) — `npm run dev`, then http://localhost:3000
+> **Important:** until a custom email service is connected, Supabase only sends emails to the
+> address you use for your Supabase/GitHub account. Register with **that** email.
+
+1. Click **دخول** → **إنشاء حساب**. Enter your name, that email, a password with letters and numbers, tick the consent box → message "we sent a confirmation link".
+2. Open the email → click the link → you arrive logged in (or are asked to log in).
+3. Click **أضف عقارك**. Fill in: للإيجار, monthly, شقة, a title, price 500, Amman / Khalda, phone 07XXXXXXXX → **حفظ ومتابعة إلى الصور**.
+4. Add 2–3 photos from your computer/phone → progress bar → photos appear; make the 2nd one the main photo.
+5. **متابعة إلى المعاينة** → check the preview → **إرسال للمراجعة** → status becomes **قيد المراجعة** (pending review).
+   *(Approving it needs the admin dashboard — Stage 5.)*
+6. **إعلاناتي** (My listings): the listing shows with its status and photo.
+7. **الحساب** (Account): change your name → saved. Try a wrong phone like `123` → error message.
+8. Log out, then use **نسيت كلمة المرور؟** on the login page → open the email **in the same browser** → set a new password.
+9. Open any demo listing → **حفظ في المفضلة** (save) → it appears under **المفضلة**.
+10. Make yourself an administrator for Stage 5 (in a terminal, inside the `web` folder):
+    `npm run make-admin -- your-email@example.com`
+
+## Stages 5–8
 - [ ] Not started
 
 ## Known limitations / open items
@@ -77,4 +111,7 @@ Legend: [x] done and verified · [ ] not done · (you) = needs your action
 - Rental period (monthly/yearly) is shown when the listing provides it; the posting form (Stage 4) will ask for it.
 - Keyword search matches listing titles only (simple and fast); full-text search can be added if needed.
 - Replaced the `next-intl` package with Next.js's built-in language support (fewer dependencies, works with Next.js 16 caching).
+- **Emails:** Supabase's built-in sender only reaches your own Supabase-account email and sends very few per hour. Custom bilingual email templates are ready in `web/supabase/templates/` but Supabase only allows them with a custom email provider (Resend) — to connect before launch. Until then, a password-reset link only works in the browser where it was requested.
+- Watermarking photos is not implemented yet (setting exists, off). It will be added without altering the original photos.
+- Photos uploaded but never attached to a listing (e.g. the browser closed mid-upload) may remain in private storage; a periodic clean-up job is planned.
 - npm blocked install scripts for 3 helper packages (`@parcel/watcher`, `@swc/core`, `unrs-resolver`) as a safety default; left blocked unless a tool turns out to need them.

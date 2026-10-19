@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <body style="margin:0;padding:24px;background:#f7f6f2;font-family:Tahoma,Arial,sans-serif;color:#1c2321">
+    <table role="presentation" width="100%" style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:24px">
+      <tr>
+        <td dir="rtl" style="text-align:right;font-size:16px;line-height:1.7">
+          <h2 style="margin:0 0 12px;color:#0f6b5c">تأكيد تغيير البريد الإلكتروني</h2>
+          <p>اضغط الزر أدناه لتأكيد تغيير بريدك الإلكتروني من {{ .Email }} إلى {{ .NewEmail }}.</p>
+          <p style="text-align:center;margin:24px 0">
+            <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change&next=/my/account"
+               style="background:#0f6b5c;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold">تأكيد التغيير</a>
+          </p>
+          <p style="color:#5d6764;font-size:13px">إذا لم تطلب ذلك، تواصل معنا فوراً.</p>
+        </td>
+      </tr>
+      <tr>
+        <td dir="ltr" style="text-align:left;font-size:15px;line-height:1.6;border-top:1px solid #e3e1d9;padding-top:16px">
+          <strong>Confirm your new email</strong><br />
+          Use the button above (or
+          <a href="{{ .SiteURL }}/en/auth/confirm?token_hash={{ .TokenHash }}&type=email_change&next=/en/my/account">this English link</a>)
+          to confirm changing your email from {{ .Email }} to {{ .NewEmail }}. If you didn't ask for this, contact us right away.
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

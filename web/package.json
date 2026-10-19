@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:db": "vitest run tests/db",
+    "test:smoke": "vitest run tests/smoke",
     "db:push": "supabase db push",
     "make-admin": "node --env-file=.env.local scripts/make-admin.mjs",
     "demo:add": "node --env-file=.env.local scripts/seed-demo.mjs",

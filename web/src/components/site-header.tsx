@@ -1,9 +1,10 @@
-import { Home, Plus, Search, UserRound } from "lucide-react";
+import { Home, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { LanguageSwitch } from "./language-switch";
+import { UserLink, UserLinkView } from "./user-link";
 
 export function SiteHeader({ locale, dict, siteName }: { locale: Locale; dict: Dictionary; siteName: string }) {
   const otherLocale: Locale = locale === "ar" ? "en" : "ar";
@@ -34,14 +35,10 @@ export function SiteHeader({ locale, dict, siteName }: { locale: Locale; dict: D
           >
             <LanguageSwitch targetLocale={otherLocale} label={dict.nav.language} ariaLabel={dict.nav.languageLabel} />
           </Suspense>
-          <Link
-            href={localePath(locale, "/login")}
-            className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-brand-soft"
-          >
-            <UserRound className="size-4" aria-hidden />
-            <span className="hidden sm:inline">{dict.nav.login}</span>
-            <span className="sr-only sm:hidden">{dict.nav.login}</span>
-          </Link>
+          {/* Depends on the session cookie, so it streams in after the page shell. */}
+          <Suspense fallback={<UserLinkView locale={locale} text={dict.nav.login} href="/login" />}>
+            <UserLink locale={locale} loginText={dict.nav.login} accountText={dict.nav.myAccount} />
+          </Suspense>
           <Link
             href={localePath(locale, "/post")}
             className="flex items-center gap-1 whitespace-nowrap rounded-lg bg-accent px-2.5 py-2 text-sm font-bold text-white hover:opacity-90 sm:px-3"
