@@ -1,0 +1,537 @@
+/**
+ * Database security tests (run against the DEVELOPMENT Supabase project only).
+ *
+ * Creates temporary users — anonymous visitor, two ordinary users, a suspended
+ * user and an admin — then checks what each one can and cannot do.
+ * Everything created here is deleted at the end.
+ *
+ * Run with:  npm run test:db
+ */
+import { randomUUID } from "node:crypto";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+const secretKey = process.env.SUPABASE_SECRET_KEY!;
+
+if (!url || !publishableKey || !secretKey) {
+  throw new Error("Fill in web/.env.local before running database tests.");
+}
+
+const noSession = { auth: { persistSession: false, autoRefreshToken: false } };
+const service = createClient(url, secretKey, noSession);
+const anon = createClient(url, publishableKey, noSession);
+
+const runId = randomUUID().slice(0, 8);
+
+type TestUser = { id: string; email: string; client: SupabaseClient };
+
+async function createUser(name: string): Promise<TestUser> {
+  const email = `test-${runId}-${name}@example.com`;
+  const password = `${randomUUID()}Aa1!`;
+  const { data, error } = await service.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { display_name: `Test ${name}` },
+  });
+  if (error) throw error;
+
+  const client = createClient(url, publishableKey, noSession);
+  const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+  if (signInError) throw signInError;
+  return { id: data.user.id, email, client };
+}
+
+let alice: TestUser;
+let bob: TestUser;
+let carol: TestUser; // suspended
+let admin: TestUser;
+let cityId: number;
+let neighborhoodId: number;
+let apartmentTypeId: number;
+const uploadedFiles: string[] = [];
+
+function listingInput(title: string, dealType: "sale" | "rent" = "sale") {
+  return {
+    title,
+    description: "Test listing created by automated security tests.",
+    deal_type: dealType,
+    property_type_id: apartmentTypeId,
+    city_id: cityId,
+    neighborhood_id: neighborhoodId,
+    price: "125000.500",
+    area_sqm: 150,
+    bedrooms: 3,
+    bathrooms: 2,
+  };
+}
+
+async function createListing(user: TestUser, title: string, dealType: "sale" | "rent" = "sale") {
+  const { data, error } = await user.client
+    .from("listings")
+    .insert(listingInput(title, dealType))
+    .select("id, status, seller_id")
+    .single();
+  if (error) throw error;
+  return data as { id: number; status: string; seller_id: string };
+}
+
+/** Adds a contact + one image row so the listing can be submitted. */
+async function makeSubmittable(user: TestUser, listingId: number) {
+  const contact = await user.client
+    .from("listing_contacts")
+    .insert({ listing_id: listingId, phone: "+962791234567" });
+  if (contact.error) throw contact.error;
+  const image = await user.client.from("listing_images").insert({
+    listing_id: listingId,
+    storage_path: `${user.id}/${listingId}/${randomUUID()}.webp`,
+  });
+  if (image.error) throw image.error;
+}
+
+async function statusOf(listingId: number) {
+  const { data } = await service.from("listings").select("status").eq("id", listingId).single();
+  return data?.status;
+}
+
+beforeAll(async () => {
+  const [city, type] = await Promise.all([
+    service.from("cities").select("id").eq("slug", "amman").single(),
+    service.from("property_types").select("id").eq("slug", "apartment").single(),
+  ]);
+  cityId = city.data!.id;
+  apartmentTypeId = type.data!.id;
+  const hood = await service
+    .from("neighborhoods")
+    .select("id")
+    .eq("city_id", cityId)
+    .eq("slug", "abdoun")
+    .single();
+  neighborhoodId = hood.data!.id;
+
+  alice = await createUser("alice");
+  bob = await createUser("bob");
+  carol = await createUser("carol");
+  admin = await createUser("admin");
+
+  await service.from("profiles").update({ status: "suspended" }).eq("id", carol.id);
+  await service.from("profiles").update({ role: "admin" }).eq("id", admin.id);
+});
+
+afterAll(async () => {
+  const userIds = [alice, bob, carol, admin].filter(Boolean).map((u) => u.id);
+  if (uploadedFiles.length) {
+    await service.storage.from("listing-photos").remove(uploadedFiles);
+  }
+  await service.from("listings").delete().in("seller_id", userIds);
+  for (const id of userIds) {
+    await service.auth.admin.deleteUser(id);
+  }
+});
+
+describe("profiles", () => {
+  it("anonymous visitors cannot read any profile", async () => {
+    const { data } = await anon.from("profiles").select("*");
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it("a profile is created automatically on registration", async () => {
+    const { data } = await alice.client.from("profiles").select("display_name, role, status").single();
+    expect(data).toEqual({ display_name: "Test alice", role: "user", status: "active" });
+  });
+
+  it("users read only their own profile", async () => {
+    const { data } = await alice.client.from("profiles").select("id");
+    expect(data!.map((p) => p.id)).toEqual([alice.id]);
+  });
+
+  it("users can update their name but not their role or status", async () => {
+    const ok = await alice.client.from("profiles").update({ display_name: "Alice" }).eq("id", alice.id);
+    expect(ok.error).toBeNull();
+
+    const role = await alice.client.from("profiles").update({ role: "admin" }).eq("id", alice.id);
+    expect(role.error?.code).toBe("42501");
+    const status = await carol.client.from("profiles").update({ status: "active" }).eq("id", carol.id);
+    expect(status.error?.code).toBe("42501");
+  });
+
+  it("users cannot change another user's profile", async () => {
+    await bob.client.from("profiles").update({ display_name: "Hacked" }).eq("id", alice.id);
+    const { data } = await service.from("profiles").select("display_name").eq("id", alice.id).single();
+    expect(data!.display_name).toBe("Alice");
+  });
+
+  it("admins can read all profiles", async () => {
+    const { data } = await admin.client.from("profiles").select("id").in("id", [alice.id, bob.id]);
+    expect(data).toHaveLength(2);
+  });
+
+  it("only admins can suspend accounts, with a reason, and it is audited", async () => {
+    const denied = await alice.client.rpc("admin_set_user_status", {
+      p_user_id: bob.id,
+      p_status: "suspended",
+      p_reason: "test",
+    });
+    expect(denied.error?.message).toContain("not_allowed");
+
+    const ok = await admin.client.rpc("admin_set_user_status", {
+      p_user_id: bob.id,
+      p_status: "suspended",
+      p_reason: "Automated test",
+    });
+    expect(ok.error).toBeNull();
+    const back = await admin.client.rpc("admin_set_user_status", {
+      p_user_id: bob.id,
+      p_status: "active",
+      p_reason: "Automated test reverted",
+    });
+    expect(back.error).toBeNull();
+
+    const log = await admin.client
+      .from("admin_audit_logs")
+      .select("action")
+      .eq("entity_id", bob.id)
+      .eq("action", "user_status_change");
+    expect(log.data).toHaveLength(2);
+  });
+});
+
+describe("listings: ownership and visibility", () => {
+  let draftId: number;
+
+  beforeAll(async () => {
+    draftId = (await createListing(alice, "Alice draft apartment")).id;
+  });
+
+  it("new listings start as drafts owned by the creator", async () => {
+    const { data } = await alice.client.from("listings").select("status, seller_id").eq("id", draftId).single();
+    expect(data).toEqual({ status: "draft", seller_id: alice.id });
+  });
+
+  it("drafts are invisible to visitors and other users, visible to admins", async () => {
+    expect((await anon.from("listings").select("id").eq("id", draftId)).data).toHaveLength(0);
+    expect((await bob.client.from("listings").select("id").eq("id", draftId)).data).toHaveLength(0);
+    expect((await admin.client.from("listings").select("id").eq("id", draftId)).data).toHaveLength(1);
+  });
+
+  it("users cannot create a listing in someone else's name", async () => {
+    const { error } = await alice.client
+      .from("listings")
+      .insert({ ...listingInput("Forged owner listing"), seller_id: bob.id });
+    expect(error?.code).toBe("42501");
+  });
+
+  it("users cannot create a listing that is already published", async () => {
+    const { error } = await alice.client
+      .from("listings")
+      .insert({ ...listingInput("Forged published listing"), status: "published" });
+    expect(error?.code).toBe("42501");
+  });
+
+  it("other users cannot edit or delete someone else's listing", async () => {
+    await bob.client.from("listings").update({ title: "Hacked title" }).eq("id", draftId);
+    await bob.client.from("listings").delete().eq("id", draftId);
+    const { data } = await service.from("listings").select("title").eq("id", draftId).single();
+    expect(data!.title).toBe("Alice draft apartment");
+  });
+
+  it("users cannot change listing status directly", async () => {
+    const { error } = await alice.client.from("listings").update({ status: "published" }).eq("id", draftId);
+    expect(error?.code).toBe("42501");
+  });
+
+  it("suspended users cannot create listings", async () => {
+    const { error } = await carol.client.from("listings").insert(listingInput("Suspended user listing"));
+    expect(error?.code).toBe("42501");
+  });
+
+  it("anonymous visitors cannot create listings", async () => {
+    const { error } = await anon.from("listings").insert(listingInput("Anonymous listing"));
+    expect(error).not.toBeNull();
+  });
+});
+
+describe("listings: approval workflow", () => {
+  let id: number;
+
+  beforeAll(async () => {
+    id = (await createListing(alice, "Alice apartment for approval")).id;
+  });
+
+  it("cannot be submitted without contact details and a photo", async () => {
+    const { error } = await alice.client.rpc("change_listing_status", {
+      p_listing_id: id,
+      p_new_status: "pending_approval",
+    });
+    expect(error?.message).toContain("contact_required");
+  });
+
+  it("owner submits; owner cannot approve their own listing", async () => {
+    await makeSubmittable(alice, id);
+    const submit = await alice.client.rpc("change_listing_status", {
+      p_listing_id: id,
+      p_new_status: "pending_approval",
+    });
+    expect(submit.error).toBeNull();
+    expect(submit.data).toBe("pending_approval");
+
+    const approve = await alice.client.rpc("change_listing_status", {
+      p_listing_id: id,
+      p_new_status: "published",
+    });
+    expect(approve.error?.message).toContain("invalid_status_transition");
+  });
+
+  it("other users cannot change the status of someone else's listing", async () => {
+    const { error } = await bob.client.rpc("change_listing_status", {
+      p_listing_id: id,
+      p_new_status: "withdrawn",
+    });
+    expect(error?.message).toContain("listing_not_found");
+  });
+
+  it("rejection requires a reason", async () => {
+    const { error } = await admin.client.rpc("change_listing_status", {
+      p_listing_id: id,
+      p_new_status: "rejected",
+    });
+    expect(error?.message).toContain("reason_required");
+  });
+
+  it("admin approves; listing becomes public with a 30-day expiry and the action is audited", async () => {
+    const { data, error } = await admin.client.rpc("change_listing_status", {
+      p_listing_id: id,
+      p_new_status: "published",
+    });
+    expect(error).toBeNull();
+    expect(data).toBe("published");
+
+    const pub = await anon.from("listings").select("id, published_at, expires_at").eq("id", id).single();
+    expect(pub.data).not.toBeNull();
+    const days =
+      (new Date(pub.data!.expires_at).getTime() - new Date(pub.data!.published_at).getTime()) / 86_400_000;
+    expect(Math.round(days)).toBe(30);
+
+    const images = await anon.from("listing_images").select("id").eq("listing_id", id);
+    expect(images.data).toHaveLength(1);
+
+    const audit = await admin.client
+      .from("admin_audit_logs")
+      .select("action")
+      .eq("entity_type", "listing")
+      .eq("entity_id", String(id));
+    expect(audit.data!.map((a) => a.action)).toContain("listing_status_change");
+
+    const notes = await alice.client.from("notifications").select("type").eq("data->>listing_id", String(id));
+    expect(notes.data!.map((n) => n.type)).toContain("listing_status_changed");
+  });
+
+  it("history records every status change", async () => {
+    const { data } = await alice.client
+      .from("listing_status_history")
+      .select("to_status")
+      .eq("listing_id", id)
+      .order("id");
+    expect(data!.map((h) => h.to_status)).toEqual(["draft", "pending_approval", "published"]);
+  });
+
+  it("seller phone numbers are never readable through the public API", async () => {
+    const direct = await anon.from("listing_contacts").select("phone").eq("listing_id", id);
+    expect(direct.data ?? []).toHaveLength(0);
+    const otherUser = await bob.client.from("listing_contacts").select("phone").eq("listing_id", id);
+    expect(otherUser.data ?? []).toHaveLength(0);
+    const rpc = await anon.rpc("get_listing_contact", { p_listing_id: id });
+    expect(rpc.error).not.toBeNull();
+    const rpcUser = await bob.client.rpc("get_listing_contact", { p_listing_id: id });
+    expect(rpcUser.error).not.toBeNull();
+
+    // Trusted server code can read it (after applying its own rate limits).
+    const server = await service.rpc("get_listing_contact", { p_listing_id: id });
+    expect(server.data).toEqual([{ phone: "+962791234567", allow_calls: true, allow_whatsapp: true }]);
+  });
+
+  it("editing a published listing sends it back for approval", async () => {
+    const edit = await alice.client.from("listings").update({ price: "1.000" }).eq("id", id);
+    expect(edit.error).toBeNull();
+    expect(await statusOf(id)).toBe("pending_approval");
+    expect((await anon.from("listings").select("id").eq("id", id)).data).toHaveLength(0);
+
+    await admin.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "published" });
+    expect(await statusOf(id)).toBe("published");
+  });
+
+  it("a sale listing cannot be marked as rented", async () => {
+    const { error } = await alice.client.rpc("change_listing_status", {
+      p_listing_id: id,
+      p_new_status: "rented",
+    });
+    expect(error?.message).toContain("rented_requires_rent_listing");
+  });
+
+  it("expired listings disappear from public results; the expiry job is not public", async () => {
+    const denied = await anon.rpc("expire_listings");
+    expect(denied.error).not.toBeNull();
+    const deniedUser = await alice.client.rpc("expire_listings");
+    expect(deniedUser.error).not.toBeNull();
+
+    await service
+      .from("listings")
+      .update({ expires_at: new Date(Date.now() - 60_000).toISOString() })
+      .eq("id", id);
+    expect((await anon.from("listings").select("id").eq("id", id)).data).toHaveLength(0);
+
+    const run = await service.rpc("expire_listings");
+    expect(run.error).toBeNull();
+    expect(await statusOf(id)).toBe("expired");
+  });
+
+  it("owner can renew an expired listing", async () => {
+    const { error } = await alice.client.rpc("renew_listing", { p_listing_id: id });
+    expect(error).toBeNull();
+    expect(await statusOf(id)).toBe("published");
+  });
+
+  it("owner can withdraw, then archive; drafts only can be deleted", async () => {
+    const del = await alice.client.from("listings").delete().eq("id", id);
+    expect(del.error).toBeNull();
+    expect(await statusOf(id)).toBe("published"); // not deleted
+
+    await alice.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "withdrawn" });
+    expect(await statusOf(id)).toBe("withdrawn");
+    await alice.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "archived" });
+    expect(await statusOf(id)).toBe("archived");
+  });
+});
+
+describe("favourites", () => {
+  let publishedId: number;
+  let draftId: number;
+
+  beforeAll(async () => {
+    publishedId = (await createListing(bob, "Bob published villa")).id;
+    await makeSubmittable(bob, publishedId);
+    await bob.client.rpc("change_listing_status", { p_listing_id: publishedId, p_new_status: "pending_approval" });
+    await admin.client.rpc("change_listing_status", { p_listing_id: publishedId, p_new_status: "published" });
+    draftId = (await createListing(bob, "Bob draft villa")).id;
+  });
+
+  it("users can save published listings but not drafts", async () => {
+    const ok = await alice.client.from("favourites").insert({ listing_id: publishedId });
+    expect(ok.error).toBeNull();
+    const bad = await alice.client.from("favourites").insert({ listing_id: draftId });
+    expect(bad.error?.code).toBe("42501");
+  });
+
+  it("favourites are private to their owner", async () => {
+    expect((await alice.client.from("favourites").select("listing_id")).data).toHaveLength(1);
+    expect((await bob.client.from("favourites").select("listing_id")).data).toHaveLength(0);
+    expect((await anon.from("favourites").select("listing_id")).data ?? []).toHaveLength(0);
+  });
+
+  it("users can report a published listing once while it is open", async () => {
+    const first = await alice.client.from("listing_reports").insert({ listing_id: publishedId, reason: "wrong_info" });
+    expect(first.error).toBeNull();
+    const again = await alice.client.from("listing_reports").insert({ listing_id: publishedId, reason: "fraud" });
+    expect(again.error).not.toBeNull();
+    const seen = await bob.client.from("listing_reports").select("id").eq("listing_id", publishedId);
+    expect(seen.data).toHaveLength(0);
+  });
+});
+
+describe("anti-spam limits", () => {
+  it("blocks an identical listing title submitted twice within 10 minutes", async () => {
+    await createListing(bob, "Duplicate test flat");
+    const { error } = await bob.client.from("listings").insert(listingInput("Duplicate test flat"));
+    expect(error?.message).toContain("duplicate_listing");
+  });
+
+  it("blocks more than 3 new listings per user in 24 hours", async () => {
+    // Bob has already created 3 listings in this test run.
+    const { error } = await bob.client.from("listings").insert(listingInput("Bob fourth listing"));
+    expect(error?.message).toContain("listing_limit_reached");
+  });
+});
+
+describe("settings and reference data", () => {
+  it("ordinary users cannot change settings, cities or the audit log", async () => {
+    await alice.client.from("site_settings").update({ value: 999 }).eq("key", "listing_expiry_days");
+    const { data } = await service.from("site_settings").select("value").eq("key", "listing_expiry_days").single();
+    expect(data!.value).toBe(30);
+
+    const city = await alice.client.from("cities").insert({ slug: "fake-city", name_ar: "مدينة", name_en: "Fake" });
+    expect(city.error).not.toBeNull();
+
+    expect((await alice.client.from("admin_audit_logs").select("id")).data).toHaveLength(0);
+  });
+
+  it("private settings are hidden from the public", async () => {
+    const { data } = await anon.from("site_settings").select("key").eq("key", "max_reports_per_24h");
+    expect(data).toHaveLength(0);
+  });
+
+  it("admins can change settings and the change is audited", async () => {
+    const change = await admin.client.from("site_settings").update({ value: 31 }).eq("key", "listing_expiry_days");
+    expect(change.error).toBeNull();
+    const revert = await admin.client.from("site_settings").update({ value: 30 }).eq("key", "listing_expiry_days");
+    expect(revert.error).toBeNull();
+    const log = await admin.client
+      .from("admin_audit_logs")
+      .select("id")
+      .eq("entity_type", "site_settings")
+      .eq("entity_id", "listing_expiry_days")
+      .eq("actor_id", admin.id);
+    expect(log.data!.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("photo storage", () => {
+  // 1x1 transparent PNG
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+    "base64",
+  );
+  let listingId: number;
+  let path: string;
+
+  beforeAll(async () => {
+    const { data } = await service.from("listings").select("id").eq("seller_id", alice.id).eq("status", "draft").limit(1).single();
+    listingId = data!.id;
+    path = `${alice.id}/${listingId}/${randomUUID()}.png`;
+  });
+
+  it("owners can upload photos to their own listing folder", async () => {
+    const { error } = await alice.client.storage.from("listing-photos").upload(path, png, { contentType: "image/png" });
+    expect(error).toBeNull();
+    uploadedFiles.push(path);
+  });
+
+  it("users cannot upload into another user's folder or listing", async () => {
+    const other = `${alice.id}/${listingId}/${randomUUID()}.png`;
+    const { error } = await bob.client.storage.from("listing-photos").upload(other, png, { contentType: "image/png" });
+    expect(error).not.toBeNull();
+  });
+
+  it("non-image files are rejected", async () => {
+    const bad = `${alice.id}/${listingId}/${randomUUID()}.png`;
+    const { error } = await alice.client.storage
+      .from("listing-photos")
+      .upload(bad, Buffer.from("not an image"), { contentType: "text/plain" });
+    expect(error).not.toBeNull();
+  });
+
+  it("nobody can upload directly to the public bucket", async () => {
+    const { error } = await alice.client.storage
+      .from("listing-photos-public")
+      .upload(`${alice.id}/${listingId}/${randomUUID()}.png`, png, { contentType: "image/png" });
+    expect(error).not.toBeNull();
+  });
+
+  it("private photos are not downloadable by visitors or other users", async () => {
+    expect((await anon.storage.from("listing-photos").download(path)).error).not.toBeNull();
+    expect((await bob.client.storage.from("listing-photos").download(path)).error).not.toBeNull();
+    expect((await alice.client.storage.from("listing-photos").download(path)).error).toBeNull();
+    expect((await admin.client.storage.from("listing-photos").download(path)).error).toBeNull();
+  });
+});
