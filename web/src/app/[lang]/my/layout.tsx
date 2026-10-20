@@ -1,4 +1,4 @@
-import { Bell, Gauge, HandCoins, Heart, LayoutList, UserRound } from "lucide-react";
+import { Bell, Gauge, HandCoins, Heart, LayoutList, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
@@ -24,6 +24,7 @@ export default async function MyLayout({ children, params }: LayoutProps<"/[lang
     ...(showCommissions ? [{ href: "/my/commissions", label: dict.commission.nav, icon: HandCoins }] : []),
     { href: "/my/notifications", label: dict.notifications.title, icon: Bell },
     { href: "/my/account", label: dict.account.navAccount, icon: UserRound },
+    { href: "/my/security", label: dict.security.nav, icon: ShieldCheck },
     // Only a convenience link: the admin pages check permissions themselves.
     ...(profile?.role === "admin" && profile.status === "active" ? [{ href: "/admin", label: dict.admin.title, icon: Gauge }] : []),
   ];

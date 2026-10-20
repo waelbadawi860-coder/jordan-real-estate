@@ -101,6 +101,12 @@ describe("logged-in pages", () => {
     expect(await res.text()).toContain(email);
   });
 
+  it("show the two-step login page", async () => {
+    const res = await get("/my/security");
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain("التحقق بخطوتين");
+  });
+
   it("show the add-property form and favourites", async () => {
     expect((await get("/post")).status).toBe(200);
     expect((await get("/my/favourites")).status).toBe(200);

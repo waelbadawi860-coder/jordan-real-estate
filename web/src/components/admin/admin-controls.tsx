@@ -47,6 +47,7 @@ function useRun(a: AdminText) {
           ownAccount: a.errors.ownAccount,
           duplicate: a.locations.duplicate,
           draftAgreement: a.settings.draftAgreement,
+          needSecondStep: a.settings.needSecondStep,
         };
         setFeedback({ ok: false, text: map[result.error] ?? a.errors.generic });
       }

@@ -46,7 +46,7 @@ describe("accessibility (serious and critical issues)", () => {
     });
   }
 
-  for (const path of ["/my/listings", "/post", "/my/account", "/my/notifications", "/my/favourites"]) {
+  for (const path of ["/my/listings", "/post", "/my/account", "/my/notifications", "/my/favourites", "/my/security"]) {
     it(`signed-in page ${path}`, async () => {
       expect(await audit(path, user)).toEqual([]);
     });

@@ -12,7 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Every admin action starts by confirming, on the server, that the caller is
 // an active administrator. The database repeats the check (RLS + is_admin()).
 
-export type AdminResult = { ok: true } | { ok: false; error: "notAllowed" | "reasonRequired" | "invalid" | "invalidTransition" | "ownAccount" | "duplicate" | "draftAgreement" | "generic" };
+export type AdminResult = { ok: true } | { ok: false; error: "notAllowed" | "reasonRequired" | "invalid" | "invalidTransition" | "ownAccount" | "duplicate" | "draftAgreement" | "needSecondStep" | "generic" };
 
 const idSchema = z.number().int().positive();
 const uuidSchema = z.string().uuid();
@@ -208,6 +208,10 @@ export async function saveSettingAction(key: unknown, value: unknown): Promise<A
     const { data: current } = await actor.supabase.from("agreement_versions").select("is_draft").eq("is_current", true).maybeSingle();
     if (!current || current.is_draft) return { ok: false, error: "draftAgreement" };
   }
+
+  // Switching on two-step login from a session without it would lock this
+  // administrator out of the dashboard, including this switch.
+  if (key === "require_admin_mfa" && parsed.data === true && actor.aal !== "aal2") return { ok: false, error: "needSecondStep" };
 
   // The audit trigger records who changed what, with old and new values.
   const { data, error } = await actor.supabase

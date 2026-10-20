@@ -761,10 +761,12 @@
         "payment_note_ar": "Extra payment instructions (Arabic)",
         "payment_note_en": "Extra payment instructions (English)",
         "declaration_version": "Seller declaration wording version",
-        "removed_photo_retention_days": "Days photo files are kept after an ad leaves the site"
+        "removed_photo_retention_days": "Days photo files are kept after an ad leaves the site",
+        "require_admin_mfa": "Require two-step login for administrators"
       },
       "draftAgreement": "Commissions can't be enabled on the live site while the current agreement is an unreviewed draft.",
-      "invalid": "Invalid value."
+      "invalid": "Invalid value.",
+      "needSecondStep": "Turn on two-step login for your account and enter a code first, then switch this on."
     },
     "locations": {
       "cities": "Cities",
@@ -881,5 +883,26 @@
     "text": "I declare that all information and photos in this ad are true and current, that I own the property or am authorised by its owner to advertise it, and that I have the right to publish these photos. I alone am fully responsible for the ad's content and any dealings that result from it. I understand that the platform accepting the ad for publication is only a check against its posting policy, and does not mean it has verified the ad's details, my ownership or my capacity.",
     "label": "I have read and accept the seller declaration",
     "required": "You must accept the seller declaration before submitting."
+  },
+  "security": {
+    "nav": "Security",
+    "title": "Two-step login",
+    "intro": "Once it is on, signing in also asks for a 6-digit code from an authenticator app on your phone (such as Google Authenticator or Microsoft Authenticator). It is required for administrators on the live site.",
+    "adminRequired": "The admin dashboard requires two-step login. Turn it on or enter your code to continue.",
+    "enrolIntro": "Two-step login isn't on for your account yet.",
+    "enrol": "Turn on two-step login",
+    "scan": "Open your authenticator app, scan this code, then enter the 6-digit code it shows.",
+    "qrAlt": "QR code to add this account to your authenticator app",
+    "manualKey": "Or enter this key by hand",
+    "challenge": "Enter the 6-digit code from your authenticator app.",
+    "codeLabel": "Code",
+    "verify": "Confirm",
+    "codeInvalid": "Enter 6 digits.",
+    "codeWrong": "The code is wrong or has expired. Try the current one.",
+    "enabled": "Verified.",
+    "active": "Two-step login is on for this account.",
+    "remove": "Turn off two-step login",
+    "removeConfirm": "Turn off two-step login? Without it you can't open the admin dashboard on the live site.",
+    "error": "Something went wrong. Please try again."
   }
 }

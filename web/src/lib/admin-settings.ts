@@ -18,6 +18,7 @@ export const settingSchemas = {
   min_images_per_listing: int(0, 10),
   image_max_dimension_px: int(800, 3000),
   require_listing_approval: bool,
+  require_admin_mfa: bool,
   max_reports_per_24h: int(1, 100),
   terms_version: z.string().trim().min(1).max(40),
   declaration_version: z.string().trim().min(1).max(40),
@@ -40,7 +41,7 @@ export const settingSchemas = {
 export type EditableSetting = keyof typeof settingSchemas;
 export const editableSettings = Object.keys(settingSchemas) as EditableSetting[];
 
-export const booleanSettings: EditableSetting[] = ["require_listing_approval", "commission_enabled"];
+export const booleanSettings: EditableSetting[] = ["require_listing_approval", "require_admin_mfa", "commission_enabled"];
 export const numberSettings: EditableSetting[] = [
   "listing_expiry_days",
   "renewal_window_days",
