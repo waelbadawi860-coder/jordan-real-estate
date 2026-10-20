@@ -10,10 +10,10 @@
   --brand: #0f6b5c;
   --brand-strong: #0a5045;
   --brand-soft: #e3f1ee;
-  --accent: #c2741f;
+  --accent: #9a5410; /* white text on it: 5.8:1 (WCAG AA) */
   --accent-soft: #fbefe1;
   --danger: #b42318;
-  --whatsapp: #1a8f4a;
+  --whatsapp: #157a3f; /* white text on it: 5.4:1 (WCAG AA) */
   color-scheme: light;
 }
 

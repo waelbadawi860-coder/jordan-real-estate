@@ -63,6 +63,20 @@ export async function getCommissionTerms(): Promise<{ agreement: AgreementVersio
 }
 
 /**
+ * Same as getCommissionTerms but never cached. Used where a seller ACCEPTS the
+ * agreement, so the text and rule shown are exactly what the database records.
+ */
+export async function getCommissionTermsFresh(): Promise<{ agreement: AgreementVersion | null; rules: CommissionRule[] }> {
+  const supabase = await createClient();
+  const [versions, rules] = await Promise.all([
+    supabase.from("agreement_versions").select("*").eq("is_current", true).maybeSingle(),
+    supabase.from("commission_rules").select("*").eq("is_active", true).order("deal_type"),
+  ]);
+  if (versions.error || rules.error) throw new Error("Loading commission terms failed");
+  return { agreement: versions.data ? toVersion(versions.data) : null, rules: (rules.data ?? []).map(toRule) };
+}
+
+/**
  * Whether the commission system is on, read fresh (never cached) so switching
  * it off takes effect immediately for sellers. The database enforces the same
  * setting independently.

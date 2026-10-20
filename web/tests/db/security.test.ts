@@ -617,6 +617,55 @@ describe("stage 5: admin functions", () => {
   });
 });
 
+describe("stage 7: location privacy and notifications", () => {
+  it("only the owner and admins can read the exact map pin; others get a rounded position", async () => {
+    const listing = await createListing(alice, "Alice pinned flat");
+    await service.from("listings").update({ latitude: 31.951234, longitude: 35.873456 }).eq("id", listing.id);
+
+    const exact = await bob.client.from("listings").select("latitude").eq("id", listing.id);
+    expect(exact.error?.code).toBe("42501");
+    const anonExact = await anon.from("listings").select("longitude").limit(1);
+    expect(anonExact.error?.code).toBe("42501");
+
+    const own = await alice.client.rpc("get_listing_location", { p_listing_id: listing.id });
+    expect(own.data?.[0]).toEqual({ latitude: 31.951234, longitude: 35.873456 });
+    const other = await bob.client.rpc("get_listing_location", { p_listing_id: listing.id });
+    expect(other.data ?? []).toHaveLength(0);
+    const asAdmin = await admin.client.rpc("get_listing_location", { p_listing_id: listing.id });
+    expect(asAdmin.data).toHaveLength(1);
+
+    const approx = await alice.client.from("listings").select("approx_latitude, approx_longitude").eq("id", listing.id).single();
+    expect(approx.data).toEqual({ approx_latitude: 31.95, approx_longitude: 35.87 });
+    await service.from("listings").delete().eq("id", listing.id);
+  });
+
+  it("admins are notified of new submissions; sellers of expiry", async () => {
+    const { data: live } = await service.from("listings").select("id, seller_id").eq("seller_id", bob.id).eq("status", "published").limit(1).single();
+    await service.from("listings").update({ expires_at: new Date(Date.now() + 86_400_000).toISOString() }).eq("id", live!.id);
+    await service.rpc("notify_expiring_listings");
+    const soon = await bob.client.from("notifications").select("type").eq("type", "listing_expiring").eq("data->>listing_id", String(live!.id));
+    expect(soon.data).toHaveLength(1);
+    await service.rpc("notify_expiring_listings"); // no duplicates
+    expect((await bob.client.from("notifications").select("id").eq("type", "listing_expiring").eq("data->>listing_id", String(live!.id))).data).toHaveLength(1);
+
+    await service.from("listings").update({ expires_at: new Date(Date.now() - 1000).toISOString() }).eq("id", live!.id);
+    await service.rpc("expire_listings");
+    expect((await bob.client.from("notifications").select("id").eq("type", "listing_expired").eq("data->>listing_id", String(live!.id))).data).toHaveLength(1);
+
+    const submitted = await admin.client.from("notifications").select("type").eq("type", "listing_submitted");
+    expect(submitted.data!.length).toBeGreaterThan(0);
+  });
+
+  it("users can only mark their own notifications as read, and can't create any", async () => {
+    const forged = await alice.client.from("notifications").insert({ user_id: alice.id, type: "fake", data: {} });
+    expect(forged.error).not.toBeNull();
+    const { data: bobs } = await service.from("notifications").select("id").eq("user_id", bob.id).limit(1);
+    await alice.client.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", bobs![0].id);
+    const check = await service.from("notifications").select("read_at").eq("id", bobs![0].id).single();
+    expect(check.data!.read_at).toBeNull();
+  });
+});
+
 describe("rate limiter (used by 'show phone number')", () => {
   it("cannot be called or read by visitors or users", async () => {
     expect((await anon.rpc("check_rate_limit", { p_key: "x:test", p_max: 1, p_window_seconds: 60 })).error).not.toBeNull();

@@ -24,7 +24,7 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
     supabase
       .from("listings")
       .select(
-        "*, profiles!listings_seller_id_fkey(display_name, status), listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position)",
+        "id, title, status, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, description, poster_type, seller_id, submitted_at, expires_at, profiles!listings_seller_id_fkey(display_name, status), listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position)",
       )
       .eq("id", id)
       .maybeSingle(),

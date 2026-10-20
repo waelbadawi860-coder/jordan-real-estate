@@ -246,7 +246,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
   const { data, error } = await sb
     .from("listings")
     .select(
-      "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, description, poster_type, updated_at, expires_at, seller_id, latitude, longitude, listing_images(storage_path, position, public_copied_at, width, height)",
+      "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, description, poster_type, updated_at, expires_at, seller_id, approx_latitude, approx_longitude, listing_images(storage_path, position, public_copied_at, width, height)",
     )
     .eq("id", id)
     .eq("status", "published")
@@ -260,8 +260,8 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     updated_at: string;
     expires_at: string;
     seller_id: string;
-    latitude: number | null;
-    longitude: number | null;
+    approx_latitude: number | null;
+    approx_longitude: number | null;
     listing_images: { storage_path: string; position: number; public_copied_at: string | null; width: number | null; height: number | null }[];
   };
 
@@ -280,9 +280,9 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     seller: seller.data?.[0]
       ? { displayName: seller.data[0].display_name, memberSince: seller.data[0].member_since }
       : null,
-    // Only an approximate location is ever shown publicly (Stage 7).
-    latitude: row.latitude === null ? null : Number(row.latitude),
-    longitude: row.longitude === null ? null : Number(row.longitude),
+    // Only the rounded (≈1 km) position is ever public; the exact pin is private.
+    latitude: row.approx_latitude === null ? null : Number(row.approx_latitude),
+    longitude: row.approx_longitude === null ? null : Number(row.approx_longitude),
     ...extraDetails(row.details),
   };
 }

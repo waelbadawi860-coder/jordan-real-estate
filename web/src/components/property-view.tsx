@@ -5,6 +5,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { LocalizedName } from "@/lib/data/public";
 import { formatDate, formatNumber, formatPrice, t } from "@/lib/format";
+import { ApproxMap } from "./map/approx-map";
 
 /** Everything needed to show a listing — used by the public page and the seller's preview. */
 export type PropertyViewData = {
@@ -27,6 +28,8 @@ export type PropertyViewData = {
   updatedAt: string;
   images: { url: string; width: number | null; height: number | null }[];
   seller: { displayName: string; memberSince: string } | null;
+  /** Rounded (≈1 km) public position, if the seller set a pin. */
+  approxLocation?: { lat: number; lng: number } | null;
 };
 
 export function PropertyView({
@@ -113,6 +116,14 @@ export function PropertyView({
               {listing.description.trim() || d.noDescription}
             </p>
           </section>
+
+          {listing.approxLocation && (
+            <ApproxMap
+              lat={listing.approxLocation.lat}
+              lng={listing.approxLocation.lng}
+              text={{ showMap: dict.map.showMap, approxNote: dict.map.approxNote, loading: dict.map.loading }}
+            />
+          )}
 
           <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
             <div className="flex gap-1">

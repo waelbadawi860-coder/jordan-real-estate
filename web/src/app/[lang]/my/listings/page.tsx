@@ -6,7 +6,7 @@ import { StatusActions } from "@/components/status-actions";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireUser } from "@/lib/auth";
-import { getCommissionTerms, isCommissionEnabled } from "@/lib/data/commission";
+import { getCommissionTermsFresh, isCommissionEnabled } from "@/lib/data/commission";
 import { getMyListings } from "@/lib/data/owner";
 import { getReferenceData } from "@/lib/data/public";
 import { formatDate, formatPrice, t } from "@/lib/format";
@@ -37,7 +37,7 @@ export default async function MyListingsPage({ params }: PageProps<"/[lang]/my/l
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const user = await requireUser(lang, "/my/listings");
-  const [dict, listings, ref, terms] = await Promise.all([getDictionary(lang), getMyListings(user.id), getReferenceData(), getCommissionTerms()]);
+  const [dict, listings, ref, terms] = await Promise.all([getDictionary(lang), getMyListings(user.id), getReferenceData(), getCommissionTermsFresh()]);
   const commissionOn = await isCommissionEnabled();
   const currentAgreementId = terms.agreement?.id ?? -1;
   const m = dict.myListings;

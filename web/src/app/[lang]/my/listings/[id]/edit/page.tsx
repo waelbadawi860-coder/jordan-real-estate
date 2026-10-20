@@ -11,6 +11,7 @@ import { requireUser } from "@/lib/auth";
 import { getMyListing } from "@/lib/data/owner";
 import { getReferenceData } from "@/lib/data/public";
 import { displayPhone } from "@/lib/format";
+import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
 
@@ -29,6 +30,10 @@ export default async function EditListingPage({ params, searchParams }: PageProp
   const user = await requireUser(lang, `/my/listings/${id}/edit`);
   const [dict, listing, ref, sp] = await Promise.all([getDictionary(lang), getMyListing(user.id, id), getReferenceData(), searchParams]);
   if (!listing) notFound();
+  // The exact pin is private: only the owner (and admins) can read it.
+  const supabase = await createClient();
+  const { data: location } = await supabase.rpc("get_listing_location", { p_listing_id: id });
+  const pin = location?.[0];
 
   const Arrow = lang === "ar" ? ArrowLeft : ArrowRight;
   const editable = EDITABLE.includes(listing.status);
@@ -92,6 +97,8 @@ export default async function EditListingPage({ params, searchParams }: PageProp
             phone: listing.contact ? displayPhone(listing.contact.phone).replace(/\s/g, "") : "",
             allowCalls: listing.contact?.allowCalls ?? true,
             allowWhatsapp: listing.contact?.allowWhatsapp ?? true,
+            latitude: pin?.latitude != null ? String(pin.latitude) : "",
+            longitude: pin?.longitude != null ? String(pin.longitude) : "",
           }}
         />
       ) : (

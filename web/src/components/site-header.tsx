@@ -15,7 +15,9 @@ export function SiteHeader({ locale, dict, siteName }: { locale: Locale; dict: D
           <span className="grid size-9 place-items-center rounded-lg bg-brand text-white" aria-hidden>
             <Home className="size-5" />
           </span>
-          {siteName}
+          {/* On very narrow phones only the logo icon shows, to leave room for the buttons. */}
+          <span className="hidden min-[380px]:inline">{siteName}</span>
+          <span className="sr-only min-[380px]:hidden">{siteName}</span>
         </Link>
 
         <nav className="ms-auto flex items-center gap-0.5 whitespace-nowrap sm:gap-2" aria-label={dict.nav.home}>
@@ -37,7 +39,7 @@ export function SiteHeader({ locale, dict, siteName }: { locale: Locale; dict: D
           </Suspense>
           {/* Depends on the session cookie, so it streams in after the page shell. */}
           <Suspense fallback={<UserLinkView locale={locale} text={dict.nav.login} href="/login" />}>
-            <UserLink locale={locale} loginText={dict.nav.login} accountText={dict.nav.myAccount} />
+            <UserLink locale={locale} loginText={dict.nav.login} accountText={dict.nav.myAccount} bellLabel={dict.notifications.bellLabel} />
           </Suspense>
           <Link
             href={localePath(locale, "/post")}

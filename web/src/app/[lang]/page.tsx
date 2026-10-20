@@ -1,11 +1,13 @@
 import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/json-ld";
 import { cardLabels, ListingCard } from "@/components/listing-card";
 import { SearchForm } from "@/components/search-form";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { getReferenceData, searchListings } from "@/lib/data/public";
+import { getReferenceData, searchListings, siteName } from "@/lib/data/public";
+import { publicEnv } from "@/lib/env";
 
 export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
@@ -19,8 +21,23 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const labels = cardLabels(dict);
   const Arrow = lang === "ar" ? ArrowLeft : ArrowRight;
 
+  const site = publicEnv.NEXT_PUBLIC_SITE_URL;
+  const structured = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteName(ref, lang),
+    url: `${site}${localePath(lang, "/")}`,
+    inLanguage: lang,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${site}${localePath(lang, "/search")}?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
+      <JsonLd data={structured} />
       <section className="bg-brand-strong text-white">
         <div className="mx-auto max-w-6xl px-4 pb-8 pt-8 sm:pt-12">
           <h1 className="text-2xl font-extrabold sm:text-4xl">{dict.search.heroTitle}</h1>

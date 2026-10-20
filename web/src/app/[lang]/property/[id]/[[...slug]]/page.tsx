@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ContactPanel } from "@/components/contact-panel";
 import { FavouriteButton } from "@/components/favourite-button";
+import { JsonLd } from "@/components/json-ld";
 import { PropertyView } from "@/components/property-view";
 import { listingPath } from "@/lib/paths";
 import { ShareButton } from "@/components/share-button";
@@ -82,9 +83,45 @@ export default async function PropertyPage({ params }: Props) {
   const user = await getSessionUser();
   const saved = user ? await isFavourite(user.id, listing.id) : false;
 
+  const canonical = `${publicEnv.NEXT_PUBLIC_SITE_URL}${listingPath(lang, listing.id, listing.title)}`;
+  const structured = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: listing.title,
+    description: listing.description.slice(0, 500) || undefined,
+    url: canonical,
+    datePosted: listing.publishedAt || undefined,
+    image: listing.images.slice(0, 5).map((i) => i.url),
+    offers: {
+      "@type": "Offer",
+      price: listing.price,
+      priceCurrency: "JOD",
+      businessFunction: listing.dealType === "sale" ? "http://purl.org/goodrelations/v1#Sell" : "http://purl.org/goodrelations/v1#LeaseOut",
+      availability: "https://schema.org/InStock",
+    },
+    about: {
+      "@type": "Accommodation",
+      name: listing.type[lang],
+      floorSize: listing.areaSqm !== null ? { "@type": "QuantitativeValue", value: listing.areaSqm, unitCode: "MTK" } : undefined,
+      numberOfBedrooms: listing.bedrooms ?? undefined,
+      numberOfBathroomsTotal: listing.bathrooms ?? undefined,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: listing.neighborhood?.[lang] ?? listing.city[lang],
+        addressRegion: listing.city[lang],
+        addressCountry: "JO",
+      },
+    },
+  };
+
   return (
+    <>
+    <JsonLd data={structured} />
     <PropertyView
-      listing={listing}
+      listing={{
+        ...listing,
+        approxLocation: listing.latitude !== null && listing.longitude !== null ? { lat: listing.latitude, lng: listing.longitude } : null,
+      }}
       locale={lang}
       dict={dict}
       back={{ href: localePath(lang, "/search"), label: d.backToResults }}
@@ -122,5 +159,6 @@ export default async function PropertyPage({ params }: Props) {
         </div>
       }
     />
+    </>
   );
 }

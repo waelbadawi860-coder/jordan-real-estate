@@ -16,7 +16,7 @@ export function LanguageSwitch({ targetLocale, label, ariaLabel }: { targetLocal
       lang={targetLocale}
       hrefLang={targetLocale}
       aria-label={ariaLabel}
-      className="rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-brand-soft"
+      className="rounded-lg px-2 py-2 text-sm font-semibold text-foreground hover:bg-brand-soft sm:px-3"
     >
       {label}
     </Link>

@@ -8,7 +8,7 @@ import { StatusActions } from "@/components/status-actions";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getOwnProfile, requireUser } from "@/lib/auth";
-import { getCommissionTerms, isCommissionEnabled } from "@/lib/data/commission";
+import { getCommissionTermsFresh, isCommissionEnabled } from "@/lib/data/commission";
 import { getMyListing } from "@/lib/data/owner";
 import { getReferenceData } from "@/lib/data/public";
 import { displayPhone, formatDate, t } from "@/lib/format";
@@ -33,7 +33,7 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
     getMyListing(user.id, id),
     getReferenceData(),
     getOwnProfile(),
-    getCommissionTerms(),
+    getCommissionTermsFresh(),
   ]);
   if (!listing) notFound();
 

@@ -6,6 +6,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { City, Neighborhood, PropertyType } from "@/lib/data/public";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
+import { LocationPicker } from "./map/location-picker";
 
 export type ListingFormValues = {
   dealType: "sale" | "rent" | "";
@@ -25,11 +26,13 @@ export type ListingFormValues = {
   phone: string;
   allowCalls: boolean;
   allowWhatsapp: boolean;
+  latitude: string;
+  longitude: string;
 };
 
 type Props = {
   locale: Locale;
-  dict: Pick<Dictionary, "form" | "search">;
+  dict: Pick<Dictionary, "form" | "search" | "map">;
   refData: { cities: City[]; neighborhoods: Neighborhood[]; propertyTypes: PropertyType[] };
   initial: ListingFormValues;
   listingId?: number;
@@ -214,6 +217,8 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             <ErrorText name="neighborhoodId" message={err("neighborhoodId")} />
           </div>
         </div>
+        <LocationPicker initialLat={initial.latitude} initialLng={initial.longitude} text={dict.map} />
+        <ErrorText name="latitude" message={err("latitude")} />
       </section>
 
       <section className={section} aria-labelledby="s-details">

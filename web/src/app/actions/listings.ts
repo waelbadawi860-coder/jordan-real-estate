@@ -79,6 +79,8 @@ async function toRow(input: ListingInput) {
     bathrooms: input.bathrooms ?? null,
     details,
     poster_type: input.posterType,
+    latitude: input.latitude === undefined ? null : Number(input.latitude.toFixed(6)),
+    longitude: input.longitude === undefined ? null : Number(input.longitude.toFixed(6)),
   };
 }
 

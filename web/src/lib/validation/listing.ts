@@ -69,6 +69,9 @@ export const listingSchema = z
       }),
     allowCalls: z.boolean(),
     allowWhatsapp: z.boolean(),
+    // Optional map pin, limited to Jordan (the database enforces the same box).
+    latitude: z.preprocess((v) => (v === "" ? undefined : v), z.coerce.number().min(29).max(33.5).optional()),
+    longitude: z.preprocess((v) => (v === "" ? undefined : v), z.coerce.number().min(34.8).max(39.4).optional()),
   })
   .superRefine((value, ctx) => {
     if (!value.allowCalls && !value.allowWhatsapp) {
@@ -77,6 +80,9 @@ export const listingSchema = z
     if (value.allowWhatsapp && value.phone && !/^\+9627/.test(value.phone)) {
       // WhatsApp needs a mobile number.
       ctx.addIssue({ code: "custom", path: ["phone"], message: "invalidPhone" });
+    }
+    if ((value.latitude === undefined) !== (value.longitude === undefined)) {
+      ctx.addIssue({ code: "custom", path: ["latitude"], message: "invalidNumber" });
     }
     if (value.dealType === "rent" && !value.rentPeriod) {
       ctx.addIssue({ code: "custom", path: ["rentPeriod"], message: "required" });
@@ -109,5 +115,7 @@ export function listingFormValues(formData: FormData) {
     phone: text("phone"),
     allowCalls: formData.get("allowCalls") === "on",
     allowWhatsapp: formData.get("allowWhatsapp") === "on",
+    latitude: text("latitude"),
+    longitude: text("longitude"),
   };
 }

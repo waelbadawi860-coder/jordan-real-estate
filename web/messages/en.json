@@ -308,6 +308,39 @@
     "remove": "Remove from favourites",
     "unavailable": "This property is no longer available."
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications.",
+    "markAllRead": "Mark all as read",
+    "unread": "{n} unread",
+    "bellLabel": "Notifications ({n} unread)",
+    "types": {
+      "listing_status_changed": "Your listing #{id} is now: {status}",
+      "listing_expiring": "Your listing #{id} expires in a few days. Renew it to keep it visible.",
+      "listing_expired": "Your listing #{id} has expired. You can renew it from “My listings”.",
+      "listing_submitted": "New listing #{id} is awaiting review.",
+      "listing_reported": "New report on listing #{id}.",
+      "user_reported": "New report about a user.",
+      "contact_message": "New contact message.",
+      "commission_reported": "A transaction was reported (commission #{id}).",
+      "payment_reported": "A payment was reported on commission #{id}.",
+      "commission_disputed": "Commission #{id} is disputed.",
+      "commission_updated": "Commission #{id} was updated: {status}",
+      "payment_verified": "Your payment on commission #{id} was verified.",
+      "payment_rejected": "Your payment on commission #{id} couldn't be verified. See details.",
+      "other": "New notification."
+    },
+    "reason": "Reason: {reason}"
+  },
+  "map": {
+    "addPin": "Mark the location on a map (optional)",
+    "pinHint": "Tap the map to place a pin. Visitors never see the exact spot, only an approximate area.",
+    "removePin": "Remove pin",
+    "pinSet": "Location set.",
+    "showMap": "Show approximate location on a map",
+    "approxNote": "The location is approximate (within about a kilometre) to protect the advertiser's privacy.",
+    "loading": "Loading map…"
+  },
   "commission": {
     "nav": "Commissions",
     "agreementTitle": "Commission agreement",

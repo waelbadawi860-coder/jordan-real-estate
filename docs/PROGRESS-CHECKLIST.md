@@ -148,7 +148,29 @@ Legend: [x] done and verified · [ ] not done · (you) = needs your action
 7. Try a dispute on another commission, then adjust the amount with a reason; check **سجل العمليات**.
 8. **Switch commissions OFF again** in Settings when you're done, and delete the test rules' effect by leaving them (they're harmless while off).
 
-## Stages 7–8
+## Stage 7 — Notifications and finishing features
+- [x] Provider research with costs and licensing — `docs/STAGE-7-PROVIDERS.md` (maps, email, WhatsApp, SMS)
+- [x] In-site notifications: bell with unread count in the header, Notifications page, mark as read; listing approved/rejected, expiring in 3 days (daily job), expired; commission/payment updates; admin alerts for new submissions, reports, contact messages, transactions, payments and disputes
+- [x] **Privacy fix:** the exact map pin is now readable only by the owner and admins; everyone else (including via the database's public interface) gets a position rounded to ≈ 1 km
+- [x] Maps: optional pin in the listing form (Jordan only); "show approximate location" on property pages (circle, no exact point); maps load only when tapped; provider configurable; hidden in production until a commercial provider is set
+- [x] SEO: structured data (schema.org) for listings and the site search; existing sitemap, robots, canonical and Open Graph previews kept
+- [x] Accessibility: automated axe scan of 18 pages (public, signed-in, admin) — no serious/critical issues; colours checked by calculation against WCAG AA and two adjusted (orange buttons, WhatsApp button)
+- [x] Mobile: header fits 360px phones (also with the notification bell); production home page ≈ 26 KB HTML + 138 KB JavaScript + 7 KB CSS + 63 KB font (compressed); map code and tiles load only on demand
+- [x] Automated tests: **148 passed** (109 unit/database incl. location privacy and notification jobs; 39 page tests incl. accessibility)
+- [x] Production build succeeds
+- [ ] Not done in this stage (needs the domain/accounts — Stage 8): email sending via Resend, custom email templates, a Lighthouse speed score on the live site
+- [ ] Watermark for public photos (setting exists, still off) — not implemented
+- [ ] (you) Manual check below, then confirm Stage 7
+
+### Manual check (10 minutes) — `npm run dev`, then http://localhost:3000
+1. Log in as a normal seller → the header shows a **bell**. Create a listing and submit it.
+2. Log in as admin → the bell shows **1** ("new listing awaiting review") → open it → it links to the listing → approve it.
+3. Back as the seller → bell → "your listing … is now: منشور".
+4. Edit one of your listings → in **الموقع** press **تحديد الموقع على الخريطة** → tap the map → a green pin appears → save.
+5. Open that listing's public page → **عرض الموقع التقريبي على الخريطة** → a circle around the area, no exact pin.
+6. On your phone (or Chrome phone view), check the header and the notifications page fit the screen.
+
+## Stage 8
 - [ ] Not started
 
 ## Known limitations / open items

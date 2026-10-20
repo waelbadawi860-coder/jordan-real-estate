@@ -51,6 +51,8 @@ export default async function PostPage({ params }: PageProps<"/[lang]/post">) {
             phone: profile.phone ? displayPhone(profile.phone).replace(/\s/g, "") : "",
             allowCalls: true,
             allowWhatsapp: true,
+            latitude: "",
+            longitude: "",
           }}
         />
       )}

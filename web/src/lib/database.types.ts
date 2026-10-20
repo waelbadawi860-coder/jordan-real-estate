@@ -732,6 +732,8 @@ export type Database = {
       }
       listings: {
         Row: {
+          approx_latitude: number | null
+          approx_longitude: number | null
           area_sqm: number | null
           bathrooms: number | null
           bedrooms: number | null
@@ -759,6 +761,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approx_latitude?: number | null
+          approx_longitude?: number | null
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -786,6 +790,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approx_latitude?: number | null
+          approx_longitude?: number | null
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -1361,6 +1367,13 @@ export type Database = {
           phone: string
         }[]
       }
+      get_listing_location: {
+        Args: { p_listing_id: number }
+        Returns: {
+          latitude: number
+          longitude: number
+        }[]
+      }
       is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       listing_is_editable_by_owner: {
@@ -1383,6 +1396,7 @@ export type Database = {
         Args: { p_data: Json; p_type: string }
         Returns: undefined
       }
+      notify_expiring_listings: { Args: never; Returns: number }
       open_commission_dispute: {
         Args: { p_commission_id: number; p_reason: string }
         Returns: undefined
