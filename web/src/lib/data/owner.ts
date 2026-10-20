@@ -1,5 +1,6 @@
 import "server-only";
 import type { Json } from "@/lib/database.types";
+import type { FloorLevel } from "@/lib/floor";
 import { CARD_COLUMNS, getReferenceData, rentPeriodOf, toCard, type CardRow, type ListingCard } from "@/lib/data/public";
 import { createClient } from "@/lib/supabase/server";
 
@@ -92,7 +93,7 @@ export type MyListing = {
   areaSqm: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
-  floor: number | null;
+  floor: FloorLevel | null;
   furnished: boolean | null;
   posterType: "owner" | "agent";
   rejectionReason: string | null;
@@ -104,14 +105,11 @@ export type MyListing = {
   acceptances: { versionId: number; acceptedAt: string }[];
 };
 
-function detailsOf(details: Json): { floor: number | null; furnished: boolean | null } {
+function furnishedOf(details: Json): boolean | null {
   if (details && typeof details === "object" && !Array.isArray(details)) {
-    return {
-      floor: typeof details.floor === "number" ? details.floor : null,
-      furnished: typeof details.furnished === "boolean" ? details.furnished : null,
-    };
+    return typeof details.furnished === "boolean" ? details.furnished : null;
   }
-  return { floor: null, furnished: null };
+  return null;
 }
 
 export async function getMyListing(userId: string, id: number): Promise<MyListing | null> {
@@ -119,7 +117,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, poster_type, rejection_reason, expires_at, published_at, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position), accepted_agreements(agreement_version_id, accepted_at)",
+      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, floor_level, poster_type, rejection_reason, expires_at, published_at, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position), accepted_agreements(agreement_version_id, accepted_at)",
     )
     .eq("id", id)
     .eq("seller_id", userId)
@@ -130,7 +128,6 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
   const images = [...data.listing_images].sort((a, b) => a.position - b.position);
   const urls = await signedUrls(images.map((i) => i.storage_path));
   const contact = Array.isArray(data.listing_contacts) ? data.listing_contacts[0] : data.listing_contacts;
-  const extra = detailsOf(data.details);
 
   return {
     id: data.id,
@@ -146,8 +143,8 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
     areaSqm: data.area_sqm === null ? null : String(data.area_sqm),
     bedrooms: data.bedrooms,
     bathrooms: data.bathrooms,
-    floor: extra.floor,
-    furnished: extra.furnished,
+    floor: data.floor_level,
+    furnished: furnishedOf(data.details),
     posterType: data.poster_type,
     rejectionReason: data.rejection_reason,
     expiresAt: data.expires_at,

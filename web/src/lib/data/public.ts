@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import type { Database, Json } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env";
+import type { FloorLevel } from "@/lib/floor";
 import { PAGE_SIZE, type Cursor, type SearchFilters } from "@/lib/search";
 
 // Public data only. Uses the publishable key with no user session, so the
@@ -21,7 +22,15 @@ export type LocalizedName = { ar: string; en: string };
 
 export type City = { id: number; slug: string; name: LocalizedName };
 export type Neighborhood = { id: number; cityId: number; slug: string; name: LocalizedName };
-export type PropertyType = { id: number; slug: string; name: LocalizedName; hasBedrooms: boolean };
+export type PropertyType = {
+  id: number;
+  slug: string;
+  name: LocalizedName;
+  hasBedrooms: boolean;
+  hasFloor: boolean;
+  /** Which deals this type can be listed for (e.g. residential land: sale only). */
+  allowedDeals: ("sale" | "rent")[];
+};
 
 export type ReferenceData = {
   cities: City[];
@@ -39,7 +48,7 @@ export async function getReferenceData(): Promise<ReferenceData> {
   const [cities, neighborhoods, types, settings] = await Promise.all([
     sb.from("cities").select("id, slug, name_ar, name_en").order("sort_order").order("name_en"),
     sb.from("neighborhoods").select("id, city_id, slug, name_ar, name_en").order("sort_order").order("name_en"),
-    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms").order("sort_order"),
+    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms, has_floor, allowed_deals").order("sort_order"),
     sb.from("site_settings").select("key, value"),
   ]);
   for (const result of [cities, neighborhoods, types, settings]) {
@@ -59,6 +68,8 @@ export async function getReferenceData(): Promise<ReferenceData> {
       slug: t.slug,
       name: { ar: t.name_ar, en: t.name_en },
       hasBedrooms: t.has_bedrooms,
+      hasFloor: t.has_floor,
+      allowedDeals: t.allowed_deals,
     })),
     settings: Object.fromEntries(settings.data!.map((s) => [s.key, s.value])),
   };
@@ -140,14 +151,11 @@ export function toCard(row: CardRow, ref: ReferenceData): ListingCard {
   };
 }
 
-function extraDetails(details: Json): { floor: number | null; furnished: boolean | null } {
+function furnishedOf(details: Json): boolean | null {
   if (details && typeof details === "object" && !Array.isArray(details)) {
-    return {
-      floor: typeof details.floor === "number" ? details.floor : null,
-      furnished: typeof details.furnished === "boolean" ? details.furnished : null,
-    };
+    return typeof details.furnished === "boolean" ? details.furnished : null;
   }
-  return { floor: null, furnished: null };
+  return null;
 }
 
 function escapeLike(value: string): string {
@@ -191,6 +199,7 @@ export async function searchListings(filters: SearchFilters, cursor: Cursor | nu
   if (filters.amin !== undefined) query = query.gte("area_sqm", filters.amin);
   if (filters.amax !== undefined) query = query.lte("area_sqm", filters.amax);
   if (filters.beds !== undefined) query = query.gte("bedrooms", filters.beds);
+  if (filters.floor) query = query.eq("floor_level", filters.floor);
   if (filters.q) query = query.ilike("title", `%${escapeLike(filters.q)}%`);
 
   // Keyset pagination: "give me the rows after the last one I saw".
@@ -232,7 +241,7 @@ export type ListingDetail = ListingCard & {
   seller: { displayName: string; memberSince: string } | null;
   latitude: number | null;
   longitude: number | null;
-  floor: number | null;
+  floor: FloorLevel | null;
   furnished: boolean | null;
 };
 
@@ -246,7 +255,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
   const { data, error } = await sb
     .from("listings")
     .select(
-      "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, description, poster_type, updated_at, expires_at, seller_id, approx_latitude, approx_longitude, listing_images(storage_path, position, public_copied_at, width, height)",
+      "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, floor_level, published_at, description, poster_type, updated_at, expires_at, seller_id, approx_latitude, approx_longitude, listing_images(storage_path, position, public_copied_at, width, height)",
     )
     .eq("id", id)
     .eq("status", "published")
@@ -262,6 +271,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     seller_id: string;
     approx_latitude: number | null;
     approx_longitude: number | null;
+    floor_level: FloorLevel | null;
     listing_images: { storage_path: string; position: number; public_copied_at: string | null; width: number | null; height: number | null }[];
   };
 
@@ -283,8 +293,28 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     // Only the rounded (≈1 km) position is ever public; the exact pin is private.
     latitude: row.approx_latitude === null ? null : Number(row.approx_latitude),
     longitude: row.approx_longitude === null ? null : Number(row.approx_longitude),
-    ...extraDetails(row.details),
+    floor: row.floor_level,
+    furnished: furnishedOf(row.details),
   };
+}
+
+export type AreaFacet = { deal: "sale" | "rent"; typeId: number; cityId: number; hoodId: number | null; count: number };
+
+/** How many public listings each deal/type/area combination has (for the linked search lists). */
+export async function getAreaFacets(): Promise<AreaFacet[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("listings");
+
+  const { data, error } = await publicClient().rpc("listing_area_facets");
+  if (error) throw new Error(`Loading area counts failed: ${error.message}`);
+  return (data ?? []).map((f) => ({
+    deal: f.deal_type,
+    typeId: f.property_type_id,
+    cityId: f.city_id,
+    hoodId: f.neighborhood_id,
+    count: Number(f.listings),
+  }));
 }
 
 /** IDs and titles of every public listing, for the sitemap. */

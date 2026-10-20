@@ -744,6 +744,7 @@ export type Database = {
           description: string
           details: Json
           expires_at: string | null
+          floor_level: Database["public"]["Enums"]["floor_level"] | null
           id: number
           latitude: number | null
           longitude: number | null
@@ -773,6 +774,7 @@ export type Database = {
           description?: string
           details?: Json
           expires_at?: string | null
+          floor_level?: Database["public"]["Enums"]["floor_level"] | null
           id?: never
           latitude?: number | null
           longitude?: number | null
@@ -802,6 +804,7 @@ export type Database = {
           description?: string
           details?: Json
           expires_at?: string | null
+          floor_level?: Database["public"]["Enums"]["floor_level"] | null
           id?: never
           latitude?: number | null
           longitude?: number | null
@@ -1048,8 +1051,10 @@ export type Database = {
       }
       property_types: {
         Row: {
+          allowed_deals: Database["public"]["Enums"]["deal_type"][]
           created_at: string
           has_bedrooms: boolean
+          has_floor: boolean
           id: number
           is_active: boolean
           name_ar: string
@@ -1059,8 +1064,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allowed_deals?: Database["public"]["Enums"]["deal_type"][]
           created_at?: string
           has_bedrooms?: boolean
+          has_floor?: boolean
           id?: never
           is_active?: boolean
           name_ar: string
@@ -1070,8 +1077,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allowed_deals?: Database["public"]["Enums"]["deal_type"][]
           created_at?: string
           has_bedrooms?: boolean
+          has_floor?: boolean
           id?: never
           is_active?: boolean
           name_ar?: string
@@ -1376,6 +1385,16 @@ export type Database = {
       }
       is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      listing_area_facets: {
+        Args: never
+        Returns: {
+          city_id: number
+          deal_type: Database["public"]["Enums"]["deal_type"]
+          listings: number
+          neighborhood_id: number
+          property_type_id: number
+        }[]
+      }
       listing_is_editable_by_owner: {
         Args: { p_listing_id: number }
         Returns: boolean
@@ -1466,6 +1485,15 @@ export type Database = {
         | "disputed"
         | "waived"
       deal_type: "sale" | "rent"
+      floor_level:
+        | "basement"
+        | "ground"
+        | "first"
+        | "second"
+        | "third"
+        | "fourth"
+        | "fifth_plus"
+        | "last"
       listing_status:
         | "draft"
         | "pending_approval"
@@ -1627,6 +1655,16 @@ export const Constants = {
         "waived",
       ],
       deal_type: ["sale", "rent"],
+      floor_level: [
+        "basement",
+        "ground",
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth_plus",
+        "last",
+      ],
       listing_status: [
         "draft",
         "pending_approval",

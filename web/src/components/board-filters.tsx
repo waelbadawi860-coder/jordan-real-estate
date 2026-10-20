@@ -52,12 +52,17 @@ export function BoardTags({
   const href = (change: Partial<SearchFilters>) =>
     `${localePath(locale, "/search")}${filtersToQuery({ ...filters, ...change })}`;
 
+  // Switching the deal drops a chosen type that doesn't exist for that deal.
+  const typeFits = (deal: "sale" | "rent") =>
+    refData.propertyTypes.find((type) => type.slug === filters.type)?.allowedDeals.includes(deal) ? filters.type : undefined;
+
   const dealTags = [
     { text: s.any, active: !filters.deal, href: href({ deal: undefined }) },
-    { text: s.sale, active: filters.deal === "sale", href: href({ deal: "sale" }) },
-    { text: s.rent, active: filters.deal === "rent", href: href({ deal: "rent" }) },
+    { text: s.sale, active: filters.deal === "sale", href: href({ deal: "sale", type: typeFits("sale") }) },
+    { text: s.rent, active: filters.deal === "rent", href: href({ deal: "rent", type: typeFits("rent") }) },
   ];
-  const typeTags = refData.propertyTypes.map((type) => ({
+  // Only the types that can be listed for the chosen deal.
+  const typeTags = refData.propertyTypes.filter((type) => !filters.deal || type.allowedDeals.includes(filters.deal)).map((type) => ({
     text: type.name[locale],
     active: filters.type === type.slug,
     href: href({ type: filters.type === type.slug ? undefined : type.slug }),

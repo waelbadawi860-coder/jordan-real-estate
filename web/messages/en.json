@@ -56,7 +56,9 @@
     "loadMore": "Show more",
     "loading": "Loading…",
     "loadError": "Couldn't load more. Please try again.",
-    "invalidFilters": "Some filters were not valid and were ignored."
+    "invalidFilters": "Some filters were not valid and were ignored.",
+    "floor": "Floor",
+    "anyFloor": "Any floor"
   },
   "home": {
     "latest": "Latest properties",
@@ -230,7 +232,8 @@
       "notEditable": "This listing can't be edited in its current status.",
       "accountInactive": "Your account isn't active.",
       "fixErrors": "Please correct the highlighted fields.",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "typeNotForDeal": "This type isn't available for the chosen deal."
     }
   },
   "photos": {
@@ -747,7 +750,12 @@
     },
     "types": {
       "add": "Add property type",
-      "hasBedrooms": "Has bedrooms"
+      "hasBedrooms": "Has bedrooms",
+      "hasFloor": "Has a floor (apartment, office…)",
+      "allowedDeals": "Available for",
+      "dealRequired": "Choose at least one deal type.",
+      "sale": "Sale",
+      "rent": "Rent"
     },
     "audit": {
       "when": "When",
@@ -785,5 +793,15 @@
     "retry": "Try again",
     "comingSoon": "This page is being prepared and will be available soon.",
     "legalDraft": "This page will be published after review by a Jordanian legal advisor."
+  },
+  "floors": {
+    "basement": "Basement",
+    "ground": "Ground floor",
+    "first": "1st floor",
+    "second": "2nd floor",
+    "third": "3rd floor",
+    "fourth": "4th floor",
+    "fifth_plus": "5th floor or higher",
+    "last": "Top floor (roof)"
   }
 }

@@ -56,6 +56,13 @@ function invalidateListing(id: number) {
   updateTag(`listing-${id}`);
 }
 
+/** The chosen property type must allow the chosen deal (the database checks this too). */
+async function typeRuleErrors(input: ListingInput): Promise<Record<string, string> | null> {
+  const type = (await getReferenceData()).propertyTypes.find((t) => t.id === input.propertyTypeId);
+  if (type && !type.allowedDeals.includes(input.dealType)) return { propertyTypeId: "typeNotForDeal" };
+  return null;
+}
+
 async function toRow(input: ListingInput) {
   const ref = await getReferenceData();
   const type = ref.propertyTypes.find((t) => t.id === input.propertyTypeId);
@@ -63,7 +70,6 @@ async function toRow(input: ListingInput) {
   const details: Record<string, string | number | boolean> = {};
   if (input.dealType === "rent" && input.rentPeriod) details.rent_period = input.rentPeriod;
   if (hasBedrooms && input.furnished) details.furnished = input.furnished === "yes";
-  if (input.floor !== undefined) details.floor = input.floor;
 
   return {
     deal_type: input.dealType,
@@ -78,6 +84,7 @@ async function toRow(input: ListingInput) {
     bedrooms: hasBedrooms ? (input.bedrooms ?? null) : null,
     bathrooms: input.bathrooms ?? null,
     details,
+    floor_level: type?.hasFloor ? (input.floor ?? null) : null,
     poster_type: input.posterType,
     latitude: input.latitude === undefined ? null : Number(input.latitude.toFixed(6)),
     longitude: input.longitude === undefined ? null : Number(input.longitude.toFixed(6)),
@@ -94,6 +101,8 @@ export async function createListingAction(_prev: ListingFormState, formData: For
   const locale = localeOf(formData.get("lang"));
   const parsed = listingSchema.safeParse(listingFormValues(formData));
   if (!parsed.success) return { error: "fixErrors", fieldErrors: fieldErrors(parsed.error.issues) };
+  const ruleErrors = await typeRuleErrors(parsed.data);
+  if (ruleErrors) return { error: "fixErrors", fieldErrors: ruleErrors };
 
   const { supabase, userId } = await requireUserId();
   if (!userId) redirect(`${localePath(locale, "/login")}?next=${encodeURIComponent(localePath(locale, "/post"))}`);
@@ -133,6 +142,8 @@ export async function updateListingAction(
   if (!idSchema.safeParse(listingId).success) return { error: "generic" };
   const parsed = listingSchema.safeParse(listingFormValues(formData));
   if (!parsed.success) return { error: "fixErrors", fieldErrors: fieldErrors(parsed.error.issues) };
+  const ruleErrors = await typeRuleErrors(parsed.data);
+  if (ruleErrors) return { error: "fixErrors", fieldErrors: ruleErrors };
 
   const { supabase, userId } = await requireUserId();
   if (!userId) return { error: "accountInactive" };

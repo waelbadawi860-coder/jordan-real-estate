@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FLOOR_LEVELS, type FloorLevel } from "./floor";
 
 export const PAGE_SIZE = 12;
 export const sortOptions = ["newest", "price_asc", "price_desc"] as const;
@@ -19,6 +20,7 @@ const fieldSchemas = {
   amin: amount,
   amax: amount,
   beds: z.coerce.number().int().min(1).max(10),
+  floor: z.enum(FLOOR_LEVELS),
   sort: z.enum(sortOptions),
 } as const;
 
@@ -33,6 +35,7 @@ export type SearchFilters = {
   amin?: number;
   amax?: number;
   beds?: number;
+  floor?: FloorLevel;
   sort: SortOption;
 };
 

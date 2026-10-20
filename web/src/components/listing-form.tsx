@@ -5,6 +5,7 @@ import { createListingAction, updateListingAction, type ListingFormState } from 
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { City, Neighborhood, PropertyType } from "@/lib/data/public";
+import { FLOOR_LEVELS } from "@/lib/floor";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
 import { LocationPicker } from "./map/location-picker";
 
@@ -32,7 +33,7 @@ export type ListingFormValues = {
 
 type Props = {
   locale: Locale;
-  dict: Pick<Dictionary, "form" | "search" | "map">;
+  dict: Pick<Dictionary, "form" | "search" | "map" | "floors">;
   refData: { cities: City[]; neighborhoods: Neighborhood[]; propertyTypes: PropertyType[] };
   initial: ListingFormValues;
   listingId?: number;
@@ -52,8 +53,18 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
   const [typeId, setTypeId] = useState(initial.propertyTypeId);
   const [cityId, setCityId] = useState(initial.cityId);
 
-  const type = refData.propertyTypes.find((t) => String(t.id) === typeId);
+  // Linked choices: the deal decides which types are offered, the type decides
+  // which details apply, and the city decides which areas are offered.
+  const types = refData.propertyTypes.filter((t) => !dealType || t.allowedDeals.includes(dealType));
+  const type = types.find((t) => String(t.id) === typeId);
   const hasBedrooms = type?.hasBedrooms ?? true;
+  const hasFloor = type?.hasFloor ?? false;
+
+  function changeDeal(value: "sale" | "rent") {
+    setDealType(value);
+    const current = refData.propertyTypes.find((t) => String(t.id) === typeId);
+    if (current && !current.allowedDeals.includes(value)) setTypeId("");
+  }
   const hoods = refData.neighborhoods.filter((n) => String(n.cityId) === cityId);
   const fe = state.fieldErrors ?? {};
   const err = (key: string) => (fe[key] ? ((f.errors as Record<string, string>)[fe[key]] ?? f.errors.generic) : undefined);
@@ -81,7 +92,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
                   name="dealType"
                   value={value}
                   checked={dealType === value}
-                  onChange={() => setDealType(value)}
+                  onChange={() => changeDeal(value)}
                   className="peer sr-only"
                 />
                 <span className="block rounded-lg border border-border py-2.5 text-center font-bold text-muted peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-accent">
@@ -120,7 +131,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             {...aria("propertyTypeId")}
           >
             <option value="">{f.choose}</option>
-            {refData.propertyTypes.map((t) => (
+            {types.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name[locale]}
               </option>
@@ -229,8 +240,23 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
           <NumberInput name="areaSqm" text={f.area} value={initial.areaSqm} decimal error={err("areaSqm")} />
           {hasBedrooms && <NumberInput name="bedrooms" text={f.bedrooms} value={initial.bedrooms} error={err("bedrooms")} />}
           <NumberInput name="bathrooms" text={f.bathrooms} value={initial.bathrooms} error={err("bathrooms")} />
-          <NumberInput name="floor" text={f.floor} value={initial.floor} error={err("floor")} />
         </div>
+        {hasFloor && (
+          <div className="sm:w-1/2">
+            <label htmlFor="floor" className={label}>
+              {f.floor} <span className="font-normal text-muted">({f.optional})</span>
+            </label>
+            <select id="floor" name="floor" defaultValue={initial.floor} className={inputClass} {...aria("floor")}>
+              <option value="">{f.notSpecified}</option>
+              {FLOOR_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {dict.floors[level]}
+                </option>
+              ))}
+            </select>
+            <ErrorText name="floor" message={err("floor")} />
+          </div>
+        )}
         {hasBedrooms && (
           <div className="sm:w-1/2">
             <label htmlFor="furnished" className={label}>

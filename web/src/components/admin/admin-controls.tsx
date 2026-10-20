@@ -282,7 +282,17 @@ export function SettingField({
 
 // ----------------------------------------------------------------------------
 
-type NamedRow = { id?: number; nameAr: string; nameEn: string; slug: string; sortOrder: number; isActive: boolean; hasBedrooms?: boolean };
+type NamedRow = {
+  id?: number;
+  nameAr: string;
+  nameEn: string;
+  slug: string;
+  sortOrder: number;
+  isActive: boolean;
+  hasBedrooms?: boolean;
+  hasFloor?: boolean;
+  allowedDeals?: ("sale" | "rent")[];
+};
 
 function slugFrom(nameEn: string) {
   return nameEn
@@ -306,10 +316,24 @@ export function NamedRowForm({
   a: AdminText;
 }) {
   const { run, pending, message } = useRun(a);
-  const empty: NamedRow = { nameAr: "", nameEn: "", slug: "", sortOrder: 100, isActive: true, hasBedrooms: false };
+  const empty: NamedRow = {
+    nameAr: "",
+    nameEn: "",
+    slug: "",
+    sortOrder: 100,
+    isActive: true,
+    hasBedrooms: false,
+    hasFloor: false,
+    allowedDeals: ["sale", "rent"],
+  };
   const [v, setV] = useState<NamedRow>(row ?? empty);
   const [slugTouched, setSlugTouched] = useState(Boolean(row));
   const l = a.locations;
+
+  const deals = v.allowedDeals ?? ["sale", "rent"];
+  function toggleDeal(deal: "sale" | "rent", on: boolean) {
+    setV({ ...v, allowedDeals: on ? [...new Set([...deals, deal])] : deals.filter((d) => d !== deal) });
+  }
 
   function save() {
     const input = { ...v, slug: v.slug || slugFrom(v.nameEn) };
@@ -319,7 +343,7 @@ export function NamedRowForm({
           ? saveCityAction(input)
           : kind === "neighborhood"
             ? saveNeighborhoodAction({ ...input, cityId })
-            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms) }),
+            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms), hasFloor: Boolean(v.hasFloor), allowedDeals: deals }),
       () => {
         if (!row) {
           setV(empty);
@@ -379,8 +403,32 @@ export function NamedRowForm({
             {a.types.hasBedrooms}
           </label>
         )}
+        {kind === "type" && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={Boolean(v.hasFloor)} onChange={(e) => setV({ ...v, hasFloor: e.target.checked })} className="size-4 accent-brand" />
+            {a.types.hasFloor}
+          </label>
+        )}
+        {kind === "type" && (
+          <fieldset className="flex flex-wrap items-center gap-2">
+            <legend className="sr-only">{a.types.allowedDeals}</legend>
+            <span aria-hidden>{a.types.allowedDeals}:</span>
+            {(["sale", "rent"] as const).map((deal) => (
+              <label key={deal} className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={deals.includes(deal)}
+                  onChange={(e) => toggleDeal(deal, e.target.checked)}
+                  className="size-4 accent-brand"
+                />
+                {a.types[deal]}
+              </label>
+            ))}
+            {deals.length === 0 && <span className="text-danger">{a.types.dealRequired}</span>}
+          </fieldset>
+        )}
       </div>
-      <button type="submit" className={primary} disabled={pending}>
+      <button type="submit" className={primary} disabled={pending || (kind === "type" && deals.length === 0)}>
         {row ? l.save : l.add}
       </button>
       <div className="col-span-full">{message}</div>

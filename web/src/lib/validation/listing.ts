@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FLOOR_LEVELS } from "@/lib/floor";
 
 // Shared by the browser (instant feedback) and the server (the real check).
 // Error messages are translation keys from messages/*.json → form.errors.
@@ -52,7 +53,7 @@ export const listingSchema = z
     areaSqm: optionalDecimal(9_999_999),
     bedrooms: optionalInt(0, 50),
     bathrooms: optionalInt(0, 50),
-    floor: optionalInt(-5, 100),
+    floor: z.preprocess((v) => (v === "" ? undefined : v), z.enum(FLOOR_LEVELS).optional()),
     furnished: z.preprocess((v) => (v === "" ? undefined : v), z.enum(["yes", "no"]).optional()),
     posterType: z.enum(["owner", "agent"]).default("owner"),
     phone: z

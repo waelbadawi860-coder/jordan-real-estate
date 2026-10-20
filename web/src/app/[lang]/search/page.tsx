@@ -8,7 +8,7 @@ import { LoadMore } from "@/components/load-more";
 import { SearchForm } from "@/components/search-form";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { getDictionary, type Dictionary } from "@/i18n/dictionaries";
-import { getReferenceData, searchListings, type ReferenceData } from "@/lib/data/public";
+import { getAreaFacets, getReferenceData, searchListings, type AreaFacet, type ReferenceData } from "@/lib/data/public";
 import { parseSearchParams, type SearchFilters } from "@/lib/search";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/search">): Promise<Metadata> {
@@ -27,14 +27,14 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/search">):
 export default async function SearchPage({ params, searchParams }: PageProps<"/[lang]/search">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  const [dict, ref] = await Promise.all([getDictionary(lang), getReferenceData()]);
+  const [dict, ref, facets] = await Promise.all([getDictionary(lang), getReferenceData(), getAreaFacets()]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-4">
       <h1 className="mb-3 text-xl font-extrabold">{dict.search.resultsTitle}</h1>
       {/* The filters and results depend on the URL, so they render per request. */}
-      <Suspense fallback={<ResultsFallback locale={lang} dict={dict} refData={ref} />}>
-        <Results locale={lang} dict={dict} refData={ref} searchParams={searchParams} />
+      <Suspense fallback={<ResultsFallback locale={lang} dict={dict} refData={ref} facets={facets} />}>
+        <Results locale={lang} dict={dict} refData={ref} facets={facets} searchParams={searchParams} />
       </Suspense>
     </div>
   );
@@ -44,11 +44,13 @@ async function Results({
   locale,
   dict,
   refData,
+  facets,
   searchParams,
 }: {
   locale: Locale;
   dict: Dictionary;
   refData: ReferenceData;
+  facets: AreaFacet[];
   searchParams: PageProps<"/[lang]/search">["searchParams"];
 }) {
   const { filters, hadInvalid } = parseSearchParams(await searchParams);
@@ -57,7 +59,7 @@ async function Results({
 
   return (
     <>
-      <Filters locale={locale} dict={dict} refData={refData} filters={filters} />
+      <Filters locale={locale} dict={dict} refData={refData} facets={facets} filters={filters} />
       {hadInvalid && (
         <p role="status" className="mt-3 text-sm text-accent">
           {dict.search.invalidFilters}
@@ -93,10 +95,20 @@ async function Results({
   );
 }
 
-function ResultsFallback({ locale, dict, refData }: { locale: Locale; dict: Dictionary; refData: ReferenceData }) {
+function ResultsFallback({
+  locale,
+  dict,
+  refData,
+  facets,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+  refData: ReferenceData;
+  facets: AreaFacet[];
+}) {
   return (
     <>
-      <Filters locale={locale} dict={dict} refData={refData} />
+      <Filters locale={locale} dict={dict} refData={refData} facets={facets} />
       <ul className={`mt-4 ${listingListClass}`} aria-busy="true" aria-label={dict.search.loading}>
         {Array.from({ length: 6 }, (_, i) => (
           <li key={i} className="h-32 animate-pulse bg-border/40" />
@@ -111,16 +123,18 @@ function Filters({
   locale,
   dict,
   refData,
+  facets,
   filters,
 }: {
   locale: Locale;
   dict: Dictionary;
   refData: ReferenceData;
+  facets: AreaFacet[];
   filters?: SearchFilters;
 }) {
   const detailed =
     filters &&
-    [filters.hood, filters.min, filters.max, filters.amin, filters.amax, filters.beds].some((v) => v !== undefined);
+    [filters.hood, filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.floor].some((v) => v !== undefined);
   return (
     <div className="flex flex-col gap-3">
       <BoardSearch locale={locale} dict={dict} q={filters?.q} />
@@ -131,7 +145,13 @@ function Filters({
           {dict.search.detailedSearch}
         </summary>
         <div className="mt-3">
-          <SearchForm locale={locale} dict={dict} refData={refData} filters={filters} advanced />
+          <SearchForm
+            locale={locale}
+            dict={{ search: dict.search, floors: dict.floors }}
+            refData={{ cities: refData.cities, neighborhoods: refData.neighborhoods, propertyTypes: refData.propertyTypes }}
+            facets={facets}
+            filters={filters}
+          />
         </div>
       </details>
     </div>

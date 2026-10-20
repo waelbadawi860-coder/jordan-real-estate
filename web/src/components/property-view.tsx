@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { LocalizedName } from "@/lib/data/public";
+import type { FloorLevel } from "@/lib/floor";
 import { formatDate, formatNumber, formatPrice, t } from "@/lib/format";
 import { ApproxMap } from "./map/approx-map";
 import { TimeAgo } from "./time-ago";
@@ -22,7 +23,7 @@ export type PropertyViewData = {
   areaSqm: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
-  floor: number | null;
+  floor: FloorLevel | null;
   furnished: boolean | null;
   posterType: "owner" | "agent";
   publishedAt: string | null;
@@ -58,7 +59,7 @@ export function PropertyView({
     listing.areaSqm !== null && { label: d.area, value: t(d.areaValue, { n: formatNumber(listing.areaSqm, locale) }) },
     listing.bedrooms !== null && { label: d.bedrooms, value: formatNumber(listing.bedrooms, locale) },
     listing.bathrooms !== null && { label: d.bathrooms, value: formatNumber(listing.bathrooms, locale) },
-    listing.floor !== null && { label: d.floor, value: formatNumber(listing.floor, locale) },
+    listing.floor !== null && { label: d.floor, value: dict.floors[listing.floor] },
     listing.furnished !== null && { label: d.furnished, value: listing.furnished ? dict.form.yes : dict.form.no },
   ].filter(Boolean) as { label: string; value: string }[];
 

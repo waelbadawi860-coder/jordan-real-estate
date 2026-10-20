@@ -735,3 +735,58 @@ describe("photo storage", () => {
     expect((await admin.client.storage.from("listing-photos").download(path)).error).toBeNull();
   });
 });
+
+describe("floor and property type rules", () => {
+  async function typeId(slug: string) {
+    const { data } = await service.from("property_types").select("id").eq("slug", slug).single();
+    return data!.id;
+  }
+
+  it("rejects a deal the property type doesn't allow (residential land for rent)", async () => {
+    const { error } = await alice.client
+      .from("listings")
+      .insert({ ...listingInput("Land offered for rent"), deal_type: "rent", property_type_id: await typeId("residential-land") });
+    expect(error?.message).toContain("deal_not_allowed_for_type");
+  });
+
+  it("rejects a floor on a type without floors (land)", async () => {
+    const { error } = await alice.client
+      .from("listings")
+      .insert({ ...listingInput("Land with a floor"), property_type_id: await typeId("residential-land"), floor_level: "ground" });
+    expect(error?.message).toContain("floor_not_allowed_for_type");
+  });
+
+  it("saves a floor on an apartment, and visitors can filter by it once published", async () => {
+    const { data, error } = await alice.client
+      .from("listings")
+      .insert({ ...listingInput("Ground floor flat"), floor_level: "ground" })
+      .select("id, floor_level")
+      .single();
+    expect(error).toBeNull();
+    expect(data!.floor_level).toBe("ground");
+
+    await service.from("listings").update({ status: "published", published_at: new Date().toISOString(), expires_at: new Date(Date.now() + 86_400_000).toISOString() }).eq("id", data!.id);
+    const found = await anon.from("listings").select("id").eq("floor_level", "ground").eq("id", data!.id);
+    expect(found.data).toHaveLength(1);
+    const other = await anon.from("listings").select("id").eq("floor_level", "last").eq("id", data!.id);
+    expect(other.data).toHaveLength(0);
+
+    const facets = await anon.rpc("listing_area_facets");
+    expect(facets.error).toBeNull();
+    expect(facets.data!.some((f: { city_id: number; neighborhood_id: number | null }) => f.city_id === cityId && f.neighborhood_id === neighborhoodId)).toBe(true);
+  });
+
+  it("changing the floor of a published listing sends it back for review", async () => {
+    // Created by the service key: the test users have used up their daily new-listing limit by now.
+    const { data, error: insertError } = await service
+      .from("listings")
+      .insert({ ...listingInput("Flat to re-floor"), seller_id: bob.id, floor_level: "first" })
+      .select("id")
+      .single();
+    expect(insertError).toBeNull();
+    await service.from("listings").update({ status: "published", published_at: new Date().toISOString(), expires_at: new Date(Date.now() + 86_400_000).toISOString() }).eq("id", data!.id);
+    const { error } = await bob.client.from("listings").update({ floor_level: "last" }).eq("id", data!.id);
+    expect(error).toBeNull();
+    expect(await statusOf(data!.id)).toBe("pending_approval");
+  });
+});
