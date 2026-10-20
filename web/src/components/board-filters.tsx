@@ -2,7 +2,8 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
-import type { ReferenceData } from "@/lib/data/public";
+import type { AreaFacet, ReferenceData } from "@/lib/data/public";
+import { formatNumber } from "@/lib/format";
 import { filtersToQuery, type SearchFilters } from "@/lib/search";
 
 // The top of the home and search pages, in the style of a classifieds board:
@@ -41,11 +42,14 @@ export function BoardTags({
   dict,
   refData,
   filters = { sort: "newest" },
+  facets = [],
 }: {
   locale: Locale;
   dict: Dictionary;
   refData: ReferenceData;
   filters?: SearchFilters;
+  /** Ad counts per area, shown next to each area's name. */
+  facets?: AreaFacet[];
 }) {
   const s = dict.search;
   // Each tag changes one thing and keeps the rest of the current search.
@@ -73,11 +77,39 @@ export function BoardTags({
     href: href({ city: filters.city === city.slug ? undefined : city.slug, hood: undefined }),
   }));
 
+  // Once a city is chosen, its areas appear underneath as a row of tags.
+  const city = refData.cities.find((c) => c.slug === filters.city);
+  const typeId = refData.propertyTypes.find((t) => t.slug === filters.type)?.id;
+  const count = (hoodId: number) =>
+    facets.reduce(
+      (sum, f) =>
+        f.hoodId === hoodId && (!filters.deal || f.deal === filters.deal) && (typeId === undefined || f.typeId === typeId)
+          ? sum + f.count
+          : sum,
+      0,
+    );
+  const hoodTags = city
+    ? [
+        { text: s.anyNeighborhood, active: !filters.hood, href: href({ hood: undefined }) },
+        ...refData.neighborhoods
+          .filter((n) => n.cityId === city.id)
+          .map((n) => {
+            const ads = count(n.id);
+            return {
+              text: ads > 0 ? `${n.name[locale]} (${formatNumber(ads, locale)})` : n.name[locale],
+              active: filters.hood === n.slug,
+              href: href({ hood: filters.hood === n.slug ? undefined : n.slug }),
+            };
+          }),
+      ]
+    : [];
+
   return (
     <div className="flex flex-col gap-2">
       <TagRow label={s.deal} tags={dealTags} />
       <TagRow label={s.type} tags={typeTags} />
       {cityTags.length > 1 && <TagRow label={s.city} tags={cityTags} />}
+      {hoodTags.length > 1 && <TagRow label={s.neighborhood} tags={hoodTags} />}
     </div>
   );
 }

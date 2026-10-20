@@ -135,11 +135,11 @@ function Filters({
 }) {
   const detailed =
     filters &&
-    [filters.hood, filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.floor].some((v) => v !== undefined);
+    [filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.floor].some((v) => v !== undefined);
   return (
     <div className="flex flex-col gap-3">
       <BoardSearch locale={locale} dict={dict} q={filters?.q} />
-      <BoardTags locale={locale} dict={dict} refData={refData} filters={filters} />
+      <BoardTags locale={locale} dict={dict} refData={refData} filters={filters} facets={facets} />
       <details open={detailed || undefined} className="rounded-lg border border-border bg-surface p-3">
         <summary className="flex cursor-pointer items-center gap-2 font-semibold text-brand">
           <SlidersHorizontal className="size-4" aria-hidden />
