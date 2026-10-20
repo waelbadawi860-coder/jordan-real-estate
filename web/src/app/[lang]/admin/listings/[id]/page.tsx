@@ -5,7 +5,7 @@ import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireAdminPage } from "@/lib/admin";
 import { getReferenceData } from "@/lib/data/public";
-import { displayPhone, formatDate, formatPrice } from "@/lib/format";
+import { displayPhone, formatDate, formatDateTime, formatPrice } from "@/lib/format";
 import { listingPath } from "@/lib/paths";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +20,7 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
   const a = dict.admin;
 
   const supabase = await createClient();
-  const [{ data: listing }, { data: history }, { data: reports }] = await Promise.all([
+  const [{ data: listing }, { data: history }, { data: reports }, { data: versions }, { data: declarations }] = await Promise.all([
     supabase
       .from("listings")
       .select(
@@ -39,6 +39,17 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
       .select("id, reason, details, status, created_at, resolution_note")
       .eq("listing_id", id)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("listing_versions")
+      .select("id, kind, changed_by, data, created_at")
+      .eq("listing_id", id)
+      .order("id", { ascending: true })
+      .limit(200),
+    supabase
+      .from("listing_declarations")
+      .select("id, version, created_at")
+      .eq("listing_id", id)
+      .order("id", { ascending: false }),
   ]);
   if (!listing) notFound();
 
@@ -52,6 +63,36 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
   const type = ref.propertyTypes.find((p) => p.id === listing.property_type_id);
   const city = ref.cities.find((c) => c.id === listing.city_id);
   const hood = ref.neighborhoods.find((n) => n.id === listing.neighborhood_id);
+
+  // What changed in each version, compared with the previous one of the same kind.
+  function versionChanges(rows: { id: number; kind: string; changed_by: string | null; data: unknown; created_at: string }[]) {
+    const previous: Record<string, Record<string, unknown>> = {};
+    const show = (value: unknown) => {
+      const text = value === null || value === undefined ? "—" : typeof value === "object" ? JSON.stringify(value) : String(value);
+      return text.length > 120 ? `${text.slice(0, 120)}…` : text;
+    };
+    return rows.map((row) => {
+      const data = (row.data ?? {}) as Record<string, unknown>;
+      const before = previous[row.kind];
+      const changes =
+        before && (row.kind === "content" || row.kind === "contact")
+          ? Object.keys(data)
+              .filter((key) => JSON.stringify(data[key]) !== JSON.stringify(before[key]))
+              .map((key) => ({ field: key, before: show(before[key]), after: show(data[key]) }))
+          : row.kind.startsWith("photo")
+            ? [{ field: "path", before: "", after: show(data.path) }]
+            : [];
+      previous[row.kind] = data;
+      return {
+        id: row.id,
+        kind: row.kind as "content" | "contact" | "photo_added" | "photo_removed",
+        createdAt: row.created_at,
+        bySeller: row.changed_by !== null && row.changed_by === listing!.seller_id,
+        byAdmin: row.changed_by !== null && row.changed_by !== listing!.seller_id,
+        changes,
+      };
+    }).reverse();
+  }
 
   const box = "rounded-2xl border border-border bg-surface p-4";
   return (
@@ -142,6 +183,46 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
             ))}
           </ul>
         )}
+      </section>
+
+      <section className={box}>
+        <h3 className="mb-2 font-extrabold">{a.listing.declarations}</h3>
+        {!declarations?.length ? (
+          <p className="text-sm text-muted">{a.listing.noDeclarations}</p>
+        ) : (
+          <ol className="flex flex-col gap-1 text-sm">
+            {declarations.map((d) => (
+              <li key={d.id}>
+                {formatDateTime(d.created_at, lang)} · {a.listing.declarationVersion}: <span dir="ltr">{d.version}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+
+      <section className={box}>
+        <h3 className="mb-1 font-extrabold">{a.listing.versions}</h3>
+        <p className="mb-2 text-xs text-muted">{a.listing.versionsHint}</p>
+        <ol className="flex flex-col gap-2 text-sm">
+          {versionChanges(versions ?? []).map((v) => (
+            <li key={v.id} className="border-b border-border pb-2 last:border-b-0">
+              <p>
+                <span className="text-muted">{formatDateTime(v.createdAt, lang)}</span> ·{" "}
+                <span className="font-bold">{a.listing.versionKinds[v.kind]}</span> ·{" "}
+                {v.byAdmin ? a.listing.byAdmin : v.bySeller ? a.listing.bySeller : a.listing.system}
+              </p>
+              {v.changes.length > 0 && (
+                <ul className="mt-1 flex flex-col gap-0.5 ps-4 text-xs">
+                  {v.changes.map((c) => (
+                    <li key={c.field} dir="auto">
+                      <span className="font-semibold">{c.field}</span>: <del className="text-muted">{c.before}</del> → {c.after}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
       </section>
 
       <section className={box}>

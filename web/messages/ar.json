@@ -649,7 +649,20 @@
       "viewSeller": "ملف المعلن",
       "submitted": "أُرسل للمراجعة",
       "done": "تم.",
-      "system": "النظام"
+      "system": "النظام",
+      "declarations": "إقرارات المعلن",
+      "noDeclarations": "لا توجد إقرارات بعد.",
+      "declarationVersion": "نسخة النص",
+      "versions": "سجل نسخ الإعلان",
+      "versionsHint": "كل تعديل في المحتوى أو الهاتف أو الصور محفوظ ولا يمكن حذفه.",
+      "versionKinds": {
+        "content": "المحتوى",
+        "contact": "بيانات التواصل",
+        "photo_added": "إضافة صورة",
+        "photo_removed": "حذف صورة"
+      },
+      "byAdmin": "مشرف",
+      "bySeller": "المعلن"
     },
     "users": {
       "search": "البريد أو الاسم أو الهاتف",

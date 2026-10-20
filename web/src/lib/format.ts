@@ -28,6 +28,18 @@ export function formatDate(iso: string, locale: Locale): string {
   }).format(new Date(iso));
 }
 
+/** Date and time in Amman, e.g. for records and evidence. */
+export function formatDateTime(iso: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(numberLocale[locale], {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Amman",
+  }).format(new Date(iso));
+}
+
 /** URL-friendly version of a listing title (keeps Arabic letters). */
 export function slugify(title: string): string {
   return title

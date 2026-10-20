@@ -649,7 +649,20 @@
       "viewSeller": "Advertiser profile",
       "submitted": "Submitted",
       "done": "Done.",
-      "system": "System"
+      "system": "System",
+      "declarations": "Seller declarations",
+      "noDeclarations": "No declarations yet.",
+      "declarationVersion": "Wording version",
+      "versions": "Ad version history",
+      "versionsHint": "Every change to content, phone or photos is kept and can't be deleted.",
+      "versionKinds": {
+        "content": "Content",
+        "contact": "Contact details",
+        "photo_added": "Photo added",
+        "photo_removed": "Photo removed"
+      },
+      "byAdmin": "Administrator",
+      "bySeller": "Seller"
     },
     "users": {
       "search": "Email, name or phone",

@@ -748,14 +748,34 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "listing_status_history_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
         ]
+      }
+      listing_versions: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          data: Json
+          id: number
+          kind: string
+          listing_id: number
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          data: Json
+          id?: never
+          kind: string
+          listing_id: number
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          data?: Json
+          id?: never
+          kind?: string
+          listing_id?: number
+        }
+        Relationships: []
       }
       listings: {
         Row: {

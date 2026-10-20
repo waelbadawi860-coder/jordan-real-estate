@@ -862,3 +862,46 @@ describe("seller declaration", () => {
     expect(direct.error).not.toBeNull();
   });
 });
+
+describe("permanent records and listing versions", () => {
+  it("audit log and status history can't be edited or deleted, even with the service key", async () => {
+    const audit = await service.from("admin_audit_logs").select("id").limit(1).single();
+    expect((await service.from("admin_audit_logs").delete().eq("id", audit.data!.id)).error?.message).toContain("record_is_permanent");
+    expect((await service.from("admin_audit_logs").update({ action: "forged" }).eq("id", audit.data!.id)).error?.message).toContain(
+      "record_is_permanent",
+    );
+    const history = await service.from("listing_status_history").select("id").limit(1).single();
+    expect((await service.from("listing_status_history").delete().eq("id", history.data!.id)).error?.message).toContain(
+      "record_is_permanent",
+    );
+  });
+
+  it("every content, contact and photo change is kept as a version, readable by admins only", async () => {
+    const { data: listing } = await service
+      .from("listings")
+      .insert({ ...listingInput("Versioned flat"), seller_id: bob.id })
+      .select("id")
+      .single();
+    const id = listing!.id;
+    await bob.client.from("listings").update({ price: "99000" }).eq("id", id);
+    await bob.client.from("listings").update({ price: "99000" }).eq("id", id); // no change: no new version
+    await bob.client.from("listing_contacts").insert({ listing_id: id, phone: "+962791234567" });
+
+    const { data: versions } = await service.from("listing_versions").select("kind, changed_by, data").eq("listing_id", id).order("id");
+    expect(versions!.map((v) => v.kind)).toEqual(["content", "content", "contact"]);
+    expect((versions![1].data as { price: number }).price).toBe(99000);
+    expect(versions![1].changed_by).toBe(bob.id);
+
+    expect((await bob.client.from("listing_versions").select("id").eq("listing_id", id)).data).toEqual([]);
+    expect((await anon.from("listing_versions").select("id").eq("listing_id", id)).data ?? []).toEqual([]);
+    expect((await admin.client.from("listing_versions").select("id").eq("listing_id", id)).data).toHaveLength(3);
+  });
+
+  it("deleting a draft keeps its history", async () => {
+    const { data: listing } = await bob.client.from("listings").select("id").eq("title", "Versioned flat").single();
+    const del = await service.from("listings").delete().eq("id", listing!.id);
+    expect(del.error).toBeNull();
+    const { data } = await service.from("listing_versions").select("id").eq("listing_id", listing!.id);
+    expect(data!.length).toBeGreaterThan(0);
+  });
+});
