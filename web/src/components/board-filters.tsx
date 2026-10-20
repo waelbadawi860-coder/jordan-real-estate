@@ -120,14 +120,14 @@ export function BoardTags({
   return (
     <div className="flex flex-col gap-2">
       <TagRow label={s.deal} tags={dealTags} />
-      {dealChosen && <TagRow label={s.type} tags={typeTags} />}
+      {dealChosen && <TagRow label={s.type} tags={typeTags} variant="type" />}
       {typeChosen && <TagRow label={s.city} tags={cityTags} />}
       {hoodTags.length > 1 && (
         <>
           <TagRow label={s.neighborhood} tags={hoodTags} variant="area" />
-          {filters.hood && <ScrollActiveArea />}
         </>
       )}
+      {(filters.hood || (filters.type && filters.type !== "all")) && <ScrollActiveArea />}
     </div>
   );
 }
@@ -139,16 +139,17 @@ function TagRow({
 }: {
   label: string;
   tags: { text: string; active: boolean; href: string }[];
-  /** "area": the city's areas — own colour, always one line, with a visible scroll bar underneath. */
-  variant?: "main" | "area";
+  /** "type" and "area": own colour, always one line, with a visible scroll bar underneath. */
+  variant?: "main" | "type" | "area";
 }) {
   const area = variant === "area";
+  const type = variant === "type";
   return (
     <nav aria-label={label}>
       <ul
         className={
-          area
-            ? "area-scroll -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
+          area || type
+            ? `${area ? "area-scroll" : "type-scroll"} -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0`
             : "no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
         }
       >
@@ -162,7 +163,11 @@ function TagRow({
                   ? tag.active
                     ? "border-accent bg-accent text-white"
                     : "border-accent/30 bg-accent-soft text-foreground hover:border-accent hover:text-accent"
-                  : tag.active
+                  : type
+                    ? tag.active
+                      ? "border-types bg-types text-white"
+                      : "border-types/30 bg-types-soft text-foreground hover:border-types hover:text-types"
+                    : tag.active
                     ? "border-brand bg-brand text-white"
                     : "border-border bg-surface text-foreground hover:border-brand hover:text-brand"
               }`}

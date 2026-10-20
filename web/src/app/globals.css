@@ -14,6 +14,8 @@
   --accent-soft: #fbefe1;
   --danger: #b42318;
   --whatsapp: #157a3f; /* white text on it: 5.4:1 (WCAG AA) */
+  --types: #1d5a96; /* property-type tags; white text on it: 7.0:1 */
+  --types-soft: #e7eff8;
   color-scheme: light;
 }
 
@@ -30,6 +32,8 @@
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
   --color-whatsapp: var(--whatsapp);
+  --color-types: var(--types);
+  --color-types-soft: var(--types-soft);
   --font-sans: var(--font-cairo), system-ui, sans-serif;
 }
 
@@ -66,19 +70,30 @@ textarea {
   display: none;
 }
 
-/* The areas row: one line with a visible scroll bar the visitor can drag. */
-.area-scroll {
+/* Tag rows on one line with a visible scroll bar the visitor can drag,
+   coloured like the row (areas: --accent, property types: --types). */
+.area-scroll,
+.type-scroll {
+  --bar: var(--accent);
+  --bar-track: var(--accent-soft);
   scrollbar-width: thin;
-  scrollbar-color: var(--accent) var(--accent-soft);
+  scrollbar-color: var(--bar) var(--bar-track);
 }
-.area-scroll::-webkit-scrollbar {
+.type-scroll {
+  --bar: var(--types);
+  --bar-track: var(--types-soft);
+}
+.area-scroll::-webkit-scrollbar,
+.type-scroll::-webkit-scrollbar {
   height: 8px;
 }
-.area-scroll::-webkit-scrollbar-track {
-  background: var(--accent-soft);
+.area-scroll::-webkit-scrollbar-track,
+.type-scroll::-webkit-scrollbar-track {
+  background: var(--bar-track);
   border-radius: 999px;
 }
-.area-scroll::-webkit-scrollbar-thumb {
-  background: var(--accent);
+.area-scroll::-webkit-scrollbar-thumb,
+.type-scroll::-webkit-scrollbar-thumb {
+  background: var(--bar);
   border-radius: 999px;
 }
