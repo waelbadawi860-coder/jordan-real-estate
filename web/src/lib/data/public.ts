@@ -81,7 +81,7 @@ export async function getReferenceData(): Promise<ReferenceData> {
 
 export function siteName(ref: ReferenceData, locale: "ar" | "en"): string {
   const value = ref.settings[locale === "ar" ? "site_name_ar" : "site_name_en"];
-  return typeof value === "string" ? value : "Aqar";
+  return typeof value === "string" ? value : "عقار";
 }
 
 export function publicImageUrl(storagePath: string): string {
