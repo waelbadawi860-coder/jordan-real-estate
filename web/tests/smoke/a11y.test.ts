@@ -39,7 +39,7 @@ async function audit(path: string, session?: TestSession) {
 }
 
 describe("accessibility (serious and critical issues)", () => {
-  const publicPages = ["/", "/en", "/search?deal=rent", "/property/100017", "/login", "/register", "/forgot-password", "/contact", "/commission-policy"];
+  const publicPages = ["/", "/en", "/search?deal=rent", "/property/100017", "/login", "/register", "/forgot-password", "/contact", "/commission-policy", "/terms", "/privacy", "/posting-policy", "/en/reporting-policy"];
   for (const path of publicPages) {
     it(`public page ${path}`, async () => {
       expect(await audit(path)).toEqual([]);

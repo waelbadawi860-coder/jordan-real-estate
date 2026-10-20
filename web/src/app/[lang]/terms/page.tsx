@@ -1,5 +1,4 @@
-import { comingSoonMetadata, comingSoonPage } from "@/components/coming-soon";
+import { legalMetadata, legalPage } from "@/components/legal-page";
 
-// Placeholder until a later stage.
-export const generateMetadata = comingSoonMetadata((d) => d.footer.terms);
-export default comingSoonPage((d) => d.footer.terms, true);
+export const generateMetadata = legalMetadata("terms");
+export default legalPage("terms");

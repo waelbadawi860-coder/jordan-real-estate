@@ -18,7 +18,9 @@
     "privacy": "Privacy policy",
     "commission": "Commission policy",
     "contact": "Contact us / report an issue",
-    "rights": "All rights reserved"
+    "rights": "All rights reserved",
+    "posting": "Posting policy",
+    "reporting": "Reporting policy"
   },
   "search": {
     "heroTitle": "Find your property in Jordan",
@@ -904,5 +906,11 @@
     "remove": "Turn off two-step login",
     "removeConfirm": "Turn off two-step login? Without it you can't open the admin dashboard on the live site.",
     "error": "Something went wrong. Please try again."
+  },
+  "legal": {
+    "version": "Version",
+    "updated": "Last updated",
+    "draftNotice": "Draft awaiting legal review. The text may change before the official launch.",
+    "related": "Other policies"
   }
 }
