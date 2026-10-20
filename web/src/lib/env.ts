@@ -32,6 +32,20 @@ if (!parsedPublic.success) {
 
 export const publicEnv = parsedPublic.data;
 
+/**
+ * "live" only on the real public site (set SITE_STAGE=live in Vercel). Test
+ * copies (staging on *.vercel.app, your computer) are hidden from search engines.
+ */
+export const isLiveSite = process.env.SITE_STAGE === "live";
+
+// Extra safety rules for the live site.
+if (isLiveSite) {
+  const site = new URL(publicEnv.NEXT_PUBLIC_SITE_URL);
+  if (site.protocol !== "https:" || site.hostname === "localhost" || site.hostname.endsWith(".vercel.app")) {
+    throw new Error("NEXT_PUBLIC_SITE_URL must be the real https:// domain in production (e.g. https://www.example.com).");
+  }
+}
+
 // Server-only settings. Read lazily so the browser bundle never touches them.
 const serverSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(20, { message: "must be the Supabase secret (service_role) key" }),

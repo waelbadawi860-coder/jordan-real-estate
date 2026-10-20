@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { safeNextPath } from "@/lib/auth";
+import { withinVisitorLimit } from "@/lib/rate-limit";
 import { publicEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -40,6 +41,15 @@ function authErrorKey(error: AuthErrorLike): string {
   return "generic";
 }
 
+/** Per-visitor limits on top of Supabase's own, to slow password guessing and email spam. */
+async function allowed(action: string, max: number, windowSeconds: number): Promise<boolean> {
+  try {
+    return await withinVisitorLimit(action, max, windowSeconds);
+  } catch {
+    return true; // never lock everyone out if the limiter itself is unavailable
+  }
+}
+
 function localeFrom(formData: FormData): Locale {
   const lang = String(formData.get("lang") ?? "");
   return hasLocale(lang) ? lang : "ar";
@@ -63,6 +73,7 @@ export async function registerAction(_prev: AuthFormState, formData: FormData): 
     acceptTerms: formData.get("acceptTerms") ?? undefined,
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error.issues) };
+  if (!(await allowed("register", 5, 3600))) return { error: "rateLimited" };
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -100,6 +111,7 @@ export async function loginAction(_prev: AuthFormState, formData: FormData): Pro
   const locale = localeFrom(formData);
   const parsed = loginSchema.safeParse({ email: formData.get("email"), password: formData.get("password") });
   if (!parsed.success) return { error: "invalidCredentials" };
+  if (!(await allowed("login", 20, 600))) return { error: "rateLimited" };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
@@ -119,6 +131,7 @@ export async function requestPasswordResetAction(_prev: AuthFormState, formData:
   const locale = localeFrom(formData);
   const email = emailSchema.safeParse(formData.get("email"));
   if (!email.success) return { fieldErrors: { email: "invalidEmail" } };
+  if (!(await allowed("reset", 5, 3600))) return { error: "rateLimited" };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email.data, {

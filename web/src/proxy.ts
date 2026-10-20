@@ -53,6 +53,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Skip Next.js internals, metadata files and static assets.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
+    "/((?!api/|_next/static|_next/image|favicon.ico|icon|apple-icon|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
   ],
 };

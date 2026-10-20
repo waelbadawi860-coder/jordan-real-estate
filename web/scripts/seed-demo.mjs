@@ -14,6 +14,12 @@ if (!url || !secret) {
   process.exit(1);
 }
 
+// Safety: demo data is only ever written to the development database.
+if (process.env.SITE_STAGE === "live" || !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(process.env.NEXT_PUBLIC_SITE_URL ?? "")) {
+  console.error("Refusing to run: demo data is for the development database only (NEXT_PUBLIC_SITE_URL must be http://localhost…).");
+  process.exit(1);
+}
+
 const DEMO_EMAIL = "demo-seller@example.com";
 const PUBLIC_BUCKET = "listing-photos-public";
 const sb = createClient(url, secret, { auth: { persistSession: false } });

@@ -1,0 +1,63 @@
+# Daily off-site database backup (independent of Supabase's own backups).
+#
+# Needs two repository secrets (GitHub → Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     Supabase → Connect → "Session pooler" connection string (with the password)
+#   BACKUP_PASSPHRASE   a long random passphrase — store it in your password manager
+# Until both exist, the job does nothing.
+#
+# Each backup is ENCRYPTED with the passphrase and kept 30 days as a private
+# workflow artifact. Photos (Storage files) are NOT included — see docs/OPERATIONS.md.
+name: Database backup
+
+on:
+  schedule:
+    - cron: "30 0 * * *" # every day at 00:30 UTC (03:30 Amman time)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check configuration
+        id: check
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "Backup secrets not configured yet — skipping."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: supabase/setup-cli@v1
+        if: steps.check.outputs.configured == 'true'
+        with:
+          version: latest
+
+      - name: Dump roles, schema and data
+        if: steps.check.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          mkdir backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" --role-only -f backup/roles.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f backup/data.sql
+          tar -czf backup.tar.gz backup
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
+              --symmetric --cipher-algo AES256 -o "db-backup-$(date -u +%Y-%m-%d).tar.gz.gpg" backup.tar.gz
+          rm -rf backup backup.tar.gz
+          ls -lh *.gpg
+
+      - uses: actions/upload-artifact@v4
+        if: steps.check.outputs.configured == 'true'
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: "*.tar.gz.gpg"
+          retention-days: 30
+          if-no-files-found: error

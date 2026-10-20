@@ -12,6 +12,7 @@
     "test:smoke": "vitest run tests/smoke",
     "db:push": "supabase db push",
     "make-admin": "node --env-file=.env.local scripts/make-admin.mjs",
+    "make-admin:prod": "node --env-file=.env.production.local scripts/make-admin.mjs",
     "demo:add": "node --env-file=.env.local scripts/seed-demo.mjs",
     "demo:remove": "node --env-file=.env.local scripts/seed-demo.mjs --remove",
     "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts",

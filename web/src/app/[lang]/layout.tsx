@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { dirOf, hasLocale, localePath, locales } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getReferenceData, siteName } from "@/lib/data/public";
-import { publicEnv } from "@/lib/env";
+import { isLiveSite, publicEnv } from "@/lib/env";
 import "../globals.css";
 
 const cairo = Cairo({
@@ -35,6 +35,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
     title: { default: `${name} — ${dict.meta.tagline}`, template: `%s | ${name}` },
     description: dict.meta.description,
     applicationName: name,
+    // Test copies are never indexed (pages may still set their own rules on the live site).
+    ...(isLiveSite ? {} : { robots: { index: false, follow: false } }),
     openGraph: {
       siteName: name,
       locale: lang === "ar" ? "ar_JO" : "en_JO",

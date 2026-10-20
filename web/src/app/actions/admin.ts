@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { z } from "zod";
 import { getAdminActor } from "@/lib/admin";
+import { isLiveSite } from "@/lib/env";
 import { editableSettings, settingSchemas, type EditableSetting } from "@/lib/admin-settings";
 import { syncPublicPhotos, syncSellerPhotos } from "@/lib/photos";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -195,7 +196,7 @@ export async function saveSettingAction(key: unknown, value: unknown): Promise<A
 
   // Safety: on the live site, commissions can only be switched on once the
   // current agreement has been marked as reviewed by a lawyer.
-  if (key === "commission_enabled" && parsed.data === true && process.env.NODE_ENV === "production") {
+  if (key === "commission_enabled" && parsed.data === true && isLiveSite) {
     const { data: current } = await actor.supabase.from("agreement_versions").select("is_draft").eq("is_current", true).maybeSingle();
     if (!current || current.is_draft) return { ok: false, error: "draftAgreement" };
   }

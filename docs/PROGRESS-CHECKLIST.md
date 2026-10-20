@@ -170,8 +170,26 @@ Legend: [x] done and verified · [ ] not done · (you) = needs your action
 5. Open that listing's public page → **عرض الموقع التقريبي على الخريطة** → a circle around the area, no exact pin.
 6. On your phone (or Chrome phone view), check the header and the notifications page fit the screen.
 
-## Stage 8
-- [ ] Not started
+## Stage 8 — Production preparation
+### Done (in the code, tested)
+- [x] Security headers on every page: content security policy, HTTPS-only (HSTS), no framing, no MIME sniffing, strict referrer, camera/microphone/location disabled; "powered by" header removed — checked in the browser: no blocked resources, map and photos still work
+- [x] Per-visitor limits on login (20/10 min), registration (5/hour) and password reset (5/hour), on top of Supabase's own limits
+- [x] Supabase security advisor reviewed: tightened two functions (settings readers no longer callable from outside; seller names only for sellers with a public listing). Remaining warnings are intentional (functions that check permissions themselves) except **leaked-password protection** → enable on Supabase Pro (Phase C)
+- [x] Dependency audit: 0 known vulnerabilities in production packages. Git history scanned: no secrets
+- [x] Live-site safety switch `SITE_STAGE=live`: refuses to start with a non-https/test address; test copies are hidden from Google (robots + noindex); demo-data script refuses to touch anything but your computer; commissions can't be enabled on the live site while the agreement is a draft
+- [x] Error logging without personal data (`src/instrumentation.ts` → Vercel logs); health check `/api/health`
+- [x] Off-site encrypted daily database backup via GitHub Actions (inactive until 2 secrets are added) — `docs/OPERATIONS.md`; backups/recovery/monitoring/incident procedures documented
+- [x] Launch runbook with costs gates and final acceptance test — `docs/STAGE-8-LAUNCH.md`
+- [x] Automated tests: **151 passed** (109 unit/database, 42 page tests incl. accessibility and security headers). Note: running all suites back-to-back can hit Supabase's sign-in limit (~30 per 5 minutes) — wait 5 minutes and rerun
+- [x] Production build succeeds
+
+### Remaining — needs you (see `docs/STAGE-8-LAUNCH.md`)
+- [ ] Phase A: free staging copy on Vercel (Hobby) for phone testing
+- [ ] Phase B: legal review, final terms/privacy texts, brand/domain, budget approval
+- [ ] Phase C: domain, Supabase Pro production project, Resend email, Vercel Pro, DNS
+- [ ] Phase D: admin account, settings, backup secrets + restore test, uptime monitor, Search Console
+- [ ] Phase E: final acceptance test on the live site
+- [ ] Not implemented: photo watermark (setting exists, off); photo-file backups; cleanup of orphaned uploads
 
 ## Known limitations / open items
 - Legal model (brokerage licence, commission legality, agreement wording) is **not reviewed**. Commission feature stays switched off until a Jordanian lawyer approves it.

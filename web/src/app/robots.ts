@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
-import { publicEnv } from "@/lib/env";
+import { isLiveSite, publicEnv } from "@/lib/env";
 
 export default function robots(): MetadataRoute.Robots {
+  // Test copies (staging, your computer) must never appear in search results.
+  if (!isLiveSite) return { rules: { userAgent: "*", disallow: "/" } };
   return {
     rules: {
       userAgent: "*",
