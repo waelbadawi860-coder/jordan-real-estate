@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { reportListingAction, sendContactMessageAction, type ContactFormState } from "@/app/actions/contact";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { t } from "@/lib/format";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
 
 const label = "mb-1 block text-sm font-semibold";
@@ -11,28 +12,64 @@ function errorText(c: Dictionary["contact"], error?: ContactFormState["error"]) 
   return error ? (c[error] ?? c.generic) : null;
 }
 
+function Sent({ text, reference, c }: { text: string; reference?: string; c: Dictionary["contact"] }) {
+  return (
+    <FormMessage kind="success">
+      {text}
+      {reference && (
+        <>
+          <br />
+          <strong>{t(c.reference, { ref: reference })}</strong>
+        </>
+      )}
+    </FormMessage>
+  );
+}
+
 export function ReportListingForm({ listingId, dict }: { listingId: number; dict: Pick<Dictionary, "contact" | "reportReasons"> }) {
   const [state, action, pending] = useActionState(reportListingAction, {});
   const [, startTransition] = useTransition();
+  const [target, setTarget] = useState<"listing" | "seller">("listing");
   const c = dict.contact;
-  if (state.ok) return <FormMessage kind="success">{c.reportSent}</FormMessage>;
+  if (state.ok) return <Sent text={c.reportSent} reference={state.reference} c={c} />;
 
-  const reasons = ["fraud", "wrong_info", "duplicate", "already_sold", "inappropriate", "other"] as const;
+  const reasons =
+    target === "listing"
+      ? (["fraud", "wrong_info", "duplicate", "already_sold", "inappropriate", "other"] as const).map((r) => [r, dict.reportReasons[r]])
+      : (["fraud", "spam", "harassment", "impersonation", "other"] as const).map((r) => [r, c.sellerReasons[r]]);
   return (
     <form onSubmit={keepValuesOnSubmit(action, startTransition)} className="flex flex-col gap-4" noValidate>
       <input type="hidden" name="listingId" value={listingId} />
       {state.error && <FormMessage kind="error">{errorText(c, state.error)}</FormMessage>}
+      <fieldset className="flex flex-col gap-1">
+        <legend className={label}>{c.reportTarget}</legend>
+        <div className="flex flex-wrap gap-4">
+          {(["listing", "seller"] as const).map((value) => (
+            <label key={value} className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="target"
+                value={value}
+                checked={target === value}
+                onChange={() => setTarget(value)}
+                className="size-5 accent-brand"
+              />
+              {value === "listing" ? c.targetListing : c.targetSeller}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <div>
         <label htmlFor="reason" className={label}>
           {c.reason}
         </label>
-        <select id="reason" name="reason" required className={inputClass} defaultValue="">
+        <select key={target} id="reason" name="reason" required className={inputClass} defaultValue="">
           <option value="" disabled>
             …
           </option>
-          {reasons.map((r) => (
-            <option key={r} value={r}>
-              {dict.reportReasons[r]}
+          {reasons.map(([value, text]) => (
+            <option key={value} value={value}>
+              {text}
             </option>
           ))}
         </select>
@@ -56,7 +93,7 @@ export function ContactMessageForm({ dict }: { dict: Pick<Dictionary, "contact">
   const [state, action, pending] = useActionState(sendContactMessageAction, {});
   const [, startTransition] = useTransition();
   const c = dict.contact;
-  if (state.ok) return <FormMessage kind="success">{c.sent}</FormMessage>;
+  if (state.ok) return <Sent text={c.sent} reference={state.reference} c={c} />;
 
   return (
     <form onSubmit={keepValuesOnSubmit(action, startTransition)} className="flex flex-col gap-4" noValidate>

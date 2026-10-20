@@ -65,6 +65,9 @@ export default async function AdminReportsPage({ params, searchParams }: PagePro
                 <Link href={localePath(lang, `/admin/listings/${r.listing_id}`)} className="font-bold text-brand hover:underline" dir="auto">
                   #{r.listing_id} · {(r.listings as { title: string } | null)?.title}
                 </Link>
+                <span className="text-xs font-bold text-muted" dir="ltr">
+                  L-{r.id}
+                </span>
                 <p className="text-sm">
                   <span className="font-semibold">{reasonText(r.reason)}</span> — {meta(r.status, r.created_at, !r.reporter_id)}
                 </p>
@@ -98,8 +101,13 @@ export default async function AdminReportsPage({ params, searchParams }: PagePro
                 <Link href={localePath(lang, `/admin/users/${r.reported_user_id}`)} className="font-bold text-brand hover:underline">
                   {a.reports.reportedUser}
                 </Link>
+                <span className="text-xs font-bold text-muted" dir="ltr">
+                  U-{r.id}
+                </span>
                 <p className="text-sm">
-                  <span className="font-semibold">{reasonText(r.reason)}</span> — {meta(r.status, r.created_at, !r.reporter_id)}
+                  <span className="font-semibold">
+                    {dict.contact.sellerReasons[r.reason as keyof typeof dict.contact.sellerReasons] ?? reasonText(r.reason)}
+                  </span> — {meta(r.status, r.created_at, !r.reporter_id)}
                 </p>
                 {r.details && (
                   <p className="text-sm" dir="auto">
@@ -123,6 +131,9 @@ export default async function AdminReportsPage({ params, searchParams }: PagePro
           <ul className="flex flex-col gap-4">
             {messages.data.map((m) => (
               <li key={m.id} className="flex flex-col gap-1 border-b border-border pb-4 last:border-b-0">
+                <span className="text-xs font-bold text-muted" dir="ltr">
+                  M-{m.id}
+                </span>
                 <p className="text-sm">
                   <span className="font-semibold">{dict.contact.topics[m.topic as keyof typeof dict.contact.topics]}</span> —{" "}
                   {a.reports.statuses[m.status]} · {formatDate(m.created_at, lang)}

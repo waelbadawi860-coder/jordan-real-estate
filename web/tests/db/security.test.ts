@@ -905,3 +905,35 @@ describe("permanent records and listing versions", () => {
     expect(data!.length).toBeGreaterThan(0);
   });
 });
+
+describe("temporary hold", () => {
+  it("an admin can hold a published ad (hidden) and release it unchanged; a reason is required", async () => {
+    const publishedAt = new Date(Date.now() - 86_400_000).toISOString();
+    const { data } = await service
+      .from("listings")
+      .insert({ ...listingInput("Ad to hold"), seller_id: bob.id })
+      .select("id")
+      .single();
+    const id = data!.id;
+    await service
+      .from("listings")
+      .update({ status: "published", published_at: publishedAt, expires_at: new Date(Date.now() + 10 * 86_400_000).toISOString() })
+      .eq("id", id);
+
+    const noReason = await admin.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "on_hold" });
+    expect(noReason.error?.message).toContain("reason_required");
+
+    const hold = await admin.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "on_hold", p_reason: "Fraud complaint L-1" });
+    expect(hold.error).toBeNull();
+    expect((await anon.from("listings").select("id").eq("id", id)).data).toEqual([]);
+    // The seller can't edit or republish it while it is held.
+    const ownerRelease = await bob.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "published" });
+    expect(ownerRelease.error).not.toBeNull();
+
+    const release = await admin.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "published" });
+    expect(release.error).toBeNull();
+    const after = await service.from("listings").select("status, published_at").eq("id", id).single();
+    expect(after.data!.status).toBe("published");
+    expect(new Date(after.data!.published_at!).toISOString()).toBe(publishedAt);
+  });
+});

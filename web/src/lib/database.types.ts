@@ -1556,6 +1556,7 @@ export type Database = {
         | "draft"
         | "pending_approval"
         | "published"
+        | "on_hold"
         | "rejected"
         | "expired"
         | "sold"
@@ -1728,6 +1729,7 @@ export const Constants = {
         "draft",
         "pending_approval",
         "published",
+        "on_hold",
         "rejected",
         "expired",
         "sold",

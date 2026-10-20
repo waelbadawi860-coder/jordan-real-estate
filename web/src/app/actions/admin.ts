@@ -37,14 +37,21 @@ function refreshListing(id: number) {
 // Listings
 // ----------------------------------------------------------------------------
 
-const moderation = { approve: "published", reject: "rejected", take_down: "rejected", archive: "archived" } as const;
+const moderation = {
+  approve: "published",
+  reject: "rejected",
+  take_down: "rejected",
+  archive: "archived",
+  hold: "on_hold",
+  release: "published",
+} as const;
 
 export async function moderateListingAction(listingId: unknown, action: unknown, reason?: unknown): Promise<AdminResult> {
   const id = idSchema.safeParse(listingId);
-  const act = z.enum(["approve", "reject", "take_down", "archive"]).safeParse(action);
+  const act = z.enum(["approve", "reject", "take_down", "archive", "hold", "release"]).safeParse(action);
   const why = reasonSchema.safeParse(reason ?? "");
   if (!id.success || !act.success || !why.success) return { ok: false, error: "invalid" };
-  if ((act.data === "reject" || act.data === "take_down") && !why.data) return { ok: false, error: "reasonRequired" };
+  if ((act.data === "reject" || act.data === "take_down" || act.data === "hold") && !why.data) return { ok: false, error: "reasonRequired" };
 
   const actor = await getAdminActor();
   if (!actor) return { ok: false, error: "notAllowed" };

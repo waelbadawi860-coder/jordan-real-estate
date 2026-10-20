@@ -151,7 +151,7 @@ export function StatusActions({
             {m.backToDraft}
           </button>
         )}
-        {["published", "expired", "pending_approval"].includes(status) && (
+        {["published", "on_hold", "expired", "pending_approval"].includes(status) && (
           <button type="button" disabled={pending} className={danger} onClick={() => setConfirm({ kind: "withdrawn", message: m.confirmWithdraw })}>
             {m.withdraw}
           </button>

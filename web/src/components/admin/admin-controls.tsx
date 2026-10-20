@@ -68,7 +68,9 @@ export function ListingModeration({ listingId, status, a }: { listingId: number;
   const [reason, setReason] = useState("");
   const canApprove = status === "pending_approval" || status === "expired";
   const canReject = status === "pending_approval";
-  const canTakeDown = status === "published";
+  const canTakeDown = status === "published" || status === "on_hold";
+  const canHold = status === "published";
+  const canRelease = status === "on_hold";
   const canExpire = status === "published" || status === "expired";
 
   return (
@@ -77,6 +79,11 @@ export function ListingModeration({ listingId, status, a }: { listingId: number;
         {canApprove && (
           <button type="button" className={primary} disabled={pending} onClick={() => run(() => moderateListingAction(listingId, "approve"))}>
             {a.listing.approve}
+          </button>
+        )}
+        {canRelease && (
+          <button type="button" className={primary} disabled={pending} onClick={() => run(() => moderateListingAction(listingId, "release"))}>
+            {a.listing.release}
           </button>
         )}
         {canExpire && (
@@ -111,14 +118,26 @@ export function ListingModeration({ listingId, status, a }: { listingId: number;
             dir="auto"
             className="rounded-lg border border-border p-2 text-sm"
           />
-          <button
-            type="button"
-            className={`${danger} w-fit`}
-            disabled={pending}
-            onClick={() => run(() => moderateListingAction(listingId, canReject ? "reject" : "take_down", reason), () => setReason(""))}
-          >
-            {canReject ? a.listing.reject : a.listing.takeDown}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {canHold && (
+              <button
+                type="button"
+                className={btn}
+                disabled={pending}
+                onClick={() => run(() => moderateListingAction(listingId, "hold", reason), () => setReason(""))}
+              >
+                {a.listing.hold}
+              </button>
+            )}
+            <button
+              type="button"
+              className={`${danger} w-fit`}
+              disabled={pending}
+              onClick={() => run(() => moderateListingAction(listingId, canReject ? "reject" : "take_down", reason), () => setReason(""))}
+            >
+              {canReject ? a.listing.reject : a.listing.takeDown}
+            </button>
+          </div>
         </div>
       )}
       {message}

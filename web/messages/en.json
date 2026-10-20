@@ -105,7 +105,7 @@
     "contactError": "Something went wrong. Please try again.",
     "contactPrivacy": "We don't store your conversations. You talk to the advertiser directly by phone or WhatsApp.",
     "safetyTip": "Tip: view the property in person and never pay before verifying ownership.",
-    "report": "Report this listing",
+    "report": "Report this ad or advertiser",
     "share": "Share",
     "linkCopied": "Link copied",
     "backToResults": "Back to results",
@@ -302,6 +302,7 @@
     "draft": "Draft",
     "pending_approval": "Pending review",
     "published": "Published",
+    "on_hold": "On hold for review",
     "rejected": "Rejected",
     "expired": "Expired",
     "sold": "Sold",
@@ -510,7 +511,19 @@
     "invalid": "Please check the required fields (message at least 5 characters).",
     "alreadyReported": "You already have an open report on this listing.",
     "listingUnavailable": "This listing can't be reported.",
-    "generic": "Something went wrong. Please try again."
+    "generic": "Something went wrong. Please try again.",
+    "reportTarget": "What are you reporting?",
+    "targetListing": "This ad",
+    "targetSeller": "The advertiser",
+    "sellerReasons": {
+      "fraud": "Fraud or asking for money",
+      "spam": "Spam or repeated ads",
+      "harassment": "Abuse or harassment",
+      "impersonation": "Pretends to be the owner or someone else",
+      "other": "Other reason"
+    },
+    "reference": "Reference number: {ref}. Keep it to follow up with us.",
+    "alreadyReportedSeller": "You already have an open report on this advertiser."
   },
   "admin": {
     "title": "Admin dashboard",
@@ -633,7 +646,7 @@
     "listing": {
       "approve": "Accept for publication (meets posting policy)",
       "reject": "Reject",
-      "rejectReason": "Rejection reason (shown to the advertiser)",
+      "rejectReason": "Reason (shown to the seller)",
       "takeDown": "Take down",
       "archive": "Archive",
       "expiry": "Expiry date",
@@ -662,7 +675,9 @@
         "photo_removed": "Photo removed"
       },
       "byAdmin": "Administrator",
-      "bySeller": "Seller"
+      "bySeller": "Seller",
+      "hold": "Hold for checking",
+      "release": "Release (publish again unchanged)"
     },
     "users": {
       "search": "Email, name or phone",

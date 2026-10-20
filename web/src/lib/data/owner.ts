@@ -11,6 +11,7 @@ export type ListingStatus =
   | "draft"
   | "pending_approval"
   | "published"
+  | "on_hold"
   | "rejected"
   | "expired"
   | "sold"

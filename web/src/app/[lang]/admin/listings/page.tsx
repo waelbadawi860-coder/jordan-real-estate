@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
 
-const STATUSES = ["pending_approval", "published", "rejected", "expired", "draft", "sold", "rented", "withdrawn", "archived"] as const;
+const STATUSES = ["pending_approval", "published", "on_hold", "rejected", "expired", "draft", "sold", "rented", "withdrawn", "archived"] as const;
 type Status = (typeof STATUSES)[number];
 
 export default async function AdminListingsPage({ params, searchParams }: PageProps<"/[lang]/admin/listings">) {
