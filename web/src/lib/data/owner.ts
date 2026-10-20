@@ -94,6 +94,7 @@ export type MyListing = {
   areaSqm: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  floorsCount: number | null;
   floor: FloorLevel | null;
   furnished: boolean | null;
   posterType: "owner" | "agent";
@@ -118,7 +119,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, floor_level, poster_type, rejection_reason, expires_at, published_at, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position), accepted_agreements(agreement_version_id, accepted_at)",
+      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, floor_level, floors_count, poster_type, rejection_reason, expires_at, published_at, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position), accepted_agreements(agreement_version_id, accepted_at)",
     )
     .eq("id", id)
     .eq("seller_id", userId)
@@ -144,6 +145,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
     areaSqm: data.area_sqm === null ? null : String(data.area_sqm),
     bedrooms: data.bedrooms,
     bathrooms: data.bathrooms,
+    floorsCount: data.floors_count,
     floor: data.floor_level,
     furnished: furnishedOf(data.details),
     posterType: data.poster_type,

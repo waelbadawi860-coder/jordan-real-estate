@@ -21,6 +21,7 @@ export type ListingFormValues = {
   areaSqm: string;
   bedrooms: string;
   bathrooms: string;
+  floorsCount: string;
   floor: string;
   furnished: "yes" | "no" | "";
   posterType: "owner" | "agent";
@@ -65,6 +66,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
   const hasBathrooms = type?.hasBathrooms ?? false;
   const hasFloor = type?.hasFloor ?? false;
   const hasFurnished = type?.hasFurnished ?? false;
+  const hasFloorsCount = type?.hasFloorsCount ?? false;
 
   function changeDeal(value: "sale" | "rent") {
     setDealType(value);
@@ -246,6 +248,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
           <NumberInput name="areaSqm" text={f.area} value={initial.areaSqm} decimal error={err("areaSqm")} />
           {hasBedrooms && <NumberInput name="bedrooms" text={f.bedrooms} value={initial.bedrooms} error={err("bedrooms")} />}
           {hasBathrooms && <NumberInput name="bathrooms" text={f.bathrooms} value={initial.bathrooms} error={err("bathrooms")} />}
+          {hasFloorsCount && <NumberInput name="floorsCount" text={f.floorsCount} value={initial.floorsCount} error={err("floorsCount")} />}
         </div>
         {hasFloor && (
           <div className="sm:w-1/2">

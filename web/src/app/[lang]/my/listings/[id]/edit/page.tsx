@@ -92,6 +92,7 @@ export default async function EditListingPage({ params, searchParams }: PageProp
             areaSqm: listing.areaSqm ?? "",
             bedrooms: listing.bedrooms?.toString() ?? "",
             bathrooms: listing.bathrooms?.toString() ?? "",
+            floorsCount: listing.floorsCount?.toString() ?? "",
             floor: listing.floor?.toString() ?? "",
             furnished: listing.furnished === null ? "" : listing.furnished ? "yes" : "no",
             posterType: listing.posterType,

@@ -9,7 +9,7 @@ import { SearchForm } from "@/components/search-form";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { getDictionary, type Dictionary } from "@/i18n/dictionaries";
 import { getAreaFacets, getReferenceData, searchListings, type AreaFacet, type ReferenceData } from "@/lib/data/public";
-import { parseSearchParams, type SearchFilters } from "@/lib/search";
+import { filtersToQuery, parseSearchParams, type SearchFilters } from "@/lib/search";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/search">): Promise<Metadata> {
   const { lang } = await params;
@@ -135,7 +135,7 @@ function Filters({
 }) {
   const detailed =
     filters &&
-    [filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.floor].some((v) => v !== undefined);
+    [filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.baths, filters.floors, filters.floor].some((v) => v !== undefined);
   return (
     <div className="flex flex-col gap-3">
       <BoardSearch locale={locale} dict={dict} q={filters?.q} />
@@ -146,7 +146,9 @@ function Filters({
           {dict.search.detailedSearch}
         </summary>
         <div className="mt-3">
+          {/* Keyed by the current search, so the form shows the new choices after a tag is clicked. */}
           <SearchForm
+            key={filtersToQuery(filters ?? { sort: "newest" })}
             locale={locale}
             dict={{ search: dict.search, floors: dict.floors }}
             refData={{ cities: refData.cities, neighborhoods: refData.neighborhoods, propertyTypes: refData.propertyTypes }}

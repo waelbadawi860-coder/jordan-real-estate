@@ -316,6 +316,7 @@ type NamedRow = {
   hasBathrooms?: boolean;
   hasFloor?: boolean;
   hasFurnished?: boolean;
+  hasFloorsCount?: boolean;
   allowedDeals?: ("sale" | "rent")[];
 };
 
@@ -351,6 +352,7 @@ export function NamedRowForm({
     hasBathrooms: true,
     hasFloor: false,
     hasFurnished: false,
+    hasFloorsCount: false,
     allowedDeals: ["sale", "rent"],
   };
   const [v, setV] = useState<NamedRow>(row ?? empty);
@@ -370,7 +372,7 @@ export function NamedRowForm({
           ? saveCityAction(input)
           : kind === "neighborhood"
             ? saveNeighborhoodAction({ ...input, cityId })
-            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms), hasBathrooms: Boolean(v.hasBathrooms), hasFloor: Boolean(v.hasFloor), hasFurnished: Boolean(v.hasFurnished), allowedDeals: deals }),
+            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms), hasBathrooms: Boolean(v.hasBathrooms), hasFloor: Boolean(v.hasFloor), hasFurnished: Boolean(v.hasFurnished), hasFloorsCount: Boolean(v.hasFloorsCount), allowedDeals: deals }),
       () => {
         if (!row) {
           setV(empty);
@@ -440,6 +442,12 @@ export function NamedRowForm({
           <label className="flex items-center gap-1">
             <input type="checkbox" checked={Boolean(v.hasFurnished)} onChange={(e) => setV({ ...v, hasFurnished: e.target.checked })} className="size-4 accent-brand" />
             {a.types.hasFurnished}
+          </label>
+        )}
+        {kind === "type" && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={Boolean(v.hasFloorsCount)} onChange={(e) => setV({ ...v, hasFloorsCount: e.target.checked })} className="size-4 accent-brand" />
+            {a.types.hasFloorsCount}
           </label>
         )}
         {kind === "type" && (

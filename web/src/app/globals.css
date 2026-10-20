@@ -16,8 +16,8 @@
   --whatsapp: #157a3f; /* white text on it: 5.4:1 (WCAG AA) */
   --types: #1d5a96; /* property-type tags; white text on it: 7.0:1 */
   --types-soft: #e7eff8;
-  --cities: #6a3d9a; /* city tags; white text on it: 7.6:1 */
-  --cities-soft: #f1eaf8;
+  --cities: #475a63; /* governorate tags: calm slate; white text on it: 7.1:1 */
+  --cities-soft: #eef2f3;
   color-scheme: light;
 }
 

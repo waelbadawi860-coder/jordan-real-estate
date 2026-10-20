@@ -21,6 +21,8 @@ const fieldSchemas = {
   amin: amount,
   amax: amount,
   beds: z.coerce.number().int().min(1).max(10),
+  baths: z.coerce.number().int().min(1).max(10),
+  floors: z.coerce.number().int().min(1).max(50),
   floor: z.enum(FLOOR_LEVELS),
   sort: z.enum(sortOptions),
 } as const;
@@ -36,6 +38,8 @@ export type SearchFilters = {
   amin?: number;
   amax?: number;
   beds?: number;
+  baths?: number;
+  floors?: number;
   floor?: FloorLevel;
   sort: SortOption;
 };

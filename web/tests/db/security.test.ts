@@ -1011,3 +1011,43 @@ describe("fraud checks", () => {
     }
   });
 });
+
+describe("number of floors per type", () => {
+  async function typeId(slug: string) {
+    const { data } = await service.from("property_types").select("id").eq("slug", slug).single();
+    return data!.id;
+  }
+
+  it("villas and buildings take a number of floors; apartments don't", async () => {
+    const villa = await service
+      .from("listings")
+      .insert({ ...listingInput("Villa with three floors"), seller_id: alice.id, property_type_id: await typeId("villa"), floors_count: 3 })
+      .select("floors_count")
+      .single();
+    expect(villa.error).toBeNull();
+    expect(villa.data!.floors_count).toBe(3);
+
+    const building = await service
+      .from("listings")
+      .insert({ ...listingInput("Building with five floors"), seller_id: alice.id, property_type_id: await typeId("building"), bedrooms: null, bathrooms: null, floors_count: 5 })
+      .select("id")
+      .single();
+    expect(building.error).toBeNull();
+
+    const flat = await service.from("listings").insert({ ...listingInput("Flat with floors count"), seller_id: alice.id, floors_count: 2 });
+    expect(flat.error?.message).toContain("floors_count_not_allowed_for_type");
+  });
+
+  it("commercial property and villas have no single floor", async () => {
+    const commercial = await service.from("listings").insert({
+      ...listingInput("Commercial on a floor"),
+      seller_id: alice.id,
+      property_type_id: await typeId("commercial-property"),
+      bedrooms: null,
+      floor_level: "first",
+    });
+    expect(commercial.error?.message).toContain("floor_not_allowed_for_type");
+    const villa = await service.from("listings").insert({ ...listingInput("Villa on a floor"), seller_id: alice.id, property_type_id: await typeId("villa"), floor_level: "ground" });
+    expect(villa.error?.message).toContain("floor_not_allowed_for_type");
+  });
+});

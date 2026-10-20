@@ -74,6 +74,8 @@ export function SearchForm({
   const hoods = hoodsFor(deal, type?.id, city?.id, hoodSlug);
   const showFloor = !type || type.hasFloor;
   const showBeds = !type || type.hasBedrooms;
+  const showBaths = !type || type.hasBathrooms;
+  const showFloorsCount = !type || type.hasFloorsCount;
 
   // Each change clears the later choices that no longer fit.
   function chooseDeal(d: Deal) {
@@ -222,6 +224,12 @@ export function SearchForm({
             </select>
           </div>
         )}
+        {showBaths && (
+          <AtLeastSelect id="sf-baths" name="baths" text={s.bathrooms} anyText={s.anyBathrooms} value={f.baths} atLeast={s.bedroomsAtLeast} max={5} />
+        )}
+        {showFloorsCount && (
+          <AtLeastSelect id="sf-floors" name="floors" text={s.floorsCount} anyText={s.anyFloorsCount} value={f.floors} atLeast={s.bedroomsAtLeast} max={6} />
+        )}
         {showFloor && (
           <div>
             <label htmlFor="sf-floor" className={label}>
@@ -262,6 +270,41 @@ export function SearchForm({
         </a>
       </div>
     </form>
+  );
+}
+
+/** "Any" or "n+" choices, e.g. bathrooms 2+. */
+function AtLeastSelect({
+  id,
+  name,
+  text,
+  anyText,
+  value,
+  atLeast,
+  max,
+}: {
+  id: string;
+  name: string;
+  text: string;
+  anyText: string;
+  value?: number;
+  atLeast: string;
+  max: number;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className={label}>
+        {text}
+      </label>
+      <select id={id} name={name} defaultValue={value ? String(value) : ""} className={field}>
+        <option value="">{anyText}</option>
+        {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
+          <option key={n} value={n}>
+            {t(atLeast, { n })}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 

@@ -23,6 +23,7 @@ export type PropertyViewData = {
   areaSqm: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  floorsCount: number | null;
   floor: FloorLevel | null;
   furnished: boolean | null;
   posterType: "owner" | "agent";
@@ -59,6 +60,7 @@ export function PropertyView({
     listing.areaSqm !== null && { label: d.area, value: t(d.areaValue, { n: formatNumber(listing.areaSqm, locale) }) },
     listing.bedrooms !== null && { label: d.bedrooms, value: formatNumber(listing.bedrooms, locale) },
     listing.bathrooms !== null && { label: d.bathrooms, value: formatNumber(listing.bathrooms, locale) },
+    listing.floorsCount !== null && { label: d.floorsCount, value: formatNumber(listing.floorsCount, locale) },
     listing.floor !== null && { label: d.floor, value: dict.floors[listing.floor] },
     listing.furnished !== null && { label: d.furnished, value: listing.furnished ? dict.form.yes : dict.form.no },
   ].filter(Boolean) as { label: string; value: string }[];

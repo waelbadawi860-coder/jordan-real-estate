@@ -31,8 +31,8 @@
     "any": "All",
     "sale": "For sale",
     "rent": "For rent",
-    "city": "City",
-    "anyCity": "All cities",
+    "city": "Governorate",
+    "anyCity": "All governorates",
     "neighborhood": "Neighborhood",
     "anyNeighborhood": "All neighborhoods",
     "type": "Property type",
@@ -60,7 +60,11 @@
     "loadError": "Couldn't load more. Please try again.",
     "invalidFilters": "Some filters were not valid and were ignored.",
     "floor": "Floor",
-    "anyFloor": "Any floor"
+    "anyFloor": "Any floor",
+    "bathrooms": "Bathrooms",
+    "anyBathrooms": "Any",
+    "floorsCount": "Number of floors",
+    "anyFloorsCount": "Any"
   },
   "home": {
     "latest": "Latest properties",
@@ -113,7 +117,8 @@
     "backToResults": "Back to results",
     "notFoundTitle": "Listing not available",
     "notFoundText": "The property may have been sold or rented, or the listing has expired.",
-    "disclaimer": "This ad is published by the advertiser, who is responsible for it. Accepting an ad for publication only means it was checked against our posting policy; it does not mean the platform verified its details, the advertiser's ownership or their capacity."
+    "disclaimer": "This ad is published by the advertiser, who is responsible for it. Accepting an ad for publication only means it was checked against our posting policy; it does not mean the platform verified its details, the advertiser's ownership or their capacity.",
+    "floorsCount": "Number of floors"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -192,7 +197,7 @@
     "yearly": "Yearly",
     "propertyType": "Property type",
     "choose": "Choose…",
-    "city": "City",
+    "city": "Governorate",
     "neighborhood": "Neighborhood",
     "neighborhoodNone": "Not specified",
     "title": "Listing title",
@@ -240,7 +245,8 @@
       "typeNotForDeal": "This type isn't available for the chosen deal.",
       "declarationRequired": "You must accept the seller declaration before submitting.",
       "phoneBlocked": "This phone number can't be used. Contact us if you think this is a mistake."
-    }
+    },
+    "floorsCount": "Number of floors"
   },
   "photos": {
     "hint": "Add 1 to {max} photos. We compress them automatically and remove hidden location data.",
@@ -539,7 +545,7 @@
       "users": "Users",
       "reports": "Reports & messages",
       "settings": "Settings",
-      "locations": "Cities & neighborhoods",
+      "locations": "Governorates & areas",
       "types": "Property types",
       "audit": "Audit log",
       "export": "Export",
@@ -637,8 +643,8 @@
       "search": "Listing ID or a word from the title",
       "status": "Status",
       "anyStatus": "All statuses",
-      "city": "City",
-      "anyCity": "All cities",
+      "city": "Governorate",
+      "anyCity": "All governorates",
       "from": "From date",
       "to": "To date",
       "filter": "Filter",
@@ -773,9 +779,9 @@
       "needSecondStep": "Turn on two-step login for your account and enter a code first, then switch this on."
     },
     "locations": {
-      "cities": "Cities",
+      "cities": "Governorates",
       "neighborhoods": "Neighborhoods",
-      "addCity": "Add city",
+      "addCity": "Add governorate",
       "addNeighborhood": "Add neighborhood",
       "nameAr": "Name in Arabic",
       "nameEn": "Name in English",
@@ -786,19 +792,20 @@
       "save": "Save",
       "add": "Add",
       "inactive": "Inactive",
-      "chooseCity": "City",
+      "chooseCity": "Governorate",
       "duplicate": "That identifier is already used."
     },
     "types": {
       "add": "Add property type",
       "hasBedrooms": "Has bedrooms",
-      "hasFloor": "Has a floor",
+      "hasFloor": "Is on a floor (apartment, office…)",
       "allowedDeals": "Available for",
       "dealRequired": "Choose at least one deal type.",
       "sale": "Sale",
       "rent": "Rent",
       "hasBathrooms": "Has bathrooms",
-      "hasFurnished": "Can be furnished"
+      "hasFurnished": "Can be furnished",
+      "hasFloorsCount": "Has a number of floors (villa, building…)"
     },
     "audit": {
       "when": "When",

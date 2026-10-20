@@ -104,6 +104,7 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
           areaSqm: listing.areaSqm === null ? null : Number(listing.areaSqm),
           bedrooms: listing.bedrooms,
           bathrooms: listing.bathrooms,
+          floorsCount: listing.floorsCount,
           floor: listing.floor,
           furnished: listing.furnished,
           posterType: listing.posterType,

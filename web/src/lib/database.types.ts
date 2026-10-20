@@ -859,6 +859,7 @@ export type Database = {
           details: Json
           expires_at: string | null
           floor_level: Database["public"]["Enums"]["floor_level"] | null
+          floors_count: number | null
           id: number
           latitude: number | null
           longitude: number | null
@@ -889,6 +890,7 @@ export type Database = {
           details?: Json
           expires_at?: string | null
           floor_level?: Database["public"]["Enums"]["floor_level"] | null
+          floors_count?: number | null
           id?: never
           latitude?: number | null
           longitude?: number | null
@@ -919,6 +921,7 @@ export type Database = {
           details?: Json
           expires_at?: string | null
           floor_level?: Database["public"]["Enums"]["floor_level"] | null
+          floors_count?: number | null
           id?: never
           latitude?: number | null
           longitude?: number | null
@@ -1170,6 +1173,7 @@ export type Database = {
           has_bathrooms: boolean
           has_bedrooms: boolean
           has_floor: boolean
+          has_floors_count: boolean
           has_furnished: boolean
           id: number
           is_active: boolean
@@ -1185,6 +1189,7 @@ export type Database = {
           has_bathrooms?: boolean
           has_bedrooms?: boolean
           has_floor?: boolean
+          has_floors_count?: boolean
           has_furnished?: boolean
           id?: never
           is_active?: boolean
@@ -1200,6 +1205,7 @@ export type Database = {
           has_bathrooms?: boolean
           has_bedrooms?: boolean
           has_floor?: boolean
+          has_floors_count?: boolean
           has_furnished?: boolean
           id?: never
           is_active?: boolean

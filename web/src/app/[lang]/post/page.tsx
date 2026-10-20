@@ -45,6 +45,7 @@ export default async function PostPage({ params }: PageProps<"/[lang]/post">) {
             areaSqm: "",
             bedrooms: "",
             bathrooms: "",
+            floorsCount: "",
             floor: "",
             furnished: "",
             posterType: "owner",

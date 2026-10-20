@@ -30,6 +30,7 @@ export type PropertyType = {
   hasBathrooms: boolean;
   hasFloor: boolean;
   hasFurnished: boolean;
+  hasFloorsCount: boolean;
   /** Which deals this type can be listed for (e.g. residential land: sale only). */
   allowedDeals: ("sale" | "rent")[];
 };
@@ -50,7 +51,7 @@ export async function getReferenceData(): Promise<ReferenceData> {
   const [cities, neighborhoods, types, settings] = await Promise.all([
     sb.from("cities").select("id, slug, name_ar, name_en").order("sort_order").order("name_en"),
     sb.from("neighborhoods").select("id, city_id, slug, name_ar, name_en").order("sort_order").order("name_en"),
-    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms, has_bathrooms, has_floor, has_furnished, allowed_deals").order("sort_order"),
+    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms, has_bathrooms, has_floor, has_furnished, has_floors_count, allowed_deals").order("sort_order"),
     sb.from("site_settings").select("key, value"),
   ]);
   for (const result of [cities, neighborhoods, types, settings]) {
@@ -73,6 +74,7 @@ export async function getReferenceData(): Promise<ReferenceData> {
       hasBathrooms: t.has_bathrooms,
       hasFloor: t.has_floor,
       hasFurnished: t.has_furnished,
+      hasFloorsCount: t.has_floors_count,
       allowedDeals: t.allowed_deals,
     })),
     settings: Object.fromEntries(settings.data!.map((s) => [s.key, s.value])),
@@ -203,6 +205,8 @@ export async function searchListings(filters: SearchFilters, cursor: Cursor | nu
   if (filters.amin !== undefined) query = query.gte("area_sqm", filters.amin);
   if (filters.amax !== undefined) query = query.lte("area_sqm", filters.amax);
   if (filters.beds !== undefined) query = query.gte("bedrooms", filters.beds);
+  if (filters.baths !== undefined) query = query.gte("bathrooms", filters.baths);
+  if (filters.floors !== undefined) query = query.gte("floors_count", filters.floors);
   if (filters.floor) query = query.eq("floor_level", filters.floor);
   if (filters.q) query = query.ilike("title", `%${escapeLike(filters.q)}%`);
 
@@ -246,6 +250,7 @@ export type ListingDetail = ListingCard & {
   latitude: number | null;
   longitude: number | null;
   floor: FloorLevel | null;
+  floorsCount: number | null;
   furnished: boolean | null;
 };
 
@@ -259,7 +264,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
   const { data, error } = await sb
     .from("listings")
     .select(
-      "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, floor_level, published_at, description, poster_type, updated_at, expires_at, seller_id, approx_latitude, approx_longitude, listing_images(storage_path, position, public_copied_at, width, height)",
+      "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, floor_level, floors_count, published_at, description, poster_type, updated_at, expires_at, seller_id, approx_latitude, approx_longitude, listing_images(storage_path, position, public_copied_at, width, height)",
     )
     .eq("id", id)
     .eq("status", "published")
@@ -276,6 +281,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     approx_latitude: number | null;
     approx_longitude: number | null;
     floor_level: FloorLevel | null;
+    floors_count: number | null;
     listing_images: { storage_path: string; position: number; public_copied_at: string | null; width: number | null; height: number | null }[];
   };
 
@@ -298,6 +304,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     latitude: row.approx_latitude === null ? null : Number(row.approx_latitude),
     longitude: row.approx_longitude === null ? null : Number(row.approx_longitude),
     floor: row.floor_level,
+    floorsCount: row.floors_count,
     furnished: furnishedOf(row.details),
   };
 }

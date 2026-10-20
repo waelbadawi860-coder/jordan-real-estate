@@ -132,7 +132,7 @@ export function BoardTags({
   );
 }
 
-// Colours per row: deal (main, green), types (blue), cities (purple), areas (brown).
+// Colours per row: deal (main, green), types (blue), governorates (slate), areas (brown).
 const rowStyles = {
   type: {
     scroll: "type-scroll",
