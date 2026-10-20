@@ -65,7 +65,10 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
           {dict.nav.skipToContent}
         </a>
         <SiteHeader locale={lang} dict={dict} siteName={name} />
-        <main id="main" className="flex-1">
+        {/* The header and footer are sent first and the page streams in after.
+            Reserving a full screen keeps the footer out of view until then,
+            so it does not jump down (layout shift). */}
+        <main id="main" className="min-h-svh flex-1">
           {children}
         </main>
         <SiteFooter locale={lang} dict={dict} siteName={name} />

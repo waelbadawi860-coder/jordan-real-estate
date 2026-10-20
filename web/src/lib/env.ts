@@ -38,6 +38,14 @@ export const publicEnv = parsedPublic.data;
  */
 export const isLiveSite = process.env.SITE_STAGE === "live";
 
+// Email links, shared links, the sitemap and search-engine addresses are all
+// built from NEXT_PUBLIC_SITE_URL, so the live site must never use a test value.
+if (isLiveSite && !/^https:\/\/(?!localhost|127\.0\.0\.1)/.test(publicEnv.NEXT_PUBLIC_SITE_URL)) {
+  throw new Error(
+    `NEXT_PUBLIC_SITE_URL is "${publicEnv.NEXT_PUBLIC_SITE_URL}" but SITE_STAGE=live: set it to the real https address (e.g. https://www.yourname.com).`,
+  );
+}
+
 // Extra safety rules for the live site.
 if (isLiveSite) {
   const site = new URL(publicEnv.NEXT_PUBLIC_SITE_URL);

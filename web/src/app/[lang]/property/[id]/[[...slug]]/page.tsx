@@ -56,10 +56,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// The listing is looked up BEFORE anything is sent, so a missing, sold or
-// expired listing returns a real 404 status and outdated links a real 308
-// redirect. Search engines then drop old listings instead of indexing them.
-// Lookups are cached for a few minutes, so this stays fast.
+// With cacheComponents the header/footer shell is sent first (status 200), so
+// a missing, sold or expired listing shows "not found" with a noindex tag
+// rather than a 404 status, and outdated links redirect in the browser (the
+// canonical tag points to the correct address). Search engines handle both.
+// `instant = false` only switches off the dev-time instant-navigation check.
 export const instant = false;
 
 export default async function PropertyPage({ params }: Props) {
