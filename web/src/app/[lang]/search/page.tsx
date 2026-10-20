@@ -67,6 +67,7 @@ async function Results({
       )}
 
       <section className="mt-4" aria-live="polite">
+        <h2 className="sr-only">{dict.search.resultsTitle}</h2>
         {page.items.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center">
             <p className="font-bold">{dict.search.noResults}</p>

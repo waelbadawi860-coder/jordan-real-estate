@@ -195,7 +195,9 @@ function Gallery({ images, dict }: { images: PropertyViewData["images"]; dict: D
               loading={index === 0 ? "eager" : "lazy"}
               fetchPriority={index === 0 ? "high" : "auto"}
               decoding="async"
-              className="h-auto w-full rounded-lg bg-brand-soft"
+              // Space is reserved before the photo loads, so the page doesn't jump.
+              style={{ aspectRatio: image.width && image.height ? `${image.width} / ${image.height}` : "4 / 3" }}
+              className="h-auto w-full rounded-lg bg-brand-soft object-cover"
             />
           </li>
         ))}
