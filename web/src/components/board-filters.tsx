@@ -121,16 +121,35 @@ export function BoardTags({
     <div className="flex flex-col gap-2">
       <TagRow label={s.deal} tags={dealTags} />
       {dealChosen && <TagRow label={s.type} tags={typeTags} variant="type" />}
-      {typeChosen && <TagRow label={s.city} tags={cityTags} />}
+      {typeChosen && <TagRow label={s.city} tags={cityTags} variant="city" />}
       {hoodTags.length > 1 && (
         <>
           <TagRow label={s.neighborhood} tags={hoodTags} variant="area" />
         </>
       )}
-      {(filters.hood || (filters.type && filters.type !== "all")) && <ScrollActiveArea />}
+      {(filters.hood || filters.city || (filters.type && filters.type !== "all")) && <ScrollActiveArea />}
     </div>
   );
 }
+
+// Colours per row: deal (main, green), types (blue), cities (purple), areas (brown).
+const rowStyles = {
+  type: {
+    scroll: "type-scroll",
+    on: "border-types bg-types text-white",
+    off: "border-types/30 bg-types-soft text-foreground hover:border-types hover:text-types",
+  },
+  city: {
+    scroll: "city-scroll",
+    on: "border-cities bg-cities text-white",
+    off: "border-cities/30 bg-cities-soft text-foreground hover:border-cities hover:text-cities",
+  },
+  area: {
+    scroll: "area-scroll",
+    on: "border-accent bg-accent text-white",
+    off: "border-accent/30 bg-accent-soft text-foreground hover:border-accent hover:text-accent",
+  },
+} as const;
 
 function TagRow({
   label,
@@ -139,17 +158,16 @@ function TagRow({
 }: {
   label: string;
   tags: { text: string; active: boolean; href: string }[];
-  /** "type" and "area": own colour, always one line, with a visible scroll bar underneath. */
-  variant?: "main" | "type" | "area";
+  /** Every row but the first has its own colour, stays on one line and has a visible scroll bar underneath. */
+  variant?: "main" | keyof typeof rowStyles;
 }) {
-  const area = variant === "area";
-  const type = variant === "type";
+  const style = variant === "main" ? null : rowStyles[variant];
   return (
     <nav aria-label={label}>
       <ul
         className={
-          area || type
-            ? `${area ? "area-scroll" : "type-scroll"} -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0`
+          style
+            ? `${style.scroll} -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0`
             : "no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
         }
       >
@@ -159,15 +177,11 @@ function TagRow({
               href={tag.href}
               aria-current={tag.active ? "page" : undefined}
               className={`block whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold ${
-                area
+                style
                   ? tag.active
-                    ? "border-accent bg-accent text-white"
-                    : "border-accent/30 bg-accent-soft text-foreground hover:border-accent hover:text-accent"
-                  : type
-                    ? tag.active
-                      ? "border-types bg-types text-white"
-                      : "border-types/30 bg-types-soft text-foreground hover:border-types hover:text-types"
-                    : tag.active
+                    ? style.on
+                    : style.off
+                  : tag.active
                     ? "border-brand bg-brand text-white"
                     : "border-border bg-surface text-foreground hover:border-brand hover:text-brand"
               }`}

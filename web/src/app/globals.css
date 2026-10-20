@@ -16,6 +16,8 @@
   --whatsapp: #157a3f; /* white text on it: 5.4:1 (WCAG AA) */
   --types: #1d5a96; /* property-type tags; white text on it: 7.0:1 */
   --types-soft: #e7eff8;
+  --cities: #6a3d9a; /* city tags; white text on it: 7.6:1 */
+  --cities-soft: #f1eaf8;
   color-scheme: light;
 }
 
@@ -34,6 +36,8 @@
   --color-whatsapp: var(--whatsapp);
   --color-types: var(--types);
   --color-types-soft: var(--types-soft);
+  --color-cities: var(--cities);
+  --color-cities-soft: var(--cities-soft);
   --font-sans: var(--font-cairo), system-ui, sans-serif;
 }
 
@@ -71,9 +75,10 @@ textarea {
 }
 
 /* Tag rows on one line with a visible scroll bar the visitor can drag,
-   coloured like the row (areas: --accent, property types: --types). */
+   coloured like the row (areas: --accent, types: --types, cities: --cities). */
 .area-scroll,
-.type-scroll {
+.type-scroll,
+.city-scroll {
   --bar: var(--accent);
   --bar-track: var(--accent-soft);
   scrollbar-width: thin;
@@ -83,17 +88,24 @@ textarea {
   --bar: var(--types);
   --bar-track: var(--types-soft);
 }
+.city-scroll {
+  --bar: var(--cities);
+  --bar-track: var(--cities-soft);
+}
 .area-scroll::-webkit-scrollbar,
-.type-scroll::-webkit-scrollbar {
+.type-scroll::-webkit-scrollbar,
+.city-scroll::-webkit-scrollbar {
   height: 8px;
 }
 .area-scroll::-webkit-scrollbar-track,
-.type-scroll::-webkit-scrollbar-track {
+.type-scroll::-webkit-scrollbar-track,
+.city-scroll::-webkit-scrollbar-track {
   background: var(--bar-track);
   border-radius: 999px;
 }
 .area-scroll::-webkit-scrollbar-thumb,
-.type-scroll::-webkit-scrollbar-thumb {
+.type-scroll::-webkit-scrollbar-thumb,
+.city-scroll::-webkit-scrollbar-thumb {
   background: var(--bar);
   border-radius: 999px;
 }
