@@ -261,6 +261,7 @@ describe("listings: approval workflow", () => {
   });
 
   it("cannot be submitted without contact details and a photo", async () => {
+    await alice.client.rpc("declare_listing", { p_listing_id: id });
     const { error } = await alice.client.rpc("change_listing_status", {
       p_listing_id: id,
       p_new_status: "pending_approval",
@@ -270,6 +271,7 @@ describe("listings: approval workflow", () => {
 
   it("owner submits; owner cannot approve their own listing", async () => {
     await makeSubmittable(alice, id);
+    await alice.client.rpc("declare_listing", { p_listing_id: id });
     const submit = await alice.client.rpc("change_listing_status", {
       p_listing_id: id,
       p_new_status: "pending_approval",
@@ -412,6 +414,7 @@ describe("favourites", () => {
   beforeAll(async () => {
     publishedId = (await createListing(bob, "Bob published villa")).id;
     await makeSubmittable(bob, publishedId);
+    await bob.client.rpc("declare_listing", { p_listing_id: publishedId });
     await bob.client.rpc("change_listing_status", { p_listing_id: publishedId, p_new_status: "pending_approval" });
     await admin.client.rpc("change_listing_status", { p_listing_id: publishedId, p_new_status: "published" });
     draftId = (await createListing(bob, "Bob draft villa")).id;
@@ -521,6 +524,7 @@ describe("stage 4 rules", () => {
     const extra = await createUser("leaver");
     const listing = await createListing(extra, "Leaver listing for deletion test");
     await makeSubmittable(extra, listing.id);
+    await extra.client.rpc("declare_listing", { p_listing_id: listing.id });
     await extra.client.rpc("change_listing_status", { p_listing_id: listing.id, p_new_status: "pending_approval" });
 
     const { error } = await extra.client.rpc("request_account_deletion");
@@ -811,5 +815,50 @@ describe("floor and property type rules", () => {
     const { error } = await bob.client.from("listings").update({ floor_level: "last" }).eq("id", data!.id);
     expect(error).toBeNull();
     expect(await statusOf(data!.id)).toBe("pending_approval");
+  });
+});
+
+describe("seller declaration", () => {
+  let listingId: number;
+
+  beforeAll(async () => {
+    const { data, error } = await service
+      .from("listings")
+      .insert({ ...listingInput("Declaration test flat"), seller_id: bob.id })
+      .select("id")
+      .single();
+    if (error) throw error;
+    listingId = data.id;
+    await makeSubmittable(bob, listingId);
+  });
+
+  it("a listing can't be submitted without a fresh declaration", async () => {
+    const { error } = await bob.client.rpc("change_listing_status", { p_listing_id: listingId, p_new_status: "pending_approval" });
+    expect(error?.message).toContain("declaration_required");
+  });
+
+  it("only the seller can declare for their listing", async () => {
+    const { error } = await alice.client.rpc("declare_listing", { p_listing_id: listingId });
+    expect(error?.message).toContain("listing_not_found");
+  });
+
+  it("after declaring, submission works and the declaration records the wording version", async () => {
+    const declared = await bob.client.rpc("declare_listing", { p_listing_id: listingId, p_evidence: { ip_hash: "test" } });
+    expect(declared.error).toBeNull();
+    const submit = await bob.client.rpc("change_listing_status", { p_listing_id: listingId, p_new_status: "pending_approval" });
+    expect(submit.error).toBeNull();
+    const { data } = await bob.client.from("listing_declarations").select("version, seller_id").eq("listing_id", listingId);
+    expect(data).toHaveLength(1);
+    expect(data![0].version).toBe("draft-2026-10");
+  });
+
+  it("declarations are permanent, even for the service key, and not writable directly", async () => {
+    const { data } = await service.from("listing_declarations").select("id").eq("listing_id", listingId).single();
+    const del = await service.from("listing_declarations").delete().eq("id", data!.id);
+    expect(del.error?.message).toContain("record_is_permanent");
+    const upd = await service.from("listing_declarations").update({ version: "forged" }).eq("id", data!.id);
+    expect(upd.error?.message).toContain("record_is_permanent");
+    const direct = await bob.client.from("listing_declarations").insert({ listing_id: listingId, seller_id: bob.id, version: "x" });
+    expect(direct.error).not.toBeNull();
   });
 });

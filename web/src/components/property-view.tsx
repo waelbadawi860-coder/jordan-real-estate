@@ -112,6 +112,8 @@ export function PropertyView({
           <p className="mt-2 text-xs text-muted">{d.contactPrivacy}</p>
         </section>
 
+        <p className="rounded-lg border border-border p-3 text-sm text-muted">{d.disclaimer}</p>
+
         <section aria-labelledby="desc-heading">
           <h2 id="desc-heading" className="sr-only">
             {d.description}

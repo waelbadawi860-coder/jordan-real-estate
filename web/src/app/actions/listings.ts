@@ -6,6 +6,7 @@ import { z } from "zod";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { getReferenceData } from "@/lib/data/public";
 import { deletePhotoFiles, syncPublicPhotos } from "@/lib/photos";
+import { recordDeclaration } from "@/lib/declaration";
 import { createClient } from "@/lib/supabase/server";
 import { listingFormValues, listingSchema, type ListingInput } from "@/lib/validation/listing";
 
@@ -44,6 +45,7 @@ function dbErrorKey(error: { code?: string; message?: string } | null): string {
     "listing_not_found",
     "agreement_required",
     "transaction_details_required",
+    "declaration_required",
   ]) {
     if (message.includes(key)) return key;
   }
@@ -147,6 +149,15 @@ export async function updateListingAction(
 
   const { supabase, userId } = await requireUserId();
   if (!userId) return { error: "accountInactive" };
+
+  // Changing a live ad sends it back for review: the seller confirms the
+  // declaration again, and it is recorded before the change.
+  const { data: current } = await supabase.from("listings").select("status").eq("id", listingId).maybeSingle();
+  if (current && (current.status === "published" || current.status === "expired")) {
+    if (formData.get("declaration") !== "on") return { error: "fixErrors", fieldErrors: { declaration: "declarationRequired" } };
+    const declaration = await recordDeclaration(supabase, listingId);
+    if (declaration.error) return { error: "generic" };
+  }
 
   const { data, error } = await supabase
     .from("listings")
@@ -269,7 +280,12 @@ export async function makeMainPhotoAction(imageId: unknown): Promise<ActionResul
 const ownerStatuses = ["pending_approval", "draft", "sold", "rented", "withdrawn", "archived"] as const;
 const reasonSchema = z.enum(["unavailable", "changed_mind", "other"]).optional();
 
-export async function changeStatusAction(listingId: unknown, status: unknown, reason?: unknown): Promise<ActionResult> {
+export async function changeStatusAction(
+  listingId: unknown,
+  status: unknown,
+  reason?: unknown,
+  declared?: unknown,
+): Promise<ActionResult> {
   const id = idSchema.safeParse(listingId);
   const target = z.enum(ownerStatuses).safeParse(status);
   const why = reasonSchema.safeParse(reason ?? undefined);
@@ -277,6 +293,12 @@ export async function changeStatusAction(listingId: unknown, status: unknown, re
 
   const { supabase, userId } = await requireUserId();
   if (!userId) return { ok: false, error: "account_not_active" };
+
+  if (target.data === "pending_approval") {
+    if (declared !== true) return { ok: false, error: "declaration_required" };
+    const declaration = await recordDeclaration(supabase, id.data);
+    if (declaration.error) return { ok: false, error: dbErrorKey(declaration.error) };
+  }
 
   const { data, error } = await supabase.rpc("change_listing_status", {
     p_listing_id: id.data,

@@ -580,6 +580,33 @@ export type Database = {
           },
         ]
       }
+      listing_declarations: {
+        Row: {
+          created_at: string
+          evidence: Json
+          id: number
+          listing_id: number
+          seller_id: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          evidence?: Json
+          id?: never
+          listing_id: number
+          seller_id: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          evidence?: Json
+          id?: never
+          listing_id?: number
+          seller_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
       listing_images: {
         Row: {
           created_at: string
@@ -1372,6 +1399,10 @@ export type Database = {
       commission_due_status: {
         Args: { p_due_date: string }
         Returns: Database["public"]["Enums"]["commission_status"]
+      }
+      declare_listing: {
+        Args: { p_evidence?: Json; p_listing_id: number }
+        Returns: number
       }
       expire_listings: { Args: never; Returns: number }
       get_listing_contact: {

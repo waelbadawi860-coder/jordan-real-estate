@@ -79,6 +79,7 @@ export default async function EditListingPage({ params, searchParams }: PageProp
           refData={ref}
           listingId={listing.id}
           warning={listing.status === "published" || listing.status === "expired" ? dict.form.editPublishedWarning : undefined}
+          requireDeclaration={listing.status === "published" || listing.status === "expired"}
           initial={{
             dealType: listing.dealType,
             rentPeriod: listing.rentPeriod ?? "",

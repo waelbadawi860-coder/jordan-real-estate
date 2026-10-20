@@ -150,6 +150,7 @@ describe("agreement acceptance", () => {
   });
 
   it("is required before submitting while commissions are on", async () => {
+    await seller.client.rpc("declare_listing", { p_listing_id: listingId });
     const res = await seller.client.rpc("change_listing_status", { p_listing_id: listingId, p_new_status: "pending_approval" });
     expect(res.error?.message).toContain("agreement_required");
   });
@@ -163,6 +164,7 @@ describe("agreement acceptance", () => {
     expect(data!.agreement_text_sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(data!.rule_snapshot.percentage).toBe(2);
 
+    await seller.client.rpc("declare_listing", { p_listing_id: listingId });
     const submit = await seller.client.rpc("change_listing_status", { p_listing_id: listingId, p_new_status: "pending_approval" });
     expect(submit.error).toBeNull();
   });
@@ -272,6 +274,7 @@ describe("rentals, disputes, waivers and rule changes", () => {
   beforeAll(async () => {
     rentListing = await newListing(seller, "Commission rent flat", "rent");
     await seller.client.rpc("accept_agreement", { p_listing_id: rentListing });
+    await seller.client.rpc("declare_listing", { p_listing_id: rentListing });
     await seller.client.rpc("change_listing_status", { p_listing_id: rentListing, p_new_status: "pending_approval" });
     await publish(rentListing);
     const today = new Date().toISOString().slice(0, 10);
@@ -339,6 +342,7 @@ describe("agreement versions", () => {
 
     const listingId = await newListing(other, "Needs new acceptance", "sale");
     await other.client.rpc("accept_agreement", { p_listing_id: listingId });
+    await other.client.rpc("declare_listing", { p_listing_id: listingId });
     const ok = await other.client.rpc("change_listing_status", { p_listing_id: listingId, p_new_status: "pending_approval" });
     expect(ok.error).toBeNull(); // accepted the NEW current version
 

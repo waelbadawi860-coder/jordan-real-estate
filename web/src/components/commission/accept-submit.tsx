@@ -14,11 +14,12 @@ export function AcceptAndSubmit({
 }: {
   listingId: number;
   requireApproval: boolean;
-  dict: Pick<Dictionary, "commission" | "preview">;
+  dict: Pick<Dictionary, "commission" | "preview" | "declaration">;
 }) {
   const c = dict.commission;
   const router = useRouter();
   const [accepted, setAccepted] = useState(false);
+  const [declared, setDeclared] = useState(false);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -27,8 +28,12 @@ export function AcceptAndSubmit({
       setMessage({ ok: false, text: c.mustAccept });
       return;
     }
+    if (!declared) {
+      setMessage({ ok: false, text: dict.declaration.required });
+      return;
+    }
     startTransition(async () => {
-      const result = await acceptAndSubmitAction(listingId, true);
+      const result = await acceptAndSubmitAction(listingId, true, true);
       if (result.ok) {
         setMessage({ ok: true, text: result.published ? dict.preview.published : dict.preview.submitted });
         router.refresh();
@@ -41,6 +46,8 @@ export function AcceptAndSubmit({
               ? dict.preview.needPhotos
               : result.error === "mustAccept"
                 ? c.mustAccept
+                : result.error === "declaration_required"
+                  ? dict.declaration.required
                 : (errors[result.error] ?? c.errors.generic);
         setMessage({ ok: false, text });
       }
@@ -53,6 +60,14 @@ export function AcceptAndSubmit({
         <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="mt-1 size-5 shrink-0 accent-brand" />
         {c.acceptLabel}
       </label>
+      <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-3">
+        <p className="font-bold">{dict.declaration.title}</p>
+        <p className="text-sm leading-relaxed">{dict.declaration.text}</p>
+        <label className="flex items-start gap-2 font-semibold">
+          <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 size-5 shrink-0 accent-brand" />
+          {dict.declaration.label}
+        </label>
+      </div>
       <button
         type="button"
         onClick={submit}

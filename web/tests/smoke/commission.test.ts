@@ -57,6 +57,7 @@ beforeAll(async () => {
   draftId = await make("Smoke commission draft");
   listingId = await make("Smoke commission sold flat");
   await sellerDb.rpc("accept_agreement", { p_listing_id: listingId });
+  await sellerDb.rpc("declare_listing", { p_listing_id: listingId });
   await sellerDb.rpc("change_listing_status", { p_listing_id: listingId, p_new_status: "pending_approval" });
   await adminDb.rpc("change_listing_status", { p_listing_id: listingId, p_new_status: "published" });
 }, 90_000);

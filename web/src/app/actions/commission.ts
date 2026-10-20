@@ -7,6 +7,7 @@ import { z } from "zod";
 import { hasLocale, localePath } from "@/i18n/config";
 import { syncPublicPhotos } from "@/lib/photos";
 import { visitorKey } from "@/lib/rate-limit";
+import { recordDeclaration } from "@/lib/declaration";
 import { createClient } from "@/lib/supabase/server";
 
 // Sellers can only REPORT here (acceptance, transaction, payment, dispute).
@@ -16,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 export type CommissionFormState = { ok?: boolean; error?: string };
 
 const KNOWN_ERRORS = [
+  "declaration_required",
   "agreement_required",
   "transaction_details_required",
   "confirmation_required",
@@ -45,10 +47,15 @@ const amountSchema = z
   .pipe(z.string().regex(/^\d{1,10}(\.\d{1,3})?$/))
   .refine((s) => Number(s) > 0);
 
-export async function acceptAndSubmitAction(listingId: unknown, accepted: unknown): Promise<{ ok: true; published: boolean } | { ok: false; error: string }> {
+export async function acceptAndSubmitAction(
+  listingId: unknown,
+  accepted: unknown,
+  declared?: unknown,
+): Promise<{ ok: true; published: boolean } | { ok: false; error: string }> {
   const id = idSchema.safeParse(listingId);
   if (!id.success) return { ok: false, error: "generic" };
   if (accepted !== true) return { ok: false, error: "mustAccept" };
+  if (declared !== true) return { ok: false, error: "declaration_required" };
 
   const supabase = await createClient();
   const h = await headers();
@@ -57,6 +64,9 @@ export async function acceptAndSubmitAction(listingId: unknown, accepted: unknow
 
   const accept = await supabase.rpc("accept_agreement", { p_listing_id: id.data, p_evidence: evidence });
   if (accept.error) return { ok: false, error: errorKey(accept.error) };
+
+  const declaration = await recordDeclaration(supabase, id.data);
+  if (declaration.error) return { ok: false, error: errorKey(declaration.error) };
 
   const submit = await supabase.rpc("change_listing_status", { p_listing_id: id.data, p_new_status: "pending_approval" });
   if (submit.error) return { ok: false, error: errorKey(submit.error) };

@@ -10,6 +10,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import type { ListingStatus } from "@/lib/data/owner";
 
 type Confirm =
+  | { kind: "submit"; message: string }
   | { kind: "sold" | "rented" | "archived" | "delete"; message: string }
   | { kind: "withdrawn"; message: string };
 
@@ -17,6 +18,7 @@ const errorKeyToText = (dict: Pick<Dictionary, "preview" | "form" | "commission"
   ({
     agreement_required: dict.commission.errors.agreement_required,
     transaction_details_required: dict.commission.errors.transaction_details_required,
+    declaration_required: dict.form.errors.declarationRequired,
     contact_required: dict.preview.needContact,
     images_required: dict.preview.needPhotos,
     account_not_active: dict.form.errors.accountInactive,
@@ -52,13 +54,14 @@ export function StatusActions({
   needsAgreement?: boolean;
   /** Published under a commission agreement: selling/renting is reported with transaction details. */
   hasAgreement?: boolean;
-  dict: Pick<Dictionary, "myListings" | "preview" | "form" | "commission">;
+  dict: Pick<Dictionary, "myListings" | "preview" | "form" | "commission" | "declaration">;
 }) {
   const m = dict.myListings;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [reason, setReason] = useState<"unavailable" | "changed_mind" | "other">("unavailable");
+  const [declared, setDeclared] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   function run(action: () => Promise<ActionResult>) {
@@ -92,7 +95,10 @@ export function StatusActions({
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         {showSubmit && !needsAgreement && (status === "draft" || status === "rejected" || status === "withdrawn") && (
-          <button type="button" disabled={pending} className={primary} onClick={() => run(() => changeStatusAction(listingId, "pending_approval"))}>
+          <button type="button" disabled={pending} className={primary} onClick={() => {
+              setDeclared(false);
+              setConfirm({ kind: "submit", message: dict.declaration.title });
+            }}>
             {status === "draft" ? (requireApproval ? dict.preview.submit : dict.preview.submitDirect) : m.resubmit}
           </button>
         )}
@@ -165,6 +171,15 @@ export function StatusActions({
       {confirm && (
         <div role="alertdialog" aria-label={confirm.message} className="flex flex-col gap-3 rounded-xl border border-accent/40 bg-accent-soft p-3">
           <p className="font-semibold">{confirm.message}</p>
+          {confirm.kind === "submit" && (
+            <>
+              <p className="text-sm leading-relaxed">{dict.declaration.text}</p>
+              <label className="flex items-start gap-2 text-sm font-semibold">
+                <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-brand" />
+                {dict.declaration.label}
+              </label>
+            </>
+          )}
           {confirm.kind === "withdrawn" && (
             <label className="flex flex-col gap-1 text-sm">
               {m.withdrawReason}
@@ -182,13 +197,15 @@ export function StatusActions({
           <div className="flex gap-2">
             <button
               type="button"
-              disabled={pending}
+              disabled={pending || (confirm.kind === "submit" && !declared)}
               className={primary}
               onClick={() =>
                 run(() =>
                   confirm.kind === "delete"
                     ? deleteDraftAction(listingId, locale)
-                    : changeStatusAction(listingId, confirm.kind, confirm.kind === "withdrawn" ? reason : undefined),
+                    : confirm.kind === "submit"
+                      ? changeStatusAction(listingId, "pending_approval", undefined, declared)
+                      : changeStatusAction(listingId, confirm.kind, confirm.kind === "withdrawn" ? reason : undefined),
                 )
               }
             >

@@ -110,7 +110,8 @@
     "linkCopied": "Link copied",
     "backToResults": "Back to results",
     "notFoundTitle": "Listing not available",
-    "notFoundText": "The property may have been sold or rented, or the listing has expired."
+    "notFoundText": "The property may have been sold or rented, or the listing has expired.",
+    "disclaimer": "This ad is published by the advertiser, who is responsible for it. Accepting an ad for publication only means it was checked against our posting policy; it does not mean the platform verified its details, the advertiser's ownership or their capacity."
   },
   "auth": {
     "loginTitle": "Log in",
@@ -233,7 +234,8 @@
       "accountInactive": "Your account isn't active.",
       "fixErrors": "Please correct the highlighted fields.",
       "generic": "Something went wrong. Please try again.",
-      "typeNotForDeal": "This type isn't available for the chosen deal."
+      "typeNotForDeal": "This type isn't available for the chosen deal.",
+      "declarationRequired": "You must accept the seller declaration before submitting."
     }
   },
   "photos": {
@@ -629,7 +631,7 @@
       "open": "Open"
     },
     "listing": {
-      "approve": "Approve & publish",
+      "approve": "Accept for publication (meets posting policy)",
       "reject": "Reject",
       "rejectReason": "Rejection reason (shown to the advertiser)",
       "takeDown": "Take down",
@@ -806,5 +808,11 @@
     "fifth_plus": "5th floor or higher",
     "last": "Top floor",
     "last_with_roof": "Top floor with roof"
+  },
+  "declaration": {
+    "title": "Seller declaration",
+    "text": "I declare that all information and photos in this ad are true and current, that I own the property or am authorised by its owner to advertise it, and that I have the right to publish these photos. I alone am fully responsible for the ad's content and any dealings that result from it. I understand that the platform accepting the ad for publication is only a check against its posting policy, and does not mean it has verified the ad's details, my ownership or my capacity.",
+    "label": "I have read and accept the seller declaration",
+    "required": "You must accept the seller declaration before submitting."
   }
 }

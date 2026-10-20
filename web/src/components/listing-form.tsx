@@ -33,17 +33,19 @@ export type ListingFormValues = {
 
 type Props = {
   locale: Locale;
-  dict: Pick<Dictionary, "form" | "search" | "map" | "floors">;
+  dict: Pick<Dictionary, "form" | "search" | "map" | "floors" | "declaration">;
   refData: { cities: City[]; neighborhoods: Neighborhood[]; propertyTypes: PropertyType[] };
   initial: ListingFormValues;
   listingId?: number;
   warning?: string;
+  /** Editing a live ad sends it back for review, so the seller confirms the declaration again. */
+  requireDeclaration?: boolean;
 };
 
 const label = "mb-1 block text-sm font-semibold";
 const section = "flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5";
 
-export function ListingForm({ locale, dict, refData, initial, listingId, warning }: Props) {
+export function ListingForm({ locale, dict, refData, initial, listingId, warning, requireDeclaration = false }: Props) {
   const f = dict.form;
   const action = listingId ? updateListingAction.bind(null, listingId) : createListingAction;
   const [state, formAction, pending] = useActionState(action, {} as ListingFormState);
@@ -339,6 +341,17 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
         <p className="text-sm text-muted">{f.contactNote}</p>
       </section>
 
+      {requireDeclaration && (
+        <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-3">
+          <p className="font-bold">{dict.declaration.title}</p>
+          <p className="text-sm leading-relaxed">{dict.declaration.text}</p>
+          <label className="flex items-start gap-2 font-semibold">
+            <input type="checkbox" name="declaration" className="mt-1 size-5 shrink-0 accent-brand" {...aria("declaration")} />
+            {dict.declaration.label}
+          </label>
+          <ErrorText name="declaration" message={err("declaration")} />
+        </div>
+      )}
       <div className="sm:w-80">
         <SubmitButton pendingText={f.saving} pending={pending}>{listingId ? f.saveButton : f.createButton}</SubmitButton>
       </div>
