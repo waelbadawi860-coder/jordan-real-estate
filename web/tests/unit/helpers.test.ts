@@ -100,6 +100,13 @@ describe("search filters", () => {
     expect(filters.type).toBeUndefined();
   });
 
+  it("keeps an explicit 'All' choice so the tag board can show the next step", () => {
+    const { filters, hadInvalid } = parseSearchParams({ deal: "all", type: "all" });
+    expect(hadInvalid).toBe(false);
+    expect(filters).toMatchObject({ deal: "all", type: "all" });
+    expect(filtersToQuery(filters)).toBe("?deal=all&type=all");
+  });
+
   it("re-validates filters sent back from the browser", () => {
     expect(sanitizeFilters({ deal: "sale", min: -5, q: "x".repeat(100) })).toEqual({ deal: "sale", sort: "newest" });
     expect(sanitizeFilters("nonsense")).toEqual({ sort: "newest" });

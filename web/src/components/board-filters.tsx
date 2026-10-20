@@ -57,36 +57,46 @@ export function BoardTags({
   const href = (change: Partial<SearchFilters>) =>
     `${localePath(locale, "/search")}${filtersToQuery({ ...filters, ...change })}`;
 
-  // Switching the deal drops a chosen type that doesn't exist for that deal.
-  const typeFits = (deal: "sale" | "rent") =>
-    refData.propertyTypes.find((type) => type.slug === filters.type)?.allowedDeals.includes(deal) ? filters.type : undefined;
+  // Step by step: deal → property type → city → area. Each row appears once
+  // the previous choice is made ("All" counts as a choice).
+  const deal = filters.deal && filters.deal !== "all" ? filters.deal : undefined;
+  const dealChosen = filters.deal !== undefined;
+  const typeChosen = dealChosen && filters.type !== undefined;
+  const city = typeChosen ? refData.cities.find((c) => c.slug === filters.city) : undefined;
 
-  const dealTags = [
-    { text: s.any, active: !filters.deal, href: href({ deal: undefined }) },
-    { text: s.sale, active: filters.deal === "sale", href: href({ deal: "sale", type: typeFits("sale") }) },
-    { text: s.rent, active: filters.deal === "rent", href: href({ deal: "rent", type: typeFits("rent") }) },
+  // Switching the deal drops a chosen type that doesn't exist for that deal
+  // (and with it the later steps).
+  const afterDeal = (next: "sale" | "rent" | "all"): Partial<SearchFilters> => {
+    const type = refData.propertyTypes.find((t) => t.slug === filters.type);
+    const keepType = filters.type === "all" || (type && (next === "all" || type.allowedDeals.includes(next)));
+    return keepType ? { deal: next } : { deal: next, type: undefined, city: undefined, hood: undefined };
+  };
+  const dealTags = (["all", "sale", "rent"] as const).map((value) => ({
+    text: value === "all" ? s.any : value === "sale" ? s.sale : s.rent,
+    active: filters.deal === value,
+    href: href(afterDeal(value)),
+  }));
+
+  // Only the types that can be listed for the chosen deal, after an "All" tag.
+  const typeTags = [
+    { text: s.any, active: filters.type === "all", href: href({ type: "all" }) },
+    ...refData.propertyTypes
+      .filter((type) => !deal || type.allowedDeals.includes(deal))
+      .map((type) => ({ text: type.name[locale], active: filters.type === type.slug, href: href({ type: type.slug }) })),
   ];
-  // Only the types that can be listed for the chosen deal.
-  const typeTags = refData.propertyTypes.filter((type) => !filters.deal || type.allowedDeals.includes(filters.deal)).map((type) => ({
-    text: type.name[locale],
-    active: filters.type === type.slug,
-    href: href({ type: filters.type === type.slug ? undefined : type.slug }),
-  }));
-  const cityTags = refData.cities.map((city) => ({
-    text: city.name[locale],
-    active: filters.city === city.slug,
-    href: href({ city: filters.city === city.slug ? undefined : city.slug, hood: undefined }),
+
+  const cityTags = refData.cities.map((c) => ({
+    text: c.name[locale],
+    active: filters.city === c.slug,
+    href: href({ city: filters.city === c.slug ? undefined : c.slug, hood: undefined }),
   }));
 
-  // Once a city is chosen, its areas appear underneath as a row of tags.
-  const city = refData.cities.find((c) => c.slug === filters.city);
+  // The chosen city's areas: own colour, one alphabetical line, with ad counts.
   const typeId = refData.propertyTypes.find((t) => t.slug === filters.type)?.id;
   const count = (hoodId: number) =>
     facets.reduce(
       (sum, f) =>
-        f.hoodId === hoodId && (!filters.deal || f.deal === filters.deal) && (typeId === undefined || f.typeId === typeId)
-          ? sum + f.count
-          : sum,
+        f.hoodId === hoodId && (!deal || f.deal === deal) && (typeId === undefined || f.typeId === typeId) ? sum + f.count : sum,
       0,
     );
   const collator = new Intl.Collator(locale === "ar" ? "ar" : "en");
@@ -110,8 +120,8 @@ export function BoardTags({
   return (
     <div className="flex flex-col gap-2">
       <TagRow label={s.deal} tags={dealTags} />
-      <TagRow label={s.type} tags={typeTags} />
-      {cityTags.length > 1 && <TagRow label={s.city} tags={cityTags} />}
+      {dealChosen && <TagRow label={s.type} tags={typeTags} />}
+      {typeChosen && <TagRow label={s.city} tags={cityTags} />}
       {hoodTags.length > 1 && (
         <>
           <TagRow label={s.neighborhood} tags={hoodTags} variant="area" />

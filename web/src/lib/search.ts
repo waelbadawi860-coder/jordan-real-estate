@@ -11,8 +11,9 @@ const amount = z.coerce.number().positive().max(1_000_000_000);
 // Each filter is validated on its own, so one bad value doesn't discard the rest.
 const fieldSchemas = {
   q: z.string().trim().min(1).max(60),
-  deal: z.enum(["sale", "rent"]),
-  type: slug,
+  // "all" = the visitor chose "All" (no filter), so the next step of the tag board opens.
+  deal: z.enum(["sale", "rent", "all"]),
+  type: slug, // may be "all", like deal
   city: slug,
   hood: slug,
   min: amount,
@@ -26,7 +27,7 @@ const fieldSchemas = {
 
 export type SearchFilters = {
   q?: string;
-  deal?: "sale" | "rent";
+  deal?: "sale" | "rent" | "all";
   type?: string;
   city?: string;
   hood?: string;

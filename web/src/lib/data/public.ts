@@ -182,8 +182,8 @@ export async function searchListings(filters: SearchFilters, cursor: Cursor | nu
     .eq("status", "published")
     .order("position", { referencedTable: "listing_images" });
 
-  if (filters.deal) query = query.eq("deal_type", filters.deal);
-  if (filters.type) {
+  if (filters.deal && filters.deal !== "all") query = query.eq("deal_type", filters.deal);
+  if (filters.type && filters.type !== "all") {
     const type = ref.propertyTypes.find((t) => t.slug === filters.type);
     if (!type) return { items: [], nextCursor: null };
     query = query.eq("property_type_id", type.id);

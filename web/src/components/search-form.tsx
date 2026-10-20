@@ -39,8 +39,8 @@ export function SearchForm({
   const s = dict.search;
   const f = filters ?? {};
 
-  const [deal, setDeal] = useState<Deal>(f.deal ?? "");
-  const [typeSlug, setTypeSlug] = useState(f.type ?? "");
+  const [deal, setDeal] = useState<Deal>(f.deal && f.deal !== "all" ? f.deal : "");
+  const [typeSlug, setTypeSlug] = useState(f.type && f.type !== "all" ? f.type : "");
   const [citySlug, setCitySlug] = useState(f.city ?? "");
   const [hoodSlug, setHoodSlug] = useState(f.hood ?? "");
 
@@ -119,7 +119,8 @@ export function SearchForm({
             <input
               type="radio"
               name="deal"
-              value={value}
+              // "All" is sent as an explicit choice, so the tag board shows its next step.
+              value={value || "all"}
               checked={deal === value}
               onChange={() => chooseDeal(value)}
               className="peer sr-only"
@@ -136,8 +137,14 @@ export function SearchForm({
           <label htmlFor="sf-type" className={label}>
             {s.type}
           </label>
-          <select id="sf-type" name="type" value={typeSlug} onChange={(e) => chooseType(e.target.value)} className={field}>
-            <option value="">{s.anyType}</option>
+          <select
+            id="sf-type"
+            name="type"
+            value={typeSlug || "all"}
+            onChange={(e) => chooseType(e.target.value === "all" ? "" : e.target.value)}
+            className={field}
+          >
+            <option value="all">{s.anyType}</option>
             {types.map((pt) => (
               <option key={pt.id} value={pt.slug}>
                 {withCount(pt.name[locale], count(deal, pt.id))}
