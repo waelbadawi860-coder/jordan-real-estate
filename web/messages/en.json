@@ -749,7 +749,6 @@
         "min_images_per_listing": "Min photos before submitting",
         "image_max_dimension_px": "Max photo size (pixels, longest side)",
         "require_listing_approval": "Listings need admin approval",
-        "watermark_enabled": "Watermark photos (coming soon)",
         "max_reports_per_24h": "Max reports per user per 24 hours",
         "terms_version": "Terms version shown at registration",
         "privacy_version": "Privacy policy version shown at registration",
@@ -760,7 +759,9 @@
         "payment_bank_account_name": "Bank account holder",
         "payment_iban": "IBAN",
         "payment_note_ar": "Extra payment instructions (Arabic)",
-        "payment_note_en": "Extra payment instructions (English)"
+        "payment_note_en": "Extra payment instructions (English)",
+        "declaration_version": "Seller declaration wording version",
+        "removed_photo_retention_days": "Days photo files are kept after an ad leaves the site"
       },
       "draftAgreement": "Commissions can't be enabled on the live site while the current agreement is an unreviewed draft.",
       "invalid": "Invalid value."

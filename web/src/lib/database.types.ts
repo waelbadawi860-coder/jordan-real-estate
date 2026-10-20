@@ -645,6 +645,7 @@ export type Database = {
       listing_images: {
         Row: {
           created_at: string
+          files_removed_at: string | null
           height: number | null
           id: string
           listing_id: number
@@ -657,6 +658,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          files_removed_at?: string | null
           height?: number | null
           id?: string
           listing_id: number
@@ -669,6 +671,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          files_removed_at?: string | null
           height?: number | null
           id?: string
           listing_id?: number
@@ -1551,6 +1554,15 @@ export type Database = {
         Returns: undefined
       }
       owns_listing: { Args: { p_listing_id: number }; Returns: boolean }
+      photo_cleanup_candidates: {
+        Args: { p_limit?: number }
+        Returns: {
+          bucket: string
+          image_id: string
+          path: string
+          reason: string
+        }[]
+      }
       public_seller_info: {
         Args: { p_seller_id: string }
         Returns: {

@@ -18,9 +18,10 @@ export const settingSchemas = {
   min_images_per_listing: int(0, 10),
   image_max_dimension_px: int(800, 3000),
   require_listing_approval: bool,
-  watermark_enabled: bool,
   max_reports_per_24h: int(1, 100),
   terms_version: z.string().trim().min(1).max(40),
+  declaration_version: z.string().trim().min(1).max(40),
+  removed_photo_retention_days: int(30, 3650),
   privacy_version: z.string().trim().min(1).max(40),
   commission_enabled: bool,
   payment_cliq_alias: z.string().trim().max(60),
@@ -39,7 +40,7 @@ export const settingSchemas = {
 export type EditableSetting = keyof typeof settingSchemas;
 export const editableSettings = Object.keys(settingSchemas) as EditableSetting[];
 
-export const booleanSettings: EditableSetting[] = ["require_listing_approval", "watermark_enabled", "commission_enabled"];
+export const booleanSettings: EditableSetting[] = ["require_listing_approval", "commission_enabled"];
 export const numberSettings: EditableSetting[] = [
   "listing_expiry_days",
   "renewal_window_days",
@@ -48,4 +49,5 @@ export const numberSettings: EditableSetting[] = [
   "min_images_per_listing",
   "image_max_dimension_px",
   "max_reports_per_24h",
+  "removed_photo_retention_days",
 ];
