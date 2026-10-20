@@ -756,10 +756,33 @@ describe("floor and property type rules", () => {
     expect(error?.message).toContain("floor_not_allowed_for_type");
   });
 
-  it("saves a floor on an apartment, and visitors can filter by it once published", async () => {
-    const { data, error } = await alice.client
+  it("rejects details that don't apply to the type (bathrooms or bedrooms on land, furnished on a shop)", async () => {
+    const land = await typeId("residential-land");
+    const shop = await typeId("shop");
+    const bathrooms = await service.from("listings").insert({ ...listingInput("Land with bathrooms"), seller_id: alice.id, property_type_id: land, bedrooms: null });
+    expect(bathrooms.error?.message).toContain("bathrooms_not_allowed_for_type");
+    const bedrooms = await service.from("listings").insert({ ...listingInput("Land with bedrooms"), seller_id: alice.id, property_type_id: land, bathrooms: null });
+    expect(bedrooms.error?.message).toContain("bedrooms_not_allowed_for_type");
+    const furnished = await service
       .from("listings")
-      .insert({ ...listingInput("Ground floor flat"), floor_level: "ground" })
+      .insert({ ...listingInput("Furnished shop"), seller_id: alice.id, property_type_id: shop, bedrooms: null, details: { furnished: true } });
+    expect(furnished.error?.message).toContain("furnished_not_allowed_for_type");
+  });
+
+  it("offers 'top floor' and 'top floor with roof' as separate choices", async () => {
+    const { data, error } = await service
+      .from("listings")
+      .insert({ ...listingInput("Penthouse with roof"), seller_id: alice.id, floor_level: "last_with_roof" })
+      .select("floor_level")
+      .single();
+    expect(error).toBeNull();
+    expect(data!.floor_level).toBe("last_with_roof");
+  });
+
+  it("saves a floor on an apartment, and visitors can filter by it once published", async () => {
+    const { data, error } = await service
+      .from("listings")
+      .insert({ ...listingInput("Ground floor flat"), seller_id: alice.id, floor_level: "ground" })
       .select("id, floor_level")
       .single();
     expect(error).toBeNull();

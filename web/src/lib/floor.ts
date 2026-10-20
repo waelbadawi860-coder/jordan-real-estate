@@ -10,6 +10,7 @@ export const FLOOR_LEVELS = [
   "fourth",
   "fifth_plus",
   "last",
+  "last_with_roof",
 ] as const satisfies readonly Database["public"]["Enums"]["floor_level"][];
 
 export type FloorLevel = (typeof FLOOR_LEVELS)[number];

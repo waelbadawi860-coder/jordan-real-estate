@@ -231,7 +231,9 @@ const typeInput = z.object({
   ...names,
   id: idSchema.optional(),
   hasBedrooms: z.boolean(),
+  hasBathrooms: z.boolean().default(true),
   hasFloor: z.boolean().default(false),
+  hasFurnished: z.boolean().default(false),
   allowedDeals: z.array(z.enum(["sale", "rent"])).min(1).max(2).default(["sale", "rent"]),
   isActive: z.boolean().default(true),
 });
@@ -276,7 +278,9 @@ export async function savePropertyTypeAction(input: unknown): Promise<AdminResul
     sort_order: p.data.sortOrder,
     is_active: p.data.isActive,
     has_bedrooms: p.data.hasBedrooms,
+    has_bathrooms: p.data.hasBathrooms,
     has_floor: p.data.hasFloor,
+    has_furnished: p.data.hasFurnished,
     allowed_deals: [...new Set(p.data.allowedDeals)],
   };
   const { error } = p.data.id

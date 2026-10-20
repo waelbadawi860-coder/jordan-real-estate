@@ -290,7 +290,9 @@ type NamedRow = {
   sortOrder: number;
   isActive: boolean;
   hasBedrooms?: boolean;
+  hasBathrooms?: boolean;
   hasFloor?: boolean;
+  hasFurnished?: boolean;
   allowedDeals?: ("sale" | "rent")[];
 };
 
@@ -323,7 +325,9 @@ export function NamedRowForm({
     sortOrder: 100,
     isActive: true,
     hasBedrooms: false,
+    hasBathrooms: true,
     hasFloor: false,
+    hasFurnished: false,
     allowedDeals: ["sale", "rent"],
   };
   const [v, setV] = useState<NamedRow>(row ?? empty);
@@ -343,7 +347,7 @@ export function NamedRowForm({
           ? saveCityAction(input)
           : kind === "neighborhood"
             ? saveNeighborhoodAction({ ...input, cityId })
-            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms), hasFloor: Boolean(v.hasFloor), allowedDeals: deals }),
+            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms), hasBathrooms: Boolean(v.hasBathrooms), hasFloor: Boolean(v.hasFloor), hasFurnished: Boolean(v.hasFurnished), allowedDeals: deals }),
       () => {
         if (!row) {
           setV(empty);
@@ -401,6 +405,18 @@ export function NamedRowForm({
           <label className="flex items-center gap-1">
             <input type="checkbox" checked={Boolean(v.hasBedrooms)} onChange={(e) => setV({ ...v, hasBedrooms: e.target.checked })} className="size-4 accent-brand" />
             {a.types.hasBedrooms}
+          </label>
+        )}
+        {kind === "type" && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={Boolean(v.hasBathrooms)} onChange={(e) => setV({ ...v, hasBathrooms: e.target.checked })} className="size-4 accent-brand" />
+            {a.types.hasBathrooms}
+          </label>
+        )}
+        {kind === "type" && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={Boolean(v.hasFurnished)} onChange={(e) => setV({ ...v, hasFurnished: e.target.checked })} className="size-4 accent-brand" />
+            {a.types.hasFurnished}
           </label>
         )}
         {kind === "type" && (

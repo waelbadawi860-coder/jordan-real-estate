@@ -1053,8 +1053,10 @@ export type Database = {
         Row: {
           allowed_deals: Database["public"]["Enums"]["deal_type"][]
           created_at: string
+          has_bathrooms: boolean
           has_bedrooms: boolean
           has_floor: boolean
+          has_furnished: boolean
           id: number
           is_active: boolean
           name_ar: string
@@ -1066,8 +1068,10 @@ export type Database = {
         Insert: {
           allowed_deals?: Database["public"]["Enums"]["deal_type"][]
           created_at?: string
+          has_bathrooms?: boolean
           has_bedrooms?: boolean
           has_floor?: boolean
+          has_furnished?: boolean
           id?: never
           is_active?: boolean
           name_ar: string
@@ -1079,8 +1083,10 @@ export type Database = {
         Update: {
           allowed_deals?: Database["public"]["Enums"]["deal_type"][]
           created_at?: string
+          has_bathrooms?: boolean
           has_bedrooms?: boolean
           has_floor?: boolean
+          has_furnished?: boolean
           id?: never
           is_active?: boolean
           name_ar?: string
@@ -1494,6 +1500,7 @@ export type Database = {
         | "fourth"
         | "fifth_plus"
         | "last"
+        | "last_with_roof"
       listing_status:
         | "draft"
         | "pending_approval"
@@ -1664,6 +1671,7 @@ export const Constants = {
         "fourth",
         "fifth_plus",
         "last",
+        "last_with_roof",
       ],
       listing_status: [
         "draft",

@@ -751,11 +751,13 @@
     "types": {
       "add": "Add property type",
       "hasBedrooms": "Has bedrooms",
-      "hasFloor": "Has a floor (apartment, office…)",
+      "hasFloor": "Has a floor",
       "allowedDeals": "Available for",
       "dealRequired": "Choose at least one deal type.",
       "sale": "Sale",
-      "rent": "Rent"
+      "rent": "Rent",
+      "hasBathrooms": "Has bathrooms",
+      "hasFurnished": "Can be furnished"
     },
     "audit": {
       "when": "When",
@@ -802,6 +804,7 @@
     "third": "3rd floor",
     "fourth": "4th floor",
     "fifth_plus": "5th floor or higher",
-    "last": "Top floor (roof)"
+    "last": "Top floor",
+    "last_with_roof": "Top floor with roof"
   }
 }

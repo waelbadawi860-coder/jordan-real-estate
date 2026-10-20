@@ -69,7 +69,7 @@ async function toRow(input: ListingInput) {
   const hasBedrooms = type?.hasBedrooms ?? false;
   const details: Record<string, string | number | boolean> = {};
   if (input.dealType === "rent" && input.rentPeriod) details.rent_period = input.rentPeriod;
-  if (hasBedrooms && input.furnished) details.furnished = input.furnished === "yes";
+  if (type?.hasFurnished && input.furnished) details.furnished = input.furnished === "yes";
 
   return {
     deal_type: input.dealType,
@@ -82,7 +82,7 @@ async function toRow(input: ListingInput) {
     price: input.price as unknown as number,
     area_sqm: (input.areaSqm ?? null) as unknown as number | null,
     bedrooms: hasBedrooms ? (input.bedrooms ?? null) : null,
-    bathrooms: input.bathrooms ?? null,
+    bathrooms: type?.hasBathrooms ? (input.bathrooms ?? null) : null,
     details,
     floor_level: type?.hasFloor ? (input.floor ?? null) : null,
     poster_type: input.posterType,

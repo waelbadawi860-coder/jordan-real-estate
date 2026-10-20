@@ -33,7 +33,9 @@ export default async function AdminTypesPage({ params }: PageProps<"/[lang]/admi
               sortOrder: t.sort_order,
               isActive: t.is_active,
               hasBedrooms: t.has_bedrooms,
+              hasBathrooms: t.has_bathrooms,
               hasFloor: t.has_floor,
+              hasFurnished: t.has_furnished,
               allowedDeals: t.allowed_deals,
             }}
             a={dict.admin}

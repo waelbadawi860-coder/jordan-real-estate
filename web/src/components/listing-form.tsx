@@ -57,8 +57,12 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
   // which details apply, and the city decides which areas are offered.
   const types = refData.propertyTypes.filter((t) => !dealType || t.allowedDeals.includes(dealType));
   const type = types.find((t) => String(t.id) === typeId);
-  const hasBedrooms = type?.hasBedrooms ?? true;
+  // Until a type is chosen only the area is asked; each type then adds the
+  // fields that make sense for it (land: area only).
+  const hasBedrooms = type?.hasBedrooms ?? false;
+  const hasBathrooms = type?.hasBathrooms ?? false;
   const hasFloor = type?.hasFloor ?? false;
+  const hasFurnished = type?.hasFurnished ?? false;
 
   function changeDeal(value: "sale" | "rent") {
     setDealType(value);
@@ -239,7 +243,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <NumberInput name="areaSqm" text={f.area} value={initial.areaSqm} decimal error={err("areaSqm")} />
           {hasBedrooms && <NumberInput name="bedrooms" text={f.bedrooms} value={initial.bedrooms} error={err("bedrooms")} />}
-          <NumberInput name="bathrooms" text={f.bathrooms} value={initial.bathrooms} error={err("bathrooms")} />
+          {hasBathrooms && <NumberInput name="bathrooms" text={f.bathrooms} value={initial.bathrooms} error={err("bathrooms")} />}
         </div>
         {hasFloor && (
           <div className="sm:w-1/2">
@@ -257,7 +261,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             <ErrorText name="floor" message={err("floor")} />
           </div>
         )}
-        {hasBedrooms && (
+        {hasFurnished && (
           <div className="sm:w-1/2">
             <label htmlFor="furnished" className={label}>
               {f.furnished}

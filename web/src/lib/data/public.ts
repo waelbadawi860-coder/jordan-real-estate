@@ -27,7 +27,9 @@ export type PropertyType = {
   slug: string;
   name: LocalizedName;
   hasBedrooms: boolean;
+  hasBathrooms: boolean;
   hasFloor: boolean;
+  hasFurnished: boolean;
   /** Which deals this type can be listed for (e.g. residential land: sale only). */
   allowedDeals: ("sale" | "rent")[];
 };
@@ -48,7 +50,7 @@ export async function getReferenceData(): Promise<ReferenceData> {
   const [cities, neighborhoods, types, settings] = await Promise.all([
     sb.from("cities").select("id, slug, name_ar, name_en").order("sort_order").order("name_en"),
     sb.from("neighborhoods").select("id, city_id, slug, name_ar, name_en").order("sort_order").order("name_en"),
-    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms, has_floor, allowed_deals").order("sort_order"),
+    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms, has_bathrooms, has_floor, has_furnished, allowed_deals").order("sort_order"),
     sb.from("site_settings").select("key, value"),
   ]);
   for (const result of [cities, neighborhoods, types, settings]) {
@@ -68,7 +70,9 @@ export async function getReferenceData(): Promise<ReferenceData> {
       slug: t.slug,
       name: { ar: t.name_ar, en: t.name_en },
       hasBedrooms: t.has_bedrooms,
+      hasBathrooms: t.has_bathrooms,
       hasFloor: t.has_floor,
+      hasFurnished: t.has_furnished,
       allowedDeals: t.allowed_deals,
     })),
     settings: Object.fromEntries(settings.data!.map((s) => [s.key, s.value])),
