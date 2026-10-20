@@ -1,4 +1,4 @@
-import { Bath, BedDouble, Building2, Layers, MapPin, Ruler, ShieldCheck, Sofa, Tag } from "lucide-react";
+import { Clock, MapPin, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Locale } from "@/i18n/config";
@@ -6,6 +6,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import type { LocalizedName } from "@/lib/data/public";
 import { formatDate, formatNumber, formatPrice, t } from "@/lib/format";
 import { ApproxMap } from "./map/approx-map";
+import { TimeAgo } from "./time-ago";
 
 /** Everything needed to show a listing — used by the public page and the seller's preview. */
 export type PropertyViewData = {
@@ -52,17 +53,17 @@ export function PropertyView({
   const period = listing.rentPeriod === "monthly" ? d.perMonth : listing.rentPeriod === "yearly" ? d.perYear : null;
 
   const facts = [
-    { icon: Building2, label: d.type, value: listing.type[locale] },
-    { icon: Tag, label: d.deal, value: listing.dealType === "sale" ? dict.search.sale : dict.search.rent },
-    listing.areaSqm !== null && { icon: Ruler, label: d.area, value: t(d.areaValue, { n: formatNumber(listing.areaSqm, locale) }) },
-    listing.bedrooms !== null && { icon: BedDouble, label: d.bedrooms, value: formatNumber(listing.bedrooms, locale) },
-    listing.bathrooms !== null && { icon: Bath, label: d.bathrooms, value: formatNumber(listing.bathrooms, locale) },
-    listing.floor !== null && { icon: Layers, label: d.floor, value: formatNumber(listing.floor, locale) },
-    listing.furnished !== null && { icon: Sofa, label: d.furnished, value: listing.furnished ? dict.form.yes : dict.form.no },
-  ].filter(Boolean) as { icon: typeof Ruler; label: string; value: string }[];
+    { label: d.type, value: listing.type[locale] },
+    { label: d.deal, value: listing.dealType === "sale" ? dict.search.sale : dict.search.rent },
+    listing.areaSqm !== null && { label: d.area, value: t(d.areaValue, { n: formatNumber(listing.areaSqm, locale) }) },
+    listing.bedrooms !== null && { label: d.bedrooms, value: formatNumber(listing.bedrooms, locale) },
+    listing.bathrooms !== null && { label: d.bathrooms, value: formatNumber(listing.bathrooms, locale) },
+    listing.floor !== null && { label: d.floor, value: formatNumber(listing.floor, locale) },
+    listing.furnished !== null && { label: d.furnished, value: listing.furnished ? dict.form.yes : dict.form.no },
+  ].filter(Boolean) as { label: string; value: string }[];
 
   return (
-    <article className="mx-auto max-w-6xl px-4 py-6">
+    <article className="mx-auto max-w-4xl px-4 py-4">
       {back && (
         <nav className="mb-3 text-sm">
           <Link href={back.href} className="font-semibold text-brand hover:underline">
@@ -71,119 +72,117 @@ export function PropertyView({
         </nav>
       )}
 
-      <Gallery images={listing.images} dict={dict} />
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
-        <div className="flex flex-col gap-6">
-          <header className="flex flex-col gap-2">
-            <span
-              className={`w-fit rounded-md px-2 py-0.5 text-sm font-bold text-white ${
-                listing.dealType === "sale" ? "bg-brand" : "bg-accent"
-              }`}
-            >
-              {listing.dealType === "sale" ? dict.search.sale : dict.search.rent}
-            </span>
-            <h1 className="text-2xl font-extrabold leading-snug sm:text-3xl" dir="auto">
-              {listing.title}
-            </h1>
-            <p className="flex items-center gap-1 text-muted">
+      {/* Classifieds-board layout: the text of the ad first, photos underneath. */}
+      <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4 sm:p-5">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-xl font-extrabold leading-snug sm:text-2xl" dir="auto">
+            {listing.title}
+          </h1>
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+            {listing.seller && (
+              <span className="flex items-center gap-1">
+                <UserRound className="size-4 shrink-0" aria-hidden />
+                <span className="font-bold text-foreground">{listing.seller.displayName}</span>
+                <span>({listing.posterType === "agent" ? d.agent : d.owner})</span>
+              </span>
+            )}
+            {listing.publishedAt && (
+              <span className="flex items-center gap-1">
+                <Clock className="size-4 shrink-0" aria-hidden />
+                <TimeAgo iso={listing.publishedAt} locale={locale} />
+              </span>
+            )}
+            <span className="flex items-center gap-1">
               <MapPin className="size-4 shrink-0" aria-hidden />
               {where}
-            </p>
-            <p className="text-3xl font-extrabold text-brand-strong">
-              {formatPrice(listing.price, locale, dict.common.currency)}
-              {period && <span className="ms-2 text-base font-semibold text-muted">/ {period}</span>}
-            </p>
-          </header>
-
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {facts.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-xl border border-border bg-surface p-3">
-                <dt className="flex items-center gap-1 text-sm text-muted">
-                  <Icon className="size-4" aria-hidden />
-                  {label}
-                </dt>
-                <dd className="mt-1 font-bold">{value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <section aria-labelledby="desc-heading">
-            <h2 id="desc-heading" className="mb-2 text-lg font-extrabold">
-              {d.description}
-            </h2>
-            <p className="whitespace-pre-line leading-relaxed text-foreground" dir="auto">
-              {listing.description.trim() || d.noDescription}
-            </p>
-          </section>
-
-          {listing.approxLocation && (
-            <ApproxMap
-              lat={listing.approxLocation.lat}
-              lng={listing.approxLocation.lng}
-              text={{ showMap: dict.map.showMap, approxNote: dict.map.approxNote, loading: dict.map.loading }}
-            />
-          )}
-
-          <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
-            <div className="flex gap-1">
-              <dt>{d.id}:</dt>
-              <dd className="font-semibold text-foreground" dir="ltr">
-                {listing.id}
-              </dd>
-            </div>
-            {listing.publishedAt && (
-              <div className="flex gap-1">
-                <dt>{d.published}:</dt>
-                <dd>{formatDate(listing.publishedAt, locale)}</dd>
-              </div>
-            )}
-            <div className="flex gap-1">
-              <dt>{d.updated}:</dt>
-              <dd>{formatDate(listing.updatedAt, locale)}</dd>
-            </div>
-          </dl>
-        </div>
-
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
-          <section className="rounded-2xl border border-border bg-surface p-4 shadow-sm" aria-labelledby="contact-heading">
-            <h2 id="contact-heading" className="mb-1 text-lg font-extrabold">
-              {d.contact}
-            </h2>
-            {listing.seller && (
-              <p className="mb-3 text-sm text-muted">
-                <span className="font-bold text-foreground">{listing.seller.displayName}</span>
-                {" · "}
-                {listing.posterType === "agent" ? d.agent : d.owner}
-                {" · "}
-                {t(d.memberSince, { date: formatDate(listing.seller.memberSince, locale) })}
-              </p>
-            )}
-            {contact}
-            <p className="mt-2 text-xs text-muted">{d.contactPrivacy}</p>
-          </section>
-
-          <p className="flex gap-2 rounded-xl bg-accent-soft p-3 text-sm">
-            <ShieldCheck className="size-5 shrink-0 text-accent" aria-hidden />
-            {d.safetyTip}
+            </span>
           </p>
+          <p className="text-2xl font-extrabold text-brand-strong">
+            {formatPrice(listing.price, locale, dict.common.currency)}
+            {period && <span className="ms-2 text-base font-semibold text-muted">/ {period}</span>}
+          </p>
+        </header>
 
-          {footer}
-        </aside>
+        <section className="rounded-lg bg-brand-soft/60 p-3" aria-labelledby="contact-heading">
+          <h2 id="contact-heading" className="mb-2 font-extrabold">
+            {d.contact}
+          </h2>
+          {contact}
+          <p className="mt-2 text-xs text-muted">{d.contactPrivacy}</p>
+        </section>
+
+        <section aria-labelledby="desc-heading">
+          <h2 id="desc-heading" className="sr-only">
+            {d.description}
+          </h2>
+          <p className="whitespace-pre-line text-base leading-relaxed text-foreground sm:text-lg" dir="auto">
+            {listing.description.trim() || d.noDescription}
+          </p>
+        </section>
+
+        <dl className="grid grid-cols-2 overflow-hidden rounded-lg border border-border text-sm sm:grid-cols-3">
+          {facts.map(({ label, value }) => (
+            <div key={label} className="flex justify-between gap-2 border-b border-e border-border px-3 py-2">
+              <dt className="text-muted">{label}</dt>
+              <dd className="font-bold">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <Gallery images={listing.images} dict={dict} />
+
+        {listing.approxLocation && (
+          <ApproxMap
+            lat={listing.approxLocation.lat}
+            lng={listing.approxLocation.lng}
+            text={{ showMap: dict.map.showMap, approxNote: dict.map.approxNote, loading: dict.map.loading }}
+          />
+        )}
+
+        <dl className="flex flex-wrap gap-x-6 gap-y-1 border-t border-border pt-3 text-sm text-muted">
+          <div className="flex gap-1">
+            <dt>{d.id}:</dt>
+            <dd className="font-semibold text-foreground" dir="ltr">
+              {listing.id}
+            </dd>
+          </div>
+          {listing.publishedAt && (
+            <div className="flex gap-1">
+              <dt>{d.published}:</dt>
+              <dd>{formatDate(listing.publishedAt, locale)}</dd>
+            </div>
+          )}
+          <div className="flex gap-1">
+            <dt>{d.updated}:</dt>
+            <dd>{formatDate(listing.updatedAt, locale)}</dd>
+          </div>
+          {listing.seller && (
+            <div className="flex gap-1">
+              <dd>{t(d.memberSince, { date: formatDate(listing.seller.memberSince, locale) })}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-4">
+        <p className="flex gap-2 rounded-lg bg-accent-soft p-3 text-sm">
+          <ShieldCheck className="size-5 shrink-0 text-accent" aria-hidden />
+          {d.safetyTip}
+        </p>
+        {footer}
       </div>
     </article>
   );
 }
 
 function Gallery({ images, dict }: { images: PropertyViewData["images"]; dict: Dictionary }) {
-  if (images.length === 0) {
-    return <div className="grid aspect-[16/9] place-items-center rounded-2xl bg-brand-soft text-muted">{dict.listing.noPhoto}</div>;
-  }
+  if (images.length === 0) return null;
+  // Photos one under the other at full width, as on classifieds boards.
   return (
     <section aria-label={dict.listing.photos}>
-      <ul className="no-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-2xl">
+      <ul className="flex flex-col gap-3">
         {images.map((image, index) => (
-          <li key={image.url} className="w-full shrink-0 snap-center sm:w-[80%] lg:w-[65%]">
+          <li key={image.url}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={image.url}
@@ -193,16 +192,11 @@ function Gallery({ images, dict }: { images: PropertyViewData["images"]; dict: D
               loading={index === 0 ? "eager" : "lazy"}
               fetchPriority={index === 0 ? "high" : "auto"}
               decoding="async"
-              className="aspect-[4/3] max-h-[460px] w-full rounded-2xl bg-brand-soft object-cover"
+              className="h-auto w-full rounded-lg bg-brand-soft"
             />
           </li>
         ))}
       </ul>
-      {images.length > 1 && (
-        <p className="mt-1 text-center text-sm text-muted">
-          {dict.listing.photos}: {images.length}
-        </p>
-      )}
     </section>
   );
 }

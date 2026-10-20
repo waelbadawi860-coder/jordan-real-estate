@@ -6,7 +6,7 @@ import { loadMoreListings } from "@/app/actions/public";
 import type { Locale } from "@/i18n/config";
 import type { ListingCard as Card } from "@/lib/data/public";
 import type { Cursor, SearchFilters } from "@/lib/search";
-import { ListingCard, type CardLabels } from "./listing-card";
+import { ListingCard, listingListClass, type CardLabels } from "./listing-card";
 
 /** Appends the next page of results when the visitor asks for more. */
 export function LoadMore({
@@ -44,7 +44,7 @@ export function LoadMore({
   return (
     <>
       {items.length > 0 && (
-        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className={`mt-4 ${listingListClass}`}>
           {items.map((listing) => (
             <li key={listing.id}>
               <ListingCard listing={listing} locale={locale} labels={labels} />

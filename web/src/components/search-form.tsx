@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { ReferenceData } from "@/lib/data/public";
@@ -27,8 +27,6 @@ export function SearchForm({
 }) {
   const s = dict.search;
   const f = filters ?? {};
-  const hasAdvanced =
-    f.min !== undefined || f.max !== undefined || f.amin !== undefined || f.amax !== undefined || f.beds !== undefined;
 
   return (
     <form action={localePath(locale, "/search")} method="get" role="search" className="flex flex-col gap-4">
@@ -121,12 +119,7 @@ export function SearchForm({
       </div>
 
       {advanced && (
-        <details open={hasAdvanced} className="rounded-lg border border-border bg-surface p-3">
-          <summary className="flex cursor-pointer items-center gap-2 font-semibold text-brand">
-            <SlidersHorizontal className="size-4" aria-hidden />
-            {s.moreFilters}
-          </summary>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <NumberField id="sf-min" name="min" text={s.minPrice} value={f.min} />
             <NumberField id="sf-max" name="max" text={s.maxPrice} value={f.max} />
             <div>
@@ -153,9 +146,8 @@ export function SearchForm({
                 <option value="price_asc">{s.sortPriceAsc}</option>
                 <option value="price_desc">{s.sortPriceDesc}</option>
               </select>
-            </div>
           </div>
-        </details>
+        </div>
       )}
 
       <div className="flex items-center gap-3">

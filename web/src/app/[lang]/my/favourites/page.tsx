@@ -31,9 +31,9 @@ export default async function FavouritesPage({ params }: PageProps<"/[lang]/my/f
       {items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border bg-surface p-8 text-center text-muted">{dict.favourites.empty}</p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="flex flex-col gap-3">
           {items.map((item) => (
-            <li key={item.listingId} className="flex flex-col gap-2">
+            <li key={item.listingId} className="flex flex-col gap-2 overflow-hidden rounded-lg border border-border bg-surface pb-2">
               {item.listing ? (
                 <ListingCard listing={item.listing} locale={lang} labels={labels} />
               ) : (

@@ -1,9 +1,10 @@
-import { BedDouble, Bath, ImageOff, MapPin, Ruler } from "lucide-react";
+import { Clock, ImageOff, MapPin } from "lucide-react";
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { ListingCard as Card } from "@/lib/data/public";
 import { formatNumber, formatPrice, t } from "@/lib/format";
 import { listingPath } from "@/lib/paths";
+import { TimeAgo } from "./time-ago";
 
 /** Text the card needs, passed in so this component also works in the browser. */
 export type CardLabels = {
@@ -13,10 +14,14 @@ export type CardLabels = {
   perMonth: string;
   perYear: string;
   areaValue: string;
+  /** "{n} bed" templates. */
   bedrooms: string;
   bathrooms: string;
   noPhoto: string;
 };
+
+/** Classes for the list that holds listing rows (one ad per line, like a classifieds board). */
+export const listingListClass = "divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface";
 
 export function ListingCard({
   listing,
@@ -31,76 +36,69 @@ export function ListingCard({
 }) {
   const location = [listing.neighborhood?.[locale], listing.city[locale]].filter(Boolean).join(locale === "ar" ? "، " : ", ");
   const period = listing.rentPeriod === "monthly" ? labels.perMonth : listing.rentPeriod === "yearly" ? labels.perYear : null;
+  const facts = [
+    listing.areaSqm !== null && t(labels.areaValue, { n: formatNumber(listing.areaSqm, locale) }),
+    listing.bedrooms !== null && t(labels.bedrooms, { n: formatNumber(listing.bedrooms, locale) }),
+    listing.bathrooms !== null && t(labels.bathrooms, { n: formatNumber(listing.bathrooms, locale) }),
+  ].filter(Boolean) as string[];
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition hover:shadow-md">
-      <Link href={listingPath(locale, listing.id, listing.title)} className="block focus-visible:outline-offset-[-3px]">
-        <div className="relative aspect-[4/3] bg-brand-soft">
-          {listing.imageUrl ? (
-            // Photos are already compressed to WebP at upload time, so they are
-            // served directly instead of through a paid image-resizing service.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={listing.imageUrl}
-              alt=""
-              loading={priority ? "eager" : "lazy"}
-              fetchPriority={priority ? "high" : "auto"}
-              decoding="async"
-              className="size-full object-cover transition group-hover:scale-[1.02]"
-            />
-          ) : (
-            <div className="grid size-full place-items-center text-muted">
-              <ImageOff className="size-8" aria-hidden />
-              <span className="sr-only">{labels.noPhoto}</span>
-            </div>
-          )}
-          <span
-            className={`absolute start-2 top-2 rounded-md px-2 py-0.5 text-xs font-bold text-white ${
-              listing.dealType === "sale" ? "bg-brand" : "bg-accent"
-            }`}
+    <article className="relative flex gap-3 p-3 transition hover:bg-brand-soft/50 sm:p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <h3 className="line-clamp-2 text-base font-bold leading-snug sm:text-lg" dir="auto">
+          {/* The link covers the whole row, so the row is one tap target. */}
+          <Link
+            href={listingPath(locale, listing.id, listing.title)}
+            className="text-foreground after:absolute after:inset-0 hover:text-brand hover:underline"
           >
-            {listing.dealType === "sale" ? labels.sale : labels.rent}
-          </span>
-        </div>
-
-        <div className="flex flex-col gap-1.5 p-3">
-          <p className="text-lg font-extrabold text-brand-strong">
-            {formatPrice(listing.price, locale, labels.currency)}
-            {period && <span className="ms-1 text-sm font-semibold text-muted">/ {period}</span>}
-          </p>
-          <h3 className="line-clamp-2 font-bold leading-snug text-foreground" dir="auto">
             {listing.title}
-          </h3>
-          <p className="flex items-center gap-1 text-sm text-muted">
-            <MapPin className="size-4 shrink-0" aria-hidden />
-            <span className="truncate">
-              {listing.type[locale]} · {location}
+          </Link>
+        </h3>
+        <p className="text-sm">
+          <span className="font-bold text-brand-strong">{formatPrice(listing.price, locale, labels.currency)}</span>
+          {period && <span className="text-muted"> / {period}</span>}
+          <span className="text-muted">
+            {" · "}
+            {listing.dealType === "sale" ? labels.sale : labels.rent}
+            {" · "}
+            {listing.type[locale]}
+          </span>
+        </p>
+        {facts.length > 0 && <p className="text-sm text-muted">{facts.join(" · ")}</p>}
+        <p className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted sm:text-sm">
+          <span className="flex items-center gap-1">
+            <MapPin className="size-3.5 shrink-0" aria-hidden />
+            {location}
+          </span>
+          {listing.publishedAt && (
+            <span className="flex items-center gap-1">
+              <Clock className="size-3.5 shrink-0" aria-hidden />
+              <TimeAgo iso={listing.publishedAt} locale={locale} />
             </span>
-          </p>
-          <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
-            {listing.areaSqm !== null && (
-              <li className="flex items-center gap-1">
-                <Ruler className="size-4" aria-hidden />
-                {t(labels.areaValue, { n: formatNumber(listing.areaSqm, locale) })}
-              </li>
-            )}
-            {listing.bedrooms !== null && (
-              <li className="flex items-center gap-1">
-                <BedDouble className="size-4" aria-hidden />
-                <span className="sr-only">{labels.bedrooms}:</span>
-                {formatNumber(listing.bedrooms, locale)}
-              </li>
-            )}
-            {listing.bathrooms !== null && (
-              <li className="flex items-center gap-1">
-                <Bath className="size-4" aria-hidden />
-                <span className="sr-only">{labels.bathrooms}:</span>
-                {formatNumber(listing.bathrooms, locale)}
-              </li>
-            )}
-          </ul>
-        </div>
-      </Link>
+          )}
+        </p>
+      </div>
+
+      <div className="size-24 shrink-0 overflow-hidden rounded-md bg-brand-soft sm:size-28">
+        {listing.imageUrl ? (
+          // Photos are already compressed to WebP at upload time, so they are
+          // served directly instead of through a paid image-resizing service.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={listing.imageUrl}
+            alt=""
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+            decoding="async"
+            className="size-full object-cover"
+          />
+        ) : (
+          <div className="grid size-full place-items-center text-muted">
+            <ImageOff className="size-6" aria-hidden />
+            <span className="sr-only">{labels.noPhoto}</span>
+          </div>
+        )}
+      </div>
     </article>
   );
 }
@@ -108,7 +106,7 @@ export function ListingCard({
 export function cardLabels(dict: {
   search: { sale: string; rent: string };
   common: { currency: string };
-  listing: { perMonth: string; perYear: string; areaValue: string; bedrooms: string; bathrooms: string; noPhoto: string };
+  listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string };
 }): CardLabels {
   return {
     sale: dict.search.sale,
@@ -117,8 +115,8 @@ export function cardLabels(dict: {
     perMonth: dict.listing.perMonth,
     perYear: dict.listing.perYear,
     areaValue: dict.listing.areaValue,
-    bedrooms: dict.listing.bedrooms,
-    bathrooms: dict.listing.bathrooms,
+    bedrooms: dict.listing.bedsValue,
+    bathrooms: dict.listing.bathsValue,
     noPhoto: dict.listing.noPhoto,
   };
 }
