@@ -28,7 +28,7 @@ Vercel's free Hobby plan is for non-commercial use — fine for a private test c
 ## Phase B — Gates before going public
 
 - [ ] **Legal (you):** Jordanian lawyer has reviewed licensing, commission model, terms, privacy policy, agreement wording and dispute process. Without this, keep commissions **off** and terms pages marked as drafts.
-- [ ] **Terms & privacy pages:** final reviewed texts provided → Claude publishes them (currently placeholders).
+- [ ] **Legal pages:** drafts of terms, privacy, posting policy and reporting policy are live (`web/src/content/legal-*.ts`) and marked as drafts. The lawyer marks up changes and fills the [bracketed] details → Claude updates the texts and changes `terms_version` / `privacy_version` / `declaration_version` from `draft-…` to a final version (the draft notice then disappears).
 - [ ] **Brand:** final name chosen; domain available; trademark/social handles checked.
 - [ ] **Budget approved:** Vercel Pro (≈ $20/month) and Supabase Pro (≈ $25/month) — both required for a commercial site with backups.
 - [ ] **Maps decision:** keep off at launch, or subscribe to a provider (`docs/STAGE-7-PROVIDERS.md`).
@@ -46,12 +46,14 @@ Vercel's free Hobby plan is for non-commercial use — fine for a private test c
    - `NEXT_PUBLIC_SITE_URL` = `https://www.yourname.com`
    - `SITE_STAGE` = `live`
    - Map variables only if a provider was chosen.
+   - `CRON_SECRET` = a random text of 32+ characters (Vercel → Settings → Environment Variables, type Secret). Without it the daily photo clean-up refuses to run.
 5. **Domain → Vercel (you + Claude):** Vercel → Project → Settings → Domains → add `www.yourname.com` and `yourname.com` (redirect to www) → copy the DNS records into Cloudflare (DNS only / grey cloud). Expected: "Valid Configuration" and an automatic HTTPS certificate.
 
 ## Phase D — Production configuration
 
 1. **Admin account:** register on the live site with your email → confirm → Claude runs `npm run make-admin:prod -- you@…` (uses a local `web/.env.production.local` that never goes to GitHub).
-2. **Settings** (Admin → الإعدادات): site names, contact email, approval required ✓, expiry 30, limits. Payment details only if commissions will be enabled. **Commission system stays OFF** until legal approval and a reviewed agreement version.
+   - **Two-step login:** on the live site the dashboard requires it. Open **حسابي → الأمان**, scan the QR code with an authenticator app, enter the code. Then switch on **إلزام المشرفين بالتحقق بخطوتين** in Admin → الإعدادات (the database then enforces it too).
+2. **Settings** (Admin → الإعدادات): site names, contact email, approval required ✓, expiry 30, limits, photo retention days (as agreed with the lawyer). Payment details only if commissions will be enabled. **Commission system stays OFF** until legal approval and a reviewed agreement version.
 3. **Backups:** add the two GitHub secrets (`docs/OPERATIONS.md` §1), run the workflow once, then do one **restore test**.
 4. **Monitoring:** create a free UptimeRobot monitor for `https://www.yourname.com/api/health` (every 5 minutes, email alerts).
 5. **Search engines:** Google Search Console → add the domain → submit `https://www.yourname.com/sitemap.xml`.
