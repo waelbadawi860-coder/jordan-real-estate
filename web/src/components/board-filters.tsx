@@ -4,6 +4,7 @@ import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { AreaFacet, ReferenceData } from "@/lib/data/public";
 import { formatNumber } from "@/lib/format";
+import { ScrollActiveArea } from "./scroll-active-area";
 import { filtersToQuery, type SearchFilters } from "@/lib/search";
 
 // The top of the home and search pages, in the style of a classifieds board:
@@ -88,11 +89,13 @@ export function BoardTags({
           : sum,
       0,
     );
+  const collator = new Intl.Collator(locale === "ar" ? "ar" : "en");
   const hoodTags = city
     ? [
         { text: s.anyNeighborhood, active: !filters.hood, href: href({ hood: undefined }) },
         ...refData.neighborhoods
           .filter((n) => n.cityId === city.id)
+          .sort((a, b) => collator.compare(a.name[locale], b.name[locale]))
           .map((n) => {
             const ads = count(n.id);
             return {
@@ -109,24 +112,49 @@ export function BoardTags({
       <TagRow label={s.deal} tags={dealTags} />
       <TagRow label={s.type} tags={typeTags} />
       {cityTags.length > 1 && <TagRow label={s.city} tags={cityTags} />}
-      {hoodTags.length > 1 && <TagRow label={s.neighborhood} tags={hoodTags} />}
+      {hoodTags.length > 1 && (
+        <>
+          <TagRow label={s.neighborhood} tags={hoodTags} variant="area" />
+          {filters.hood && <ScrollActiveArea />}
+        </>
+      )}
     </div>
   );
 }
 
-function TagRow({ label, tags }: { label: string; tags: { text: string; active: boolean; href: string }[] }) {
+function TagRow({
+  label,
+  tags,
+  variant = "main",
+}: {
+  label: string;
+  tags: { text: string; active: boolean; href: string }[];
+  /** "area": the city's areas — own colour, always one line, with a visible scroll bar underneath. */
+  variant?: "main" | "area";
+}) {
+  const area = variant === "area";
   return (
     <nav aria-label={label}>
-      <ul className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+      <ul
+        className={
+          area
+            ? "area-scroll -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
+            : "no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
+        }
+      >
         {tags.map((tag) => (
           <li key={tag.href + tag.text} className="shrink-0">
             <Link
               href={tag.href}
               aria-current={tag.active ? "page" : undefined}
-              className={`block rounded-full border px-3 py-1 text-sm font-semibold ${
-                tag.active
-                  ? "border-brand bg-brand text-white"
-                  : "border-border bg-surface text-foreground hover:border-brand hover:text-brand"
+              className={`block whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold ${
+                area
+                  ? tag.active
+                    ? "border-accent bg-accent text-white"
+                    : "border-accent/30 bg-accent-soft text-foreground hover:border-accent hover:text-accent"
+                  : tag.active
+                    ? "border-brand bg-brand text-white"
+                    : "border-border bg-surface text-foreground hover:border-brand hover:text-brand"
               }`}
             >
               {tag.text}

@@ -65,3 +65,20 @@ textarea {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* The areas row: one line with a visible scroll bar the visitor can drag. */
+.area-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--accent-soft);
+}
+.area-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.area-scroll::-webkit-scrollbar-track {
+  background: var(--accent-soft);
+  border-radius: 999px;
+}
+.area-scroll::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 999px;
+}
