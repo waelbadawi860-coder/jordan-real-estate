@@ -33,7 +33,9 @@ export default async function AdminListingsPage({ params, searchParams }: PagePr
   const supabase = await createClient();
   let query = supabase
     .from("listings")
-    .select("id, title, status, price, deal_type, city_id, created_at, seller_id, profiles!listings_seller_id_fkey(display_name)", { count: "exact" });
+    .select("id, title, status, price, deal_type, city_id, created_at, seller_id, profiles!listings_seller_id_fkey(display_name), listing_risk(flags)", {
+      count: "exact",
+    });
   if (q && /^\d{1,15}$/.test(q)) query = query.eq("id", Number(q));
   else if (q) query = query.ilike("title", `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
   if (status) query = query.eq("status", status);
@@ -47,6 +49,10 @@ export default async function AdminListingsPage({ params, searchParams }: PagePr
   if (error) throw new Error(`Admin listing search failed: ${error.message}`);
 
   const field = "h-10 rounded-lg border border-border bg-surface px-2 text-sm";
+  const riskCount = (risk: unknown) => {
+    const row = Array.isArray(risk) ? risk[0] : risk;
+    return (row as { flags?: string[] } | null)?.flags?.length ?? 0;
+  };
   return (
     <section className="flex flex-col gap-4">
       <form method="get" className="grid gap-2 rounded-2xl border border-border bg-surface p-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -104,6 +110,11 @@ export default async function AdminListingsPage({ params, searchParams }: PagePr
                     <Link href={localePath(lang, `/admin/listings/${l.id}`)} className="hover:underline">
                       {l.title}
                     </Link>
+                    {riskCount(l.listing_risk) > 0 && (
+                      <span className="ms-2 rounded-full bg-accent-soft px-2 text-xs font-bold text-accent" title={a.riskSignals}>
+                        ⚠ {riskCount(l.listing_risk)}
+                      </span>
+                    )}
                   </td>
                   <td className="p-2">{dict.status[l.status]}</td>
                   <td className="whitespace-nowrap p-2">{formatPrice(Number(l.price), lang, dict.common.currency)}</td>

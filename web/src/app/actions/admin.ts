@@ -6,6 +6,7 @@ import { getAdminActor } from "@/lib/admin";
 import { isLiveSite } from "@/lib/env";
 import { editableSettings, settingSchemas, type EditableSetting } from "@/lib/admin-settings";
 import { syncPublicPhotos, syncSellerPhotos } from "@/lib/photos";
+import { normalizeJordanPhone } from "@/lib/validation/listing";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Every admin action starts by confirming, on the server, that the caller is
@@ -295,5 +296,46 @@ export async function savePropertyTypeAction(input: unknown): Promise<AdminResul
     : await actor.supabase.from("property_types").insert(row);
   if (error) return errorOf(error);
   updateTag("reference-data");
+  return { ok: true };
+}
+
+// ----------------------------------------------------------------------------
+// Fraud: block list and risk re-check
+// ----------------------------------------------------------------------------
+
+const blockInput = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("phone"), value: z.string().trim().min(1).max(30), reason: z.string().trim().min(2).max(500) }),
+  z.object({ kind: z.literal("email"), value: z.string().trim().toLowerCase().email().max(254), reason: z.string().trim().min(2).max(500) }),
+]);
+
+export async function addBlockedAction(input: unknown): Promise<AdminResult> {
+  const p = blockInput.safeParse(input);
+  if (!p.success) return { ok: false, error: "invalid" };
+  const value = p.data.kind === "phone" ? normalizeJordanPhone(p.data.value) : p.data.value;
+  if (!value) return { ok: false, error: "invalid" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  const { error } = await actor.supabase.from("blocked_identifiers").insert({ kind: p.data.kind, value, reason: p.data.reason });
+  if (error) return errorOf(error);
+  return { ok: true };
+}
+
+export async function removeBlockedAction(id: unknown): Promise<AdminResult> {
+  const p = idSchema.safeParse(id);
+  if (!p.success) return { ok: false, error: "invalid" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  const { error } = await actor.supabase.from("blocked_identifiers").delete().eq("id", p.data);
+  if (error) return errorOf(error);
+  return { ok: true };
+}
+
+export async function recheckRiskAction(listingId: unknown): Promise<AdminResult> {
+  const p = idSchema.safeParse(listingId);
+  if (!p.success) return { ok: false, error: "invalid" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  const { error } = await actor.supabase.rpc("admin_recheck_listing_risk", { p_listing_id: p.data });
+  if (error) return errorOf(error);
   return { ok: true };
 }

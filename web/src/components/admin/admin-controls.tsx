@@ -3,8 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import {
+  addBlockedAction,
   completeDeletionAction,
   moderateListingAction,
+  recheckRiskAction,
+  removeBlockedAction,
   resolveReportAction,
   saveCityAction,
   saveNeighborhoodAction,
@@ -468,5 +471,74 @@ export function NamedRowForm({
       </button>
       <div className="col-span-full">{message}</div>
     </form>
+  );
+}
+
+// ----------------------------------------------------------------------------
+
+export function RecheckRiskButton({ listingId, a }: { listingId: number; a: AdminText }) {
+  const { run, pending, message } = useRun(a);
+  return (
+    <div className="flex flex-col gap-1">
+      <button type="button" className={`${btn} w-fit`} disabled={pending} onClick={() => run(() => recheckRiskAction(listingId))}>
+        {a.risk.recheck}
+      </button>
+      {message}
+    </div>
+  );
+}
+
+export function BlockListForm({ a }: { a: AdminText }) {
+  const { run, pending, message } = useRun(a);
+  const b = a.blocklist;
+  const [kind, setKind] = useState<"phone" | "email">("phone");
+  const [value, setValue] = useState("");
+  const [reason, setReason] = useState("");
+  return (
+    <form
+      className="grid items-end gap-2 sm:grid-cols-[auto_1fr_1fr_auto]"
+      onSubmit={(e) => {
+        e.preventDefault();
+        run(
+          () => addBlockedAction({ kind, value, reason }),
+          () => {
+            setValue("");
+            setReason("");
+          },
+        );
+      }}
+    >
+      <label className="flex flex-col gap-0.5 text-xs font-semibold">
+        {b.kind}
+        <select id="block-kind" value={kind} onChange={(e) => setKind(e.target.value as "phone" | "email")} className={field}>
+          <option value="phone">{b.phone}</option>
+          <option value="email">{b.email}</option>
+        </select>
+      </label>
+      <label className="flex flex-col gap-0.5 text-xs font-semibold">
+        {b.value}
+        <input id="block-value" dir="ltr" required value={value} onChange={(e) => setValue(e.target.value)} className={field} />
+      </label>
+      <label className="flex flex-col gap-0.5 text-xs font-semibold">
+        {b.reason}
+        <input id="block-reason" dir="auto" required minLength={2} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} className={field} />
+      </label>
+      <button type="submit" className={primary} disabled={pending}>
+        {b.add}
+      </button>
+      <div className="col-span-full">{message}</div>
+    </form>
+  );
+}
+
+export function RemoveBlockedButton({ id, a }: { id: number; a: AdminText }) {
+  const { run, pending, message } = useRun(a);
+  return (
+    <span className="flex items-center gap-2">
+      <button type="button" className={danger} disabled={pending} onClick={() => run(() => removeBlockedAction(id))}>
+        {a.blocklist.remove}
+      </button>
+      {message}
+    </span>
   );
 }

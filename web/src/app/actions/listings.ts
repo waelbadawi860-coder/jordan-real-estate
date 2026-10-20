@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { getReferenceData } from "@/lib/data/public";
+import { isBlocked } from "@/lib/blocklist";
+import { storePhotoHash } from "@/lib/phash";
 import { deletePhotoFiles, syncPublicPhotos } from "@/lib/photos";
 import { recordDeclaration } from "@/lib/declaration";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +48,7 @@ function dbErrorKey(error: { code?: string; message?: string } | null): string {
     "agreement_required",
     "transaction_details_required",
     "declaration_required",
+    "phone_blocked",
   ]) {
     if (message.includes(key)) return key;
   }
@@ -105,6 +108,7 @@ export async function createListingAction(_prev: ListingFormState, formData: For
   if (!parsed.success) return { error: "fixErrors", fieldErrors: fieldErrors(parsed.error.issues) };
   const ruleErrors = await typeRuleErrors(parsed.data);
   if (ruleErrors) return { error: "fixErrors", fieldErrors: ruleErrors };
+  if (await isBlocked("phone", parsed.data.phone)) return { error: "fixErrors", fieldErrors: { phone: "phoneBlocked" } };
 
   const { supabase, userId } = await requireUserId();
   if (!userId) redirect(`${localePath(locale, "/login")}?next=${encodeURIComponent(localePath(locale, "/post"))}`);
@@ -146,6 +150,7 @@ export async function updateListingAction(
   if (!parsed.success) return { error: "fixErrors", fieldErrors: fieldErrors(parsed.error.issues) };
   const ruleErrors = await typeRuleErrors(parsed.data);
   if (ruleErrors) return { error: "fixErrors", fieldErrors: ruleErrors };
+  if (await isBlocked("phone", parsed.data.phone)) return { error: "fixErrors", fieldErrors: { phone: "phoneBlocked" } };
 
   const { supabase, userId } = await requireUserId();
   if (!userId) return { error: "accountInactive" };
@@ -224,6 +229,7 @@ export async function addPhotoAction(input: unknown): Promise<ActionResult> {
     await deletePhotoFiles([storagePath, thumbPath].filter((p): p is string => Boolean(p)));
     return { ok: false, error: dbErrorKey(error) };
   }
+  await storePhotoHash(storagePath, thumbPath);
   // Adding a photo to an approved listing sends it back for review (trigger).
   await syncPublicPhotos(listingId);
   invalidateListing(listingId);

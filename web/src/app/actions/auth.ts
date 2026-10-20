@@ -5,6 +5,7 @@ import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { safeNextPath } from "@/lib/auth";
 import { withinVisitorLimit } from "@/lib/rate-limit";
 import { publicEnv } from "@/lib/env";
+import { isBlocked } from "@/lib/blocklist";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { emailSchema, loginSchema, passwordSchema, registerSchema } from "@/lib/validation/auth";
@@ -74,6 +75,9 @@ export async function registerAction(_prev: AuthFormState, formData: FormData): 
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error.issues) };
   if (!(await allowed("register", 5, 3600))) return { error: "rateLimited" };
+
+  // Blocked addresses can't register (the database refuses them too).
+  if (await isBlocked("email", parsed.data.email)) return { error: "registrationBlocked" };
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({

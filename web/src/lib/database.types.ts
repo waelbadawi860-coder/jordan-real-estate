@@ -195,6 +195,41 @@ export type Database = {
           },
         ]
       }
+      blocked_identifiers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: number
+          kind: string
+          reason: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          kind: string
+          reason: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          kind?: string
+          reason?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_identifiers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cities: {
         Row: {
           country_code: string
@@ -613,6 +648,7 @@ export type Database = {
           height: number | null
           id: string
           listing_id: number
+          phash: unknown
           position: number
           public_copied_at: string | null
           storage_path: string
@@ -624,6 +660,7 @@ export type Database = {
           height?: number | null
           id?: string
           listing_id: number
+          phash?: unknown
           position?: number
           public_copied_at?: string | null
           storage_path: string
@@ -635,6 +672,7 @@ export type Database = {
           height?: number | null
           id?: string
           listing_id?: number
+          phash?: unknown
           position?: number
           public_copied_at?: string | null
           storage_path?: string
@@ -708,6 +746,32 @@ export type Database = {
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_risk: {
+        Row: {
+          checked_at: string
+          flags: string[]
+          listing_id: number
+        }
+        Insert: {
+          checked_at?: string
+          flags?: string[]
+          listing_id: number
+        }
+        Update: {
+          checked_at?: string
+          flags?: string[]
+          listing_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_risk_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
             referencedColumns: ["id"]
           },
         ]
@@ -1339,6 +1403,10 @@ export type Database = {
         }
         Returns: number
       }
+      admin_recheck_listing_risk: {
+        Args: { p_listing_id: number }
+        Returns: string[]
+      }
       admin_retire_commission_rule: {
         Args: { p_rule_id: number }
         Returns: undefined
@@ -1442,6 +1510,10 @@ export type Database = {
       }
       is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      is_blocked: {
+        Args: { p_kind: string; p_value: string }
+        Returns: boolean
+      }
       listing_area_facets: {
         Args: never
         Returns: {
@@ -1457,6 +1529,7 @@ export type Database = {
         Returns: boolean
       }
       listing_is_public: { Args: { p_listing_id: number }; Returns: boolean }
+      listing_risk_flags: { Args: { p_listing_id: number }; Returns: string[] }
       log_commission_event: {
         Args: {
           p_amount: number
@@ -1524,6 +1597,7 @@ export type Database = {
         Args: { p_default: number; p_key: string }
         Returns: number
       }
+      text_risk_flags: { Args: { p_text: string }; Returns: string[] }
     }
     Enums: {
       account_status: "active" | "suspended" | "deletion_requested" | "deleted"

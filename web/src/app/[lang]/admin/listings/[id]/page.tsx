@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ListingModeration, ReportControls } from "@/components/admin/admin-controls";
+import { ListingModeration, RecheckRiskButton, ReportControls } from "@/components/admin/admin-controls";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireAdminPage } from "@/lib/admin";
@@ -20,7 +20,7 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
   const a = dict.admin;
 
   const supabase = await createClient();
-  const [{ data: listing }, { data: history }, { data: reports }, { data: versions }, { data: declarations }] = await Promise.all([
+  const [{ data: listing }, { data: history }, { data: reports }, { data: versions }, { data: declarations }, { data: risk }] = await Promise.all([
     supabase
       .from("listings")
       .select(
@@ -50,6 +50,7 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
       .select("id, version, created_at")
       .eq("listing_id", id)
       .order("id", { ascending: false }),
+    supabase.from("listing_risk").select("flags, checked_at").eq("listing_id", id).maybeSingle(),
   ]);
   if (!listing) notFound();
 
@@ -108,6 +109,30 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
           </Link>
         )}
       </div>
+
+      <section className={`${box} flex flex-col gap-2`} aria-labelledby="risk-heading">
+        <h3 id="risk-heading" className="font-extrabold">
+          {a.risk.title}
+        </h3>
+        {!risk ? (
+          <p className="text-sm text-muted">{a.risk.notChecked}</p>
+        ) : risk.flags.length === 0 ? (
+          <p className="text-sm">{a.risk.none}</p>
+        ) : (
+          <ul className="flex flex-wrap gap-2">
+            {risk.flags.map((flag) => (
+              <li key={flag} className="rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent">
+                {a.risk.flags[flag as keyof typeof a.risk.flags] ?? flag}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="text-xs text-muted">
+          {risk && `${a.risk.checkedAt}: ${formatDateTime(risk.checked_at, lang)} · `}
+          {a.risk.hint}
+        </p>
+        <RecheckRiskButton listingId={listing.id} a={a} />
+      </section>
 
       <ListingModeration listingId={listing.id} status={listing.status} a={a} />
 

@@ -152,7 +152,8 @@
       "samePassword": "Choose a password different from your current one.",
       "reauthRequired": "For your security, log out and back in before changing your password.",
       "sessionMissing": "Your session expired. Request a new reset link and open it in this same browser.",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "registrationBlocked": "An account can't be created with this e-mail. Contact us if you think this is a mistake."
     }
   },
   "account": {
@@ -235,7 +236,8 @@
       "fixErrors": "Please correct the highlighted fields.",
       "generic": "Something went wrong. Please try again.",
       "typeNotForDeal": "This type isn't available for the chosen deal.",
-      "declarationRequired": "You must accept the seller declaration before submitting."
+      "declarationRequired": "You must accept the seller declaration before submitting.",
+      "phoneBlocked": "This phone number can't be used. Contact us if you think this is a mistake."
     }
   },
   "photos": {
@@ -539,7 +541,8 @@
       "export": "Export",
       "commissions": "Commissions",
       "agreements": "Commission agreements",
-      "rules": "Commission rules"
+      "rules": "Commission rules",
+      "blocklist": "Block list"
     },
     "commissions": {
       "anyStatus": "All statuses",
@@ -641,7 +644,8 @@
       "next": "Next",
       "created": "Created",
       "seller": "Advertiser",
-      "open": "Open"
+      "open": "Open",
+      "riskSignals": "Risk signals"
     },
     "listing": {
       "approve": "Accept for publication (meets posting policy)",
@@ -813,6 +817,40 @@
       "invalid": "Invalid value.",
       "invalidTransition": "This action isn't possible in the listing's current status.",
       "ownAccount": "You can't change your own account's status."
+    },
+    "risk": {
+      "title": "Risk signals (administrators only)",
+      "none": "No signals.",
+      "notChecked": "Not checked yet. Ads are checked when submitted.",
+      "checkedAt": "Last checked",
+      "recheck": "Check again now",
+      "hint": "Signals only alert the reviewer; they don't mean the ad is fraudulent.",
+      "flags": {
+        "payment_request": "Asks for a deposit or money transfer",
+        "external_link": "External link in the text",
+        "phone_in_text": "Phone number in the text",
+        "email_in_text": "E-mail address in the text",
+        "new_account": "Account less than 7 days old",
+        "reported_seller": "Open reports against the advertiser",
+        "price_far_below_similar": "Price far below similar ads",
+        "duplicate_photo": "Photo used in another ad",
+        "matches_removed_ad": "Matches the phone or photo of a removed ad",
+        "shared_phone": "Same phone used by other accounts"
+      }
+    },
+    "blocklist": {
+      "title": "Block list",
+      "intro": "Blocked phone numbers can't be used on any ad, and blocked e-mail addresses can't register. Every addition or removal is recorded in the activity log.",
+      "kind": "Type",
+      "phone": "Phone number",
+      "email": "E-mail",
+      "value": "Value",
+      "reason": "Reason (internal)",
+      "add": "Add to the list",
+      "remove": "Remove",
+      "empty": "The list is empty.",
+      "invalidPhone": "Not a valid Jordanian number.",
+      "invalidEmail": "Not a valid e-mail address."
     }
   },
   "common": {

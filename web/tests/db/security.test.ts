@@ -937,3 +937,77 @@ describe("temporary hold", () => {
     expect(new Date(after.data!.published_at!).toISOString()).toBe(publishedAt);
   });
 });
+
+describe("fraud checks", () => {
+  async function submittableListing(title: string, description: string) {
+    const { data, error } = await service
+      .from("listings")
+      .insert({ ...listingInput(title), description, seller_id: bob.id })
+      .select("id")
+      .single();
+    if (error) throw error;
+    // A phone of its own: the shared test phone would (rightly) raise "shared_phone".
+    const phone = `+96279${String(data.id).padStart(7, "0").slice(-7)}`;
+    const contact = await bob.client.from("listing_contacts").insert({ listing_id: data.id, phone });
+    if (contact.error) throw contact.error;
+    const image = await bob.client.from("listing_images").insert({ listing_id: data.id, storage_path: `${bob.id}/${data.id}/${randomUUID()}.webp` });
+    if (image.error) throw image.error;
+    return data.id;
+  }
+  async function submit(id: number) {
+    await bob.client.rpc("declare_listing", { p_listing_id: id });
+    return bob.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "pending_approval" });
+  }
+
+  it("with automatic publishing on, clean ads go live and risky ones wait for review with their reasons", async () => {
+    const { data: profile } = await service.from("profiles").select("created_at").eq("id", bob.id).single();
+    await service.from("profiles").update({ created_at: new Date(Date.now() - 30 * 86_400_000).toISOString() }).eq("id", bob.id);
+    await service.from("site_settings").update({ value: false }).eq("key", "require_listing_approval");
+    try {
+      const clean = await submittableListing("Clean auto-publish flat", "Bright flat near the seventh circle.");
+      const cleanResult = await submit(clean);
+      const { data: cleanRisk } = await admin.client.from("listing_risk").select("flags").eq("listing_id", clean).single();
+      expect(cleanRisk!.flags).toEqual([]);
+      expect(cleanResult.data).toBe("published");
+
+      const risky = await submittableListing("Risky deposit flat", "يرجى دفع عربون 100 دينار قبل المعاينة على 0791234567");
+      expect((await submit(risky)).data).toBe("pending_approval");
+      const { data: risk } = await admin.client.from("listing_risk").select("flags").eq("listing_id", risky).single();
+      expect(risk!.flags).toEqual(expect.arrayContaining(["payment_request", "phone_in_text"]));
+
+      // Editing a live ad to add a link sends it back to review.
+      await bob.client.from("listings").update({ description: "More photos at www.example.com" }).eq("id", clean);
+      expect(await statusOf(clean)).toBe("pending_approval");
+    } finally {
+      await service.from("site_settings").update({ value: true }).eq("key", "require_listing_approval");
+      await service.from("profiles").update({ created_at: profile!.created_at }).eq("id", bob.id);
+    }
+  });
+
+  it("finds the same photo in another ad", async () => {
+    const first = await submittableListing("Photo owner flat", "Original photos.");
+    const second = await submittableListing("Photo copier flat", "Copied photos.");
+    const hash = "1010101011110000101010101111000010101010111100001010101011110000";
+    const nearly = "1010101011110000101010101111000010101010111100001010101011110011"; // 2 bits differ
+    await service.from("listing_images").update({ phash: hash }).eq("listing_id", first);
+    await service.from("listing_images").update({ phash: nearly }).eq("listing_id", second);
+    const { data } = await admin.client.rpc("admin_recheck_listing_risk", { p_listing_id: second });
+    expect(data).toContain("duplicate_photo");
+  });
+
+  it("blocked phone numbers can't be used on ads; only admins manage or see the list", async () => {
+    const blocked = "+962790000111";
+    const add = await admin.client.from("blocked_identifiers").insert({ kind: "phone", value: blocked, reason: "Test fraud ring" });
+    expect(add.error).toBeNull();
+    try {
+      const { data } = await service.from("listings").insert({ ...listingInput("Blocked phone flat"), seller_id: bob.id }).select("id").single();
+      const contact = await bob.client.from("listing_contacts").insert({ listing_id: data!.id, phone: blocked });
+      expect(contact.error?.message).toContain("phone_blocked");
+      expect((await bob.client.from("blocked_identifiers").select("id")).data).toEqual([]);
+      expect((await bob.client.from("blocked_identifiers").insert({ kind: "phone", value: "+962790000222", reason: "x y" })).error).not.toBeNull();
+      expect((await bob.client.from("listing_risk").select("listing_id")).data).toEqual([]);
+    } finally {
+      await admin.client.from("blocked_identifiers").delete().eq("value", blocked);
+    }
+  });
+});

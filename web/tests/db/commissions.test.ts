@@ -120,18 +120,25 @@ describe("browser estimate matches the database exactly", () => {
       const pct = (Math.floor(rand() * 10_000) / 1000 + 0.001).toFixed(3);
       return { value, pct };
     });
-    const results = await Promise.all(
-      cases.map((c) =>
-        service.rpc("commission_amount", {
-          p_basis: "sale_price",
-          p_percentage: c.pct as unknown as number,
-          p_fixed: null,
-          p_min: null,
-          p_max: null,
-          p_value: c.value as unknown as number,
-        }),
-      ),
-    );
+    // In batches of 20: 200 calls at once can time out while other test files run.
+    const results: { data: unknown; error: unknown }[] = [];
+    for (let i = 0; i < cases.length; i += 20) {
+      results.push(
+        ...(await Promise.all(
+          cases.slice(i, i + 20).map((c) =>
+            service.rpc("commission_amount", {
+              p_basis: "sale_price",
+              p_percentage: c.pct as unknown as number,
+              p_fixed: null,
+              p_min: null,
+              p_max: null,
+              p_value: c.value as unknown as number,
+            }),
+          ),
+        )),
+      );
+    }
+    expect(results.every((r) => !r.error)).toBe(true);
     const mismatches = cases.filter((c, i) => {
       const js = estimateCommission(
         { id: 0, dealType: "sale", basis: "sale_price", percentage: c.pct, fixedAmount: null, minAmount: null, maxAmount: null, dueDays: 0, triggerEvent: "transaction_completed", agreementVersionId: 0 },

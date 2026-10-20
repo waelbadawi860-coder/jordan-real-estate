@@ -25,6 +25,8 @@ const pages = [
   "/admin/listings?status=pending_approval",
   "/admin/users",
   "/admin/reports",
+  "/admin/blocklist",
+  "/admin/listings?status=on_hold",
   "/admin/settings",
   "/admin/locations",
   "/admin/types",
