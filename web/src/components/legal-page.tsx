@@ -28,7 +28,7 @@ export function legalPage(slug: LegalSlug) {
     const [dict, ref] = await Promise.all([getDictionary(lang), getReferenceData()]);
     const doc = legalDoc(lang, slug);
     const version = String(ref.settings[LEGAL_VERSION_SETTING[slug]] ?? "");
-    const email = typeof ref.settings.contact_email === "string" && ref.settings.contact_email ? ref.settings.contact_email : "[البريد الرسمي]";
+    const email = typeof ref.settings.contact_email === "string" && ref.settings.contact_email ? ref.settings.contact_email : lang === "ar" ? "[بريد التواصل الرسمي، يُعلن قريبًا]" : "[official contact e-mail, coming soon]";
     const retention = String(ref.settings.removed_photo_retention_days ?? "365");
     const fill = (text: string) =>
       text.replaceAll("{email}", email).replaceAll("{site}", siteName(ref, lang)).replaceAll("{retention}", retention);

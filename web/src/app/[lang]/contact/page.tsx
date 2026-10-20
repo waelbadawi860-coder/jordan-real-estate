@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ContactMessageForm, ReportListingForm } from "@/components/contact-forms";
+import { ReportListingForm } from "@/components/contact-forms";
 import { hasLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getListing, getReferenceData } from "@/lib/data/public";
@@ -52,16 +52,16 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
 
       <section className="rounded-2xl border border-border bg-surface p-5">
         {listing && <h2 className="mb-2 text-xl font-extrabold">{c.title}</h2>}
-        <p className="mb-4 text-muted">{c.intro}</p>
-        {email && (
-          <p className="mb-4 text-sm">
-            {c.ourEmail}:{" "}
-            <a href={`mailto:${email}`} className="font-semibold text-brand underline" dir="ltr">
-              {email}
-            </a>
-          </p>
+        {/* General questions go by e-mail only; reports about an ad stay on the form above. */}
+        <p className="mb-3 text-muted">{c.intro}</p>
+        {email ? (
+          <a href={`mailto:${email}`} className="text-lg font-bold text-brand underline" dir="ltr">
+            {email}
+          </a>
+        ) : (
+          <p className="font-semibold">{c.emailSoon}</p>
         )}
-        <ContactMessageForm dict={dict} />
+        <p className="mt-3 text-sm text-muted">{c.reportHint}</p>
       </section>
     </div>
   );

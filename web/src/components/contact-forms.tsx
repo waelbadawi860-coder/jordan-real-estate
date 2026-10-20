@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { reportListingAction, sendContactMessageAction, type ContactFormState } from "@/app/actions/contact";
+import { reportListingAction, type ContactFormState } from "@/app/actions/contact";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { t } from "@/lib/format";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
@@ -79,58 +79,6 @@ export function ReportListingForm({ listingId, dict }: { listingId: number; dict
           {c.details}
         </label>
         <textarea id="details" name="details" maxLength={1000} rows={4} dir="auto" className="w-full rounded-lg border border-border bg-surface p-3" />
-      </div>
-      <div className="sm:w-60">
-        <SubmitButton pendingText={c.sending} pending={pending}>
-          {c.send}
-        </SubmitButton>
-      </div>
-    </form>
-  );
-}
-
-export function ContactMessageForm({ dict }: { dict: Pick<Dictionary, "contact"> }) {
-  const [state, action, pending] = useActionState(sendContactMessageAction, {});
-  const [, startTransition] = useTransition();
-  const c = dict.contact;
-  if (state.ok) return <Sent text={c.sent} reference={state.reference} c={c} />;
-
-  return (
-    <form onSubmit={keepValuesOnSubmit(action, startTransition)} className="flex flex-col gap-4" noValidate>
-      {state.error && <FormMessage kind="error">{errorText(c, state.error)}</FormMessage>}
-      {/* Hidden from people; bots that fill every field are rejected. */}
-      <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
-      <div>
-        <label htmlFor="topic" className={label}>
-          {c.topic}
-        </label>
-        <select id="topic" name="topic" className={inputClass} defaultValue="general">
-          {(["general", "problem", "privacy", "account"] as const).map((t) => (
-            <option key={t} value={t}>
-              {c.topics[t]}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="name" className={label}>
-            {c.name}
-          </label>
-          <input id="name" name="name" maxLength={80} autoComplete="name" className={inputClass} />
-        </div>
-        <div>
-          <label htmlFor="email" className={label}>
-            {c.email}
-          </label>
-          <input id="email" name="email" type="email" maxLength={254} autoComplete="email" dir="ltr" className={inputClass} />
-        </div>
-      </div>
-      <div>
-        <label htmlFor="message" className={label}>
-          {c.message}
-        </label>
-        <textarea id="message" name="message" required minLength={5} maxLength={3000} rows={6} dir="auto" className="w-full rounded-lg border border-border bg-surface p-3" />
       </div>
       <div className="sm:w-60">
         <SubmitButton pendingText={c.sending} pending={pending}>

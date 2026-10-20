@@ -491,7 +491,7 @@
   },
   "contact": {
     "title": "Contact us / report an issue",
-    "intro": "Send us a question or report a problem, and we'll review your message soon.",
+    "intro": "For questions, problems with the site or privacy requests, write to us at:",
     "ourEmail": "Our email",
     "reportTitle": "Report listing #{id}",
     "reportIntro": "Help us keep the site safe. The advertiser won't see who reported.",
@@ -527,7 +527,9 @@
       "other": "Other reason"
     },
     "reference": "Reference number: {ref}. Keep it to follow up with us.",
-    "alreadyReportedSeller": "You already have an open report on this advertiser."
+    "alreadyReportedSeller": "You already have an open report on this advertiser.",
+    "emailSoon": "Our official contact e-mail will be announced soon.",
+    "reportHint": "To report an ad or advertiser, use \"Report this ad or advertiser\" on the ad's page to get a reference number."
   },
   "admin": {
     "title": "Admin dashboard",

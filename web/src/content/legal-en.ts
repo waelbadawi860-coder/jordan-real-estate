@@ -97,7 +97,7 @@ export const legalEn: LegalDocs = {
         h: "14. Law and jurisdiction",
         p: ["These terms are governed by the laws of the Hashemite Kingdom of Jordan, and the courts of [Amman] have jurisdiction over any dispute. [To be confirmed by the lawyer.]"],
       },
-      { h: "15. Contact", p: ["Questions about these terms: {email} or the Contact us page."] },
+      { h: "15. Contact", p: ["Questions about these terms: write to {email}."] },
     ],
   },
 
@@ -111,7 +111,7 @@ export const legalEn: LegalDocs = {
         h: "2. What we collect",
         list: [
           "Account data: display name, e-mail, phone number if you add one, preferred language. Your password is stored encrypted by our sign-in provider; we never see it.",
-          "Ad data: type, price, description, photos, contact number, city and area, and a map position if you choose to set one. Location data stored inside photos is removed before upload.",
+          "Ad data: type, price, description, photos, contact number, city and area, and a map position if you choose to set one (once maps are enabled). Location data stored inside photos is removed before upload.",
           "Declarations and consents: the wording version and time accepted, an anonymous fingerprint of your IP address (not the address itself) and your browser type.",
           "Reports and messages you send us, and any contact details you add to them.",
           "Technical and security logs: request times and errors, and anonymous counters to prevent abuse.",
@@ -152,7 +152,7 @@ export const legalEn: LegalDocs = {
       },
       {
         h: "8. Your rights",
-        p: ["You can access, correct and ask to delete your data, object to processing, and withdraw consent where processing relies on it. You can change most data and request account deletion in \"My account\", or write to us via Contact us choosing \"Privacy request\". We reply within [the legal period]."],
+        p: ["You can access, correct and ask to delete your data, object to processing, and withdraw consent where processing relies on it. You can change most data and request account deletion in \"My account\", or write to {email} mentioning \"Privacy request\". We reply within [the legal period]."],
       },
       {
         h: "9. Cookies",
@@ -164,7 +164,7 @@ export const legalEn: LegalDocs = {
       },
       { h: "11. Minors", p: ["The site is not intended for anyone under 18, and we don't knowingly collect their data."] },
       { h: "12. Changes", p: ["The version and date appear at the top of the page. For material changes we will tell you and ask for consent where required."] },
-      { h: "13. Contact", p: ["{email} or the Contact us page."] },
+      { h: "13. Contact", p: ["Write to {email}."] },
     ],
   },
 
@@ -220,7 +220,7 @@ export const legalEn: LegalDocs = {
         h: "1. How to report",
         list: [
           "From any ad: \"Report this ad or advertiser\", choose a reason and add details.",
-          "For any other problem or a privacy request: the Contact us page.",
+          "For any other problem or a privacy request: write to {email}.",
           "You immediately get a reference number (such as L-1024). Keep it to follow up.",
         ],
       },
@@ -235,7 +235,7 @@ export const legalEn: LegalDocs = {
       },
       {
         h: "3. Objections",
-        p: ["If your ad was rejected or removed and you think it was a mistake, write to us via Contact us with the ad number and your explanation, and we will review the decision."],
+        p: ["If your ad was rejected or removed and you think it was a mistake, write to {email} with the ad number and your explanation, and we will review the decision."],
       },
       {
         h: "4. False reports",
