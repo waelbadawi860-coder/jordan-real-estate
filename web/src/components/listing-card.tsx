@@ -75,19 +75,21 @@ export function ListingCard({
           </span>
         </p>
         {facts.length > 0 && <p className="text-sm text-muted">{facts.join(" · ")}</p>}
-        <p className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted sm:text-sm">
-          <span className="flex items-center gap-1">
+        {/* One line, always: the date is swapped for "x hours ago" in the browser,
+            and a line that wrapped differently would make the rows jump. */}
+        <p className="mt-auto flex items-center gap-x-3 overflow-hidden whitespace-nowrap text-xs text-muted sm:text-sm">
+          <span className="flex min-w-0 items-center gap-1">
             <MapPin className="size-3.5 shrink-0" aria-hidden />
-            {location}
+            <span className="truncate">{location}</span>
           </span>
           {listing.publishedAt && (
-            <span className="flex items-center gap-1">
+            <span className="flex shrink-0 items-center gap-1">
               <Clock className="size-3.5 shrink-0" aria-hidden />
               <TimeAgo iso={listing.publishedAt} locale={locale} />
             </span>
           )}
           {listing.office?.verified && (
-            <span className="flex items-center gap-1 font-semibold text-brand">
+            <span className="flex shrink-0 items-center gap-1 font-semibold text-brand">
               <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
               {labels.verifiedOffice}
             </span>
