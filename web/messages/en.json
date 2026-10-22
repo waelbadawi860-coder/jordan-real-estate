@@ -1067,9 +1067,9 @@
     "uploading": "Uploading…",
     "plansTitle": "Office packages",
     "perMonth": "per month",
-    "noPlan": "No package now: you can have up to {n} active listings.",
-    "currentPlan": "Your package: {plan} until {date} ({n} active listings).",
-    "planListings": "Active listings: up to {n}",
+    "noPlan": "No package now: you can have up to {n} listings live at the same time.",
+    "currentPlan": "Your package: {plan} until {date} (up to {n} listings live at the same time).",
+    "planListings": "Up to {n} listings live at the same time",
     "planFeatured": "Featured listings each month: {n}",
     "planVerificationIncluded": "Verification included",
     "planVerificationExtra": "Verification for a separate fee",
@@ -1119,7 +1119,7 @@
     "title": "Prices and services",
     "intro": "Posting is free for individuals. To stand out, feature your listing or move it to the top; offices get monthly packages and the “Verified office” badge.",
     "freeTitle": "Posting is free",
-    "freeText": "Everyone can have up to {n} active listings for free, after review.",
+    "freeText": "Everyone can have up to {n} listings live at the same time, for free and after review. Each listing stays up for 30 days and can be renewed; once a property is sold or a listing withdrawn, you can post another.",
     "promoteTitle": "Make your listing show first",
     "featureName": "Featured listing",
     "featureText": "Shown in the “Featured listings” block at the top of the home page and matching search results, with a “Featured” label.",
@@ -1144,6 +1144,6 @@
   "promote": {
     "banner": "Want your listing to show first? Feature it or move it to the top.",
     "link": "Prices and services",
-    "postNote": "Posting is free for up to {n} active listings. Offices get packages with more."
+    "postNote": "Posting is free for up to {n} listings live at the same time. Offices get packages with more."
   }
 }
