@@ -55,6 +55,14 @@ export default async function MyListingsPage({ params }: PageProps<"/[lang]/my/l
           {m.add}
         </Link>
       </div>
+      {listings.some((l) => l.status === "published") && (
+        <p className="mb-4 rounded-xl border border-accent/40 bg-accent-soft p-3 text-sm">
+          {dict.promote.banner}{" "}
+          <Link href={localePath(lang, "/pricing")} className="font-bold text-brand hover:underline">
+            {dict.promote.link}
+          </Link>
+        </p>
+      )}
 
       {listings.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border bg-surface p-8 text-center text-muted">{m.empty}</p>

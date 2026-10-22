@@ -199,9 +199,19 @@ function publishedListings() {
 }
 type ListingQuery = ReturnType<typeof publishedListings>;
 
-/** Applies the search filters to a listings query; null when a filter can't match anything. */
-function applyFilters(query: ListingQuery, filters: SearchFilters, ref: ReferenceData): ListingQuery | null {
+/**
+ * Applies the search filters to a listings query; null when a filter can't
+ * match anything. The query comes back wrapped: a query is "thenable", so
+ * returning it bare from an async function would run it straight away.
+ */
+async function applyFilters(query: ListingQuery, filters: SearchFilters, ref: ReferenceData): Promise<{ q: ListingQuery } | null> {
   let q = query;
+  if (filters.vo) {
+    const offices = await getOfficeDirectory();
+    const verifiedSellers = Object.entries(offices).filter(([, o]) => o.verified).map(([sellerId]) => sellerId);
+    if (verifiedSellers.length === 0) return null;
+    q = q.in("seller_id", verifiedSellers);
+  }
   if (filters.deal && filters.deal !== "all") q = q.eq("deal_type", filters.deal);
   if (filters.type && filters.type !== "all") {
     const type = ref.propertyTypes.find((t) => t.slug === filters.type);
@@ -227,7 +237,7 @@ function applyFilters(query: ListingQuery, filters: SearchFilters, ref: Referenc
   if (filters.floors !== undefined) q = q.gte("floors_count", filters.floors);
   if (filters.floor) q = q.eq("floor_level", filters.floor);
   if (filters.q) q = q.ilike("title", `%${escapeLike(filters.q)}%`);
-  return q;
+  return { q };
 }
 
 /** How many paid "featured" listings sit above the results of a search. */
@@ -240,9 +250,9 @@ export async function getFeaturedListings(filters: SearchFilters): Promise<Listi
   cacheTag("listings", "offices");
 
   const ref = await getReferenceData();
-  const query = applyFilters(publishedListings().gt("featured_until", new Date().toISOString()), filters, ref);
-  if (!query) return [];
-  const { data, error } = await query.order("ranked_at", { ascending: false }).order("id", { ascending: false }).limit(FEATURED_SLOTS);
+  const filtered = await applyFilters(publishedListings().gt("featured_until", new Date().toISOString()), filters, ref);
+  if (!filtered) return [];
+  const { data, error } = await filtered.q.order("ranked_at", { ascending: false }).order("id", { ascending: false }).limit(FEATURED_SLOTS);
   if (error) throw new Error(`Featured listings failed: ${error.message}`);
   return withOffices(((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref)));
 }
@@ -268,8 +278,9 @@ export async function searchListings(filters: SearchFilters, cursor: Cursor | nu
   cacheTag("listings", "offices");
 
   const ref = await getReferenceData();
-  let query = applyFilters(publishedListings(), filters, ref);
-  if (!query) return { items: [], nextCursor: null };
+  const filtered = await applyFilters(publishedListings(), filters, ref);
+  if (!filtered) return { items: [], nextCursor: null };
+  let query = filtered.q;
 
   // Keyset pagination: "give me the rows after the last one I saw".
   // Stays fast no matter how deep the visitor scrolls.

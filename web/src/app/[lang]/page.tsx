@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
+import { WhyUs } from "@/components/why-us";
 import { BoardSearch, BoardTags } from "@/components/board-filters";
 import { cardLabels, FeaturedList, ListingCard, listingListClass } from "@/components/listing-card";
 import { hasLocale, localePath } from "@/i18n/config";
@@ -46,6 +47,9 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
       <BoardSearch locale={lang} dict={dict} />
       <div className="mt-3">
         <BoardTags locale={lang} dict={dict} refData={ref} />
+      </div>
+      <div className="mt-3">
+        <WhyUs locale={lang} dict={dict} />
       </div>
 
       <div className="mt-5">

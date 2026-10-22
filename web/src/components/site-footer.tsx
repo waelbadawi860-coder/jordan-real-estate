@@ -4,6 +4,8 @@ import type { Dictionary } from "@/i18n/dictionaries";
 
 export function SiteFooter({ locale, dict, siteName }: { locale: Locale; dict: Dictionary; siteName: string }) {
   const links = [
+    { href: "/about", label: dict.footer.about },
+    { href: "/pricing", label: dict.footer.pricing },
     { href: "/terms", label: dict.footer.terms },
     { href: "/privacy", label: dict.footer.privacy },
     { href: "/posting-policy", label: dict.footer.posting },

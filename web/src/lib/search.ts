@@ -25,6 +25,8 @@ const fieldSchemas = {
   floors: z.coerce.number().int().min(1).max(50),
   floor: z.enum(FLOOR_LEVELS),
   sort: z.enum(sortOptions),
+  // "1" = only listings of verified offices.
+  vo: z.enum(["1"]),
 } as const;
 
 export type SearchFilters = {
@@ -42,6 +44,7 @@ export type SearchFilters = {
   floors?: number;
   floor?: FloorLevel;
   sort: SortOption;
+  vo?: "1";
 };
 
 export type FilterKey = keyof typeof fieldSchemas;

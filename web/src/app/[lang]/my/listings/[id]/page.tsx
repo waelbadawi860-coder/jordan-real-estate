@@ -83,7 +83,7 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
           ) : (
             <p className="text-sm">
               {dict.myListings.promoteHint}{" "}
-              <Link href={`${localePath(lang, "/contact")}?listing=${listing.id}`} className="font-bold text-brand hover:underline">
+              <Link href={localePath(lang, "/pricing")} className="font-bold text-brand hover:underline">
                 {dict.myListings.promoteLink}
               </Link>
             </p>

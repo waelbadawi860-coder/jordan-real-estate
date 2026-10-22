@@ -98,10 +98,14 @@ export function PropertyView({
               </span>
             )}
             {listing.office?.verified && (
-              <span className="flex items-center gap-1 font-semibold text-brand" title={dict.office.badgeMeaning}>
+              <Link
+                href={`${localePath(locale, "/pricing")}#verified`}
+                className="flex items-center gap-1 font-semibold text-brand hover:underline"
+                title={dict.office.badgeMeaning}
+              >
                 <BadgeCheck className="size-4 shrink-0" aria-hidden />
                 {dict.office.verifiedBadge}
-              </span>
+              </Link>
             )}
             {listing.publishedAt && (
               <span className="flex items-center gap-1">

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FormMessage } from "@/components/form-controls";
 import { ListingForm } from "@/components/listing-form";
-import { hasLocale } from "@/i18n/config";
+import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getOwnProfile, requireUser } from "@/lib/auth";
 import { getReferenceData } from "@/lib/data/public";
-import { displayPhone } from "@/lib/format";
+import { displayPhone, t } from "@/lib/format";
 
 export const instant = false;
 
@@ -25,7 +26,13 @@ export default async function PostPage({ params }: PageProps<"/[lang]/post">) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <h1 className="mb-5 text-2xl font-extrabold">{dict.form.newTitle}</h1>
+      <h1 className="mb-2 text-2xl font-extrabold">{dict.form.newTitle}</h1>
+      <p className="mb-5 text-sm text-muted">
+        {t(dict.promote.postNote, { n: Number(ref.settings.max_active_listings_individual ?? 3) })}{" "}
+        <Link href={localePath(lang, "/pricing")} className="font-bold text-brand hover:underline">
+          {dict.promote.link}
+        </Link>
+      </p>
       {profile?.status !== "active" ? (
         <FormMessage kind="error">{dict.account.suspended}</FormMessage>
       ) : (

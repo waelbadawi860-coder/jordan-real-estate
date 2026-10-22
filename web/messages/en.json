@@ -20,7 +20,9 @@
     "contact": "Contact us / report an issue",
     "rights": "All rights reserved",
     "posting": "Posting policy",
-    "reporting": "Reporting policy"
+    "reporting": "Reporting policy",
+    "about": "About Aqar",
+    "pricing": "Prices and services"
   },
   "search": {
     "heroTitle": "Find your property in Jordan",
@@ -68,7 +70,9 @@
     "anyBathrooms": "Any",
     "floorsCount": "Number of floors",
     "anyFloorsCount": "Any",
-    "featuredTitle": "Featured listings"
+    "featuredTitle": "Featured listings",
+    "verifiedOnly": "Verified offices’ listings only",
+    "verifiedChip": "Verified offices"
   },
   "home": {
     "latest": "Latest properties",
@@ -791,7 +795,11 @@
         "payment_note_en": "Extra payment instructions (English)",
         "declaration_version": "Seller declaration wording version",
         "removed_photo_retention_days": "Days photo files are kept after an ad leaves the site",
-        "require_admin_mfa": "Require two-step login for administrators"
+        "require_admin_mfa": "Require two-step login for administrators",
+        "price_feature_7_days": "Price to feature a listing for 7 days (JOD)",
+        "price_feature_14_days": "Price to feature a listing for 14 days (JOD)",
+        "price_feature_30_days": "Price to feature a listing for 30 days (JOD)",
+        "price_bump": "Price to move a listing to the top once (JOD)"
       },
       "draftAgreement": "Commissions can't be enabled on the live site while the current agreement is an unreviewed draft.",
       "invalid": "Invalid value.",
@@ -1061,8 +1069,8 @@
     "perMonth": "per month",
     "noPlan": "No package now: you can have up to {n} active listings.",
     "currentPlan": "Your package: {plan} until {date} ({n} active listings).",
-    "planListings": "Up to {n} active listings",
-    "planFeatured": "{n} featured listings a month",
+    "planListings": "Active listings: up to {n}",
+    "planFeatured": "Featured listings each month: {n}",
     "planVerificationIncluded": "Verification included",
     "planVerificationExtra": "Verification for a separate fee",
     "howToSubscribe": "To subscribe: transfer the package price, then send us the payment reference.",
@@ -1082,5 +1090,60 @@
       "officeRequired": "Create the office page first.",
       "invalid": "The details are not valid."
     }
+  },
+  "whyUs": {
+    "title": "Why Aqar?",
+    "reviewed": "Every listing reviewed before it goes live",
+    "reviewedText": "Fewer repeated and misleading ads.",
+    "propertyOnly": "Property only",
+    "propertyOnlyText": "Search by governorate and area in seconds.",
+    "verified": "Verified offices, free posting",
+    "verifiedText": "Free for individuals, and a badge for every verified office."
+  },
+  "about": {
+    "title": "About Aqar",
+    "intro": "Aqar is a listings site for property in Jordan only: apartments, villas, houses, land, shops and offices for sale and rent, simple and fast.",
+    "reviewTitle": "Reviewed before publishing",
+    "reviewText": "Our team reviews every listing against the posting policy before it appears: photos, description, price and location. The system flags repeated photos, blocked numbers and suspicious text, and every listing ends after 30 days unless its owner renews it, so old ads don't linger.",
+    "searchTitle": "Easy search",
+    "searchText": "Choose the deal, then the property type, then the governorate and area. More than 370 areas across the 12 governorates, with search by name.",
+    "verifiedTitle": "The “Verified office” badge",
+    "verifiedText": "The badge shows on offices whose documents we have seen: commercial registration, real-estate office licence and the owner’s or manager’s ID. It is renewed every year and can be removed if a violation is confirmed.",
+    "safetyTitle": "Your safety",
+    "safetyText": "Never pay anything before viewing the property and checking the papers. If a listing looks suspicious, tell us with the “Report” button on its page.",
+    "disclaimer": "Approval for publishing only means the listing was reviewed against the posting policy; it does not mean the platform verified its details, or the advertiser’s ownership or role. The “Verified office” badge only means the office’s documents were seen; it is not a guarantee of any listing or dealing.",
+    "ctaPricing": "Prices and services for advertisers",
+    "ctaPolicy": "Posting policy"
+  },
+  "pricing": {
+    "title": "Prices and services",
+    "intro": "Posting is free for individuals. To stand out, feature your listing or move it to the top; offices get monthly packages and the “Verified office” badge.",
+    "freeTitle": "Posting is free",
+    "freeText": "Everyone can have up to {n} active listings for free, after review.",
+    "promoteTitle": "Make your listing show first",
+    "featureName": "Featured listing",
+    "featureText": "Shown in the “Featured listings” block at the top of the home page and matching search results, with a “Featured” label.",
+    "bumpName": "Move to top",
+    "bumpText": "Your listing goes back to the top of the list as if just published.",
+    "perTime": "Each time",
+    "officesTitle": "Packages for real-estate offices",
+    "officesIntro": "A page for your office with all its listings, more active listings, and featured listings every month.",
+    "officePage": "Office page with all your listings",
+    "verifiedTitle": "The “Verified office” badge",
+    "verifiedText": "Upload your office documents in “My office”. Once reviewed, the badge shows next to your office name on all your listings for a year, and visitors can choose to see verified offices only.",
+    "orderTitle": "How to order",
+    "order1": "Offices: create your office page in “My office” and upload the verification documents.",
+    "order2": "Contact us with the listing number or office name and the service you want.",
+    "order3": "Transfer the amount (CliQ or eFAWATEERcom) and send us the payment reference; we activate the service and you get a notification.",
+    "ctaOffice": "My office page",
+    "ctaContact": "Contact us",
+    "days7": "7 days",
+    "days14": "14 days",
+    "days30": "30 days"
+  },
+  "promote": {
+    "banner": "Want your listing to show first? Feature it or move it to the top.",
+    "link": "Prices and services",
+    "postNote": "Posting is free for up to {n} active listings. Offices get packages with more."
   }
 }

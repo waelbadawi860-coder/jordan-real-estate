@@ -109,3 +109,31 @@ textarea {
   background: var(--bar);
   border-radius: 999px;
 }
+
+/* Search page: the detailed search is folded; opened on a computer, it
+   becomes a column on the right (start side) beside the results. */
+@media (min-width: 1024px) {
+  .search-layout:has(.search-side details[open]) {
+    display: grid;
+    grid-template-columns: 17rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  .search-layout:has(.search-side details[open]) > .search-head {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .search-layout:has(.search-side details[open]) > .search-side {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+  .search-layout:has(.search-side details[open]) > .search-results {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+

@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = publicEnv.NEXT_PUBLIC_SITE_URL;
   const listings = await getSitemapListings();
 
-  const staticPages = ["/", "/search"].flatMap((path) =>
+  const staticPages = ["/", "/search", "/about", "/pricing"].flatMap((path) =>
     locales.map((locale) => ({
       url: `${base}${localePath(locale, path)}`,
       changeFrequency: "hourly" as const,

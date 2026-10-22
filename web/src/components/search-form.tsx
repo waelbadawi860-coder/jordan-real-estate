@@ -257,6 +257,11 @@ export function SearchForm({
         </div>
       </div>
 
+      <label className="flex items-center gap-2 text-sm font-semibold">
+        <input type="checkbox" name="vo" value="1" defaultChecked={f.vo === "1"} className="size-4 accent-brand" />
+        {s.verifiedOnly}
+      </label>
+
       <div className="flex items-center gap-3">
         <button
           type="submit"

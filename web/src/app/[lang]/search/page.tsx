@@ -123,9 +123,9 @@ function ResultsFallback({
 }
 
 /**
- * Search box and quick tags on top. Phones: the detailed filters stay folded
- * under the tags. Computers: they sit in a column on the right (the start
- * side in Arabic) beside the results.
+ * Search box and quick tags on top, then the folded detailed search. Once a
+ * visitor opens it on a computer, it moves into a column on the right (the
+ * start side in Arabic) beside the results (styles: .search-layout).
  */
 function Filters({
   locale,
@@ -146,12 +146,12 @@ function Filters({
     filters &&
     [filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.baths, filters.floors, filters.floor].some((v) => v !== undefined);
   return (
-    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-x-6">
-      <div className="flex flex-col gap-3 lg:col-start-2 lg:row-start-1">
+    <div className="search-layout flex flex-col gap-3">
+      <div className="search-head flex flex-col gap-3">
         <BoardSearch locale={locale} dict={dict} q={filters?.q} />
         <BoardTags locale={locale} dict={dict} refData={refData} filters={filters} facets={facets} />
       </div>
-      <aside className="lg:sticky lg:top-4 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+      <aside className="search-side">
         <SideDetails
           open={detailed}
           summary={
@@ -172,7 +172,7 @@ function Filters({
           />
         </SideDetails>
       </aside>
-      <div className="lg:col-start-2 lg:row-start-2">{children}</div>
+      <div className="search-results">{children}</div>
     </div>
   );
 }
