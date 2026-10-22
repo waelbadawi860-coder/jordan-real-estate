@@ -898,6 +898,33 @@
         "bump": "Moved to top",
         "unfeature": "Featured removed"
       }
+    },
+    "review": {
+      "title": "Review checklist before approving",
+      "hint": "Tick every item to enable Approve. If an item does not apply, reject the listing with a reason.",
+      "fillReason": "Fill the reason from unticked items",
+      "items": [
+        {
+          "check": "The photos show this property and are not from the internet or another listing (see any \"duplicate photo\" warning above).",
+          "reason": "The photos are not of this property or were taken from another source."
+        },
+        {
+          "check": "No faces, car plates or personal details are clearly visible in the photos.",
+          "reason": "The photos show faces, car plates or personal details."
+        },
+        {
+          "check": "The title, description and property type match the property.",
+          "reason": "The title, description or property type does not match the property."
+        },
+        {
+          "check": "The price is realistic and in Jordanian dinars, and the governorate and area are correct.",
+          "reason": "The price or location is wrong or unrealistic."
+        },
+        {
+          "check": "No phone numbers, links or upfront-payment requests in the title or description (see the risk warnings above).",
+          "reason": "The text contains phone numbers, links or an upfront-payment request."
+        }
+      ]
     }
   },
   "common": {

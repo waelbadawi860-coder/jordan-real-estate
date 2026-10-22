@@ -77,12 +77,41 @@ export function ListingModeration({ listingId, status, a }: { listingId: number;
   const canHold = status === "published";
   const canRelease = status === "on_hold";
   const canExpire = status === "published" || status === "expired";
+  // New submissions: the reviewer ticks every check before approving; the
+  // unticked ones can fill in the rejection reason.
+  const review = a.review;
+  const [checked, setChecked] = useState<boolean[]>(() => review.items.map(() => false));
+  const needsChecklist = status === "pending_approval";
+  const allChecked = checked.every(Boolean);
+  const failedReasons = review.items.filter((_, i) => !checked[i]).map((item) => item.reason);
 
   return (
     <Box>
+      {needsChecklist && (
+        <fieldset className="flex flex-col gap-2 rounded-lg border border-border p-3">
+          <legend className="px-1 font-extrabold">{review.title}</legend>
+          {review.items.map((item, i) => (
+            <label key={item.check} className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4 shrink-0 accent-brand"
+                checked={checked[i]}
+                onChange={(e) => setChecked((prev) => prev.map((v, j) => (j === i ? e.target.checked : v)))}
+              />
+              {item.check}
+            </label>
+          ))}
+          {!allChecked && <p className="text-xs text-muted">{review.hint}</p>}
+        </fieldset>
+      )}
       <div className="flex flex-wrap gap-2">
         {canApprove && (
-          <button type="button" className={primary} disabled={pending} onClick={() => run(() => moderateListingAction(listingId, "approve"))}>
+          <button
+            type="button"
+            className={primary}
+            disabled={pending || (needsChecklist && !allChecked)}
+            onClick={() => run(() => moderateListingAction(listingId, "approve"))}
+          >
             {a.listing.approve}
           </button>
         )}
@@ -111,9 +140,16 @@ export function ListingModeration({ listingId, status, a }: { listingId: number;
       </div>
       {(canReject || canTakeDown) && (
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold" htmlFor="reject-reason">
-            {a.listing.rejectReason}
-          </label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="text-sm font-semibold" htmlFor="reject-reason">
+              {a.listing.rejectReason}
+            </label>
+            {needsChecklist && failedReasons.length > 0 && (
+              <button type="button" className="text-sm font-bold text-brand hover:underline" onClick={() => setReason(failedReasons.join("\n"))}>
+                {review.fillReason}
+              </button>
+            )}
+          </div>
           <textarea
             id="reject-reason"
             value={reason}
