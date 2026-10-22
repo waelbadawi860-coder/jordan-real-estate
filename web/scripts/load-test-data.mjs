@@ -3,8 +3,9 @@
 //   Add:     node --env-file=.env.local scripts/load-test-data.mjs 1000
 //   Remove:  node --env-file=.env.local scripts/load-test-data.mjs --remove
 // Every listing title starts with "[اختبار سرعة]" and belongs to one test
-// account. Photos come from a pool of shared files (cheap on storage); each
-// listing still has its own photo rows, like real ads. Never run on production.
+// account. A small set of model photos is uploaded once, then copied on the
+// server into each listing's own folder (2 photos + list thumbnails per ad,
+// ≈150–250 KB each, like real uploads). Never run on production.
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
@@ -18,7 +19,8 @@ if (!url || !secret || process.env.SITE_STAGE === "live" || !/bglfiabquferwviays
 
 const EMAIL = "perf-seller@example.com";
 const BUCKET = "listing-photos-public";
-const POOL = 40;
+const POOL = 20;
+const PHOTOS = 2;
 const sb = createClient(url, secret, { auth: { persistSession: false } });
 
 async function findUser() {
@@ -33,8 +35,11 @@ async function findUser() {
 async function remove() {
   const user = await findUser();
   if (!user) return console.log("No speed-test data found.");
-  const { data: files } = await sb.storage.from(BUCKET).list(`${user.id}/pool`, { limit: 1000 });
-  if (files?.length) await sb.storage.from(BUCKET).remove(files.map((f) => `${user.id}/pool/${f.name}`));
+  const { data: pool } = await sb.storage.from(BUCKET).list(`${user.id}/pool`, { limit: 1000 });
+  if (pool?.length) await sb.storage.from(BUCKET).remove(pool.map((f) => `${user.id}/pool/${f.name}`));
+  const { data: images } = await sb.from("listing_images").select("storage_path, thumb_path, listings!inner(seller_id)").eq("listings.seller_id", user.id).limit(100000);
+  const paths = (images ?? []).flatMap((i) => [i.storage_path, i.thumb_path].filter(Boolean));
+  for (let i = 0; i < paths.length; i += 500) await sb.storage.from(BUCKET).remove(paths.slice(i, i + 500));
   const { count } = await sb.from("listings").select("id", { count: "exact", head: true }).eq("seller_id", user.id);
   await sb.from("listings").delete().eq("seller_id", user.id);
   await sb.auth.admin.deleteUser(user.id);
@@ -49,7 +54,7 @@ async function photo(seed, width, height, quality) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 3;
-      const n = rnd() * 40;
+      const n = rnd() * 20;
       raw[i] = Math.min(255, 90 + ((x * 120) / width) + n + (seed % 7) * 10);
       raw[i + 1] = Math.min(255, 110 + ((y * 100) / height) + n);
       raw[i + 2] = Math.min(255, 130 + (((x + y) * 60) / (width + height)) + n);
@@ -122,10 +127,17 @@ async function add(total) {
       .single();
     if (error) throw error;
     await sb.from("listing_contacts").insert({ listing_id: listing.id, phone: "+96260000000" });
-    const images = [0, 1, 2].map((n) => {
-      const p = pool[(i * 3 + n) % POOL];
-      return { listing_id: listing.id, storage_path: p.full, thumb_path: p.thumb, position: n, width: 1600, height: 1200, public_copied_at: new Date().toISOString() };
-    });
+    const images = [];
+    for (let n = 0; n < PHOTOS; n++) {
+      const p = pool[(i * PHOTOS + n) % POOL];
+      const full = `${user.id}/${listing.id}/${randomUUID()}.webp`;
+      const thumb = `${user.id}/${listing.id}/${randomUUID()}.webp`;
+      for (const [from, to] of [[p.full, full], [p.thumb, thumb]]) {
+        const copy = await sb.storage.from(BUCKET).copy(from, to);
+        if (copy.error) throw copy.error;
+      }
+      images.push({ listing_id: listing.id, storage_path: full, thumb_path: thumb, position: n, width: 1600, height: 1200, public_copied_at: new Date().toISOString() });
+    }
     const img = await sb.from("listing_images").insert(images);
     if (img.error) throw img.error;
     const publishedAt = new Date(Date.now() - i * 600_000);
@@ -136,7 +148,7 @@ async function add(total) {
     if (pub.error) throw pub.error;
     if (++made % 100 === 0) console.log(`${made} listings…`);
   });
-  console.log(`Added ${made} published speed-test listings (${made * 3} photo rows).`);
+  console.log(`Added ${made} published speed-test listings (${PHOTOS} photos + thumbnails each).`);
 }
 
 if (process.argv[2] === "--remove") await remove();
