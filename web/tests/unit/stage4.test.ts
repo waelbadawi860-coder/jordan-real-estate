@@ -103,6 +103,11 @@ describe("safe redirects after login", () => {
     expect(safeNextPath("//evil.example", "/")).toBe("/");
     expect(safeNextPath("/\\evil.example", "/")).toBe("/");
     expect(safeNextPath(undefined, "/fallback")).toBe("/fallback");
+    // Tabs and newlines are dropped by browsers, turning these into "//evil".
+    expect(safeNextPath("/\t/evil.example", "/")).toBe("/");
+    expect(safeNextPath("/\n/evil.example", "/")).toBe("/");
+    expect(safeNextPath(decodeURIComponent("/%09/evil.example"), "/")).toBe("/");
+    expect(safeNextPath("/search?q=a#top", "/")).toBe("/search?q=a#top");
   });
 });
 

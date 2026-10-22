@@ -7,7 +7,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /** Anonymous, non-reversible key for the visitor's IP address (raw IPs are never stored). */
 export async function visitorKey(): Promise<string> {
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip")?.trim() || "unknown";
+  // Headers set by the hosting platform (Vercel) first: visitors cannot fake
+  // them, while the first x-forwarded-for value is forgeable behind other proxies.
+  const ip =
+    h.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
+    h.get("x-real-ip")?.trim() ||
+    h.get("x-forwarded-for")?.split(",").pop()?.trim() ||
+    "unknown";
   return createHmac("sha256", getServerEnv().SUPABASE_SECRET_KEY).update(ip).digest("base64url").slice(0, 32);
 }
 

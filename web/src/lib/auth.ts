@@ -56,8 +56,16 @@ export async function getOwnProfile(): Promise<Profile | null> {
  * send people to another website after logging in (open-redirect protection).
  */
 export function safeNextPath(value: unknown, fallback: string): string {
-  if (typeof value !== "string") return fallback;
-  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return fallback;
-  if (/[\r\n]/.test(value)) return fallback;
-  return value;
+  if (typeof value !== "string" || !value.startsWith("/")) return fallback;
+  // Browsers drop tabs and newlines inside addresses ("/\t/evil.com" becomes
+  // "//evil.com"), so control characters and backslashes are refused, and the
+  // result must still point at this site once parsed.
+  if (/[\u0000-\u001f\u007f\\]/.test(value)) return fallback;
+  try {
+    const parsed = new URL(value, "http://same.site");
+    if (parsed.origin !== "http://same.site") return fallback;
+    return parsed.pathname + parsed.search + parsed.hash;
+  } catch {
+    return fallback;
+  }
 }

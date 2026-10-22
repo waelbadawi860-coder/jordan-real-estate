@@ -1167,4 +1167,50 @@ describe("offices: packages, limits and the verified badge", () => {
       await service.auth.admin.deleteUser(dina.id);
     }
   });
+
+  it("security review fixes: limit on edits, no photo swaps, documents only for offices", async () => {
+    const erin = await createUser("erin");
+    try {
+      // No office yet: document uploads are refused.
+      const early = await erin.client.storage.from("office-documents").upload(`${erin.id}/${randomUUID()}.pdf`, new Blob(["%PDF"], { type: "application/pdf" }));
+      expect(early.error).not.toBeNull();
+
+      // Fill the individual limit, then try to sneak an expired ad back through an edit.
+      const limit = Number((await service.from("site_settings").select("value").eq("key", "max_active_listings_individual").single()).data!.value);
+      const ids: number[] = [];
+      for (let i = 0; i <= limit; i++) {
+        const { data } = await service.from("listings").insert({ ...listingInput(`Erin flat ${i}`), seller_id: erin.id }).select("id").single();
+        await makeSubmittable(erin, data!.id);
+        ids.push(data!.id);
+      }
+      for (const id of ids.slice(0, limit)) {
+        await erin.client.rpc("declare_listing", { p_listing_id: id });
+        expect((await erin.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "pending_approval" })).error).toBeNull();
+      }
+      const extra = ids[limit];
+      await service.from("listings").update({ status: "expired", published_at: new Date(Date.now() - 40 * 86_400_000).toISOString() }).eq("id", extra);
+      const edit = await erin.client.from("listings").update({ title: "Erin flat edited to come back" }).eq("id", extra);
+      expect(edit.error?.message ?? "").toContain("active_limit_reached");
+
+      // An owner can no longer delete (and so swap) a stored photo directly.
+      const path = `${erin.id}/${extra}/${randomUUID()}.webp`;
+      const up = await erin.client.storage.from("listing-photos").upload(path, new Blob(["RIFF0000WEBPVP8 "], { type: "image/webp" }));
+      expect(up.error).toBeNull();
+      await erin.client.from("listing_images").insert({ listing_id: extra, storage_path: path });
+      await erin.client.storage.from("listing-photos").remove([path]);
+      expect((await service.storage.from("listing-photos").download(path)).error).toBeNull();
+      await service.storage.from("listing-photos").remove([path]);
+
+      // A verified office that changes its phone loses the badge.
+      const office = await erin.client.from("offices").insert({ owner_id: erin.id, name: "Erin Office", phone: "+962791112223" }).select("id").single();
+      await service.from("offices").update({ verified_until: new Date(Date.now() + 1e10).toISOString() }).eq("id", office.data!.id);
+      await erin.client.from("offices").update({ phone: "+962791112224" }).eq("id", office.data!.id);
+      expect((await service.from("offices").select("verified_until").eq("id", office.data!.id).single()).data!.verified_until).toBeNull();
+      // Visitors can't see which package an office has.
+      expect((await anon.from("offices").select("plan_slug").eq("id", office.data!.id)).error).not.toBeNull();
+    } finally {
+      await service.from("listings").delete().eq("seller_id", erin.id);
+      await service.auth.admin.deleteUser(erin.id);
+    }
+  });
 });
