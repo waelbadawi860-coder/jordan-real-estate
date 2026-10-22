@@ -134,7 +134,7 @@ export function SearchForm({
         ))}
       </fieldset>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
         <div>
           <label htmlFor="sf-type" className={label}>
             {s.type}
@@ -204,7 +204,7 @@ export function SearchForm({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
         <NumberField id="sf-min" name="min" text={s.minPrice} value={f.min} />
         <NumberField id="sf-max" name="max" text={s.maxPrice} value={f.max} />
         <NumberField id="sf-amin" name="amin" text={s.minArea} value={f.amin} />
@@ -260,7 +260,7 @@ export function SearchForm({
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-brand px-6 text-lg font-bold text-white hover:bg-brand-strong sm:flex-none sm:px-10"
+          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-brand px-6 text-lg font-bold text-white hover:bg-brand-strong sm:flex-none sm:px-10 lg:flex-1 lg:px-6"
         >
           <Search className="size-5" aria-hidden />
           {s.submit}
