@@ -737,13 +737,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "listing_promotions_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
         ]
       }
       listing_reports: {
@@ -1111,6 +1104,210 @@ export type Database = {
           },
         ]
       }
+      office_plan_history: {
+        Row: {
+          amount: number | null
+          created_at: string
+          created_by: string | null
+          id: number
+          months: number | null
+          note: string | null
+          office_id: number
+          payment_ref: string | null
+          plan_slug: string | null
+          plan_until: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          months?: number | null
+          note?: string | null
+          office_id: number
+          payment_ref?: string | null
+          plan_slug?: string | null
+          plan_until?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          months?: number | null
+          note?: string | null
+          office_id?: number
+          payment_ref?: string | null
+          plan_slug?: string | null
+          plan_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_plan_history_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      office_plans: {
+        Row: {
+          featured_per_month: number
+          includes_verification: boolean
+          is_active: boolean
+          max_active_listings: number
+          name_ar: string
+          name_en: string
+          price_jod: number
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          featured_per_month?: number
+          includes_verification?: boolean
+          is_active?: boolean
+          max_active_listings: number
+          name_ar: string
+          name_en: string
+          price_jod: number
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          featured_per_month?: number
+          includes_verification?: boolean
+          is_active?: boolean
+          max_active_listings?: number
+          name_ar?: string
+          name_en?: string
+          price_jod?: number
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      office_verifications: {
+        Row: {
+          commercial_reg_no: string | null
+          created_at: string
+          documents: string[]
+          id: number
+          license_no: string | null
+          office_id: number
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          commercial_reg_no?: string | null
+          created_at?: string
+          documents: string[]
+          id?: never
+          license_no?: string | null
+          office_id: number
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          commercial_reg_no?: string | null
+          created_at?: string
+          documents?: string[]
+          id?: never
+          license_no?: string | null
+          office_id?: number
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_verifications_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "office_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offices: {
+        Row: {
+          about: string | null
+          city_id: number | null
+          created_at: string
+          id: number
+          name: string
+          owner_id: string
+          phone: string | null
+          plan_slug: string | null
+          plan_until: string | null
+          status: string
+          updated_at: string
+          verified_until: string | null
+        }
+        Insert: {
+          about?: string | null
+          city_id?: number | null
+          created_at?: string
+          id?: never
+          name: string
+          owner_id: string
+          phone?: string | null
+          plan_slug?: string | null
+          plan_until?: string | null
+          status?: string
+          updated_at?: string
+          verified_until?: string | null
+        }
+        Update: {
+          about?: string | null
+          city_id?: number | null
+          created_at?: string
+          id?: never
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          plan_slug?: string | null
+          plan_until?: string | null
+          status?: string
+          updated_at?: string
+          verified_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offices_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offices_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offices_plan_slug_fkey"
+            columns: ["plan_slug"]
+            isOneToOne: false
+            referencedRelation: "office_plans"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       payment_records: {
         Row: {
           amount_reported: number
@@ -1435,6 +1632,7 @@ export type Database = {
         Args: { p_evidence?: Json; p_listing_id: number }
         Returns: number
       }
+      active_listing_limit: { Args: { p_user_id: string }; Returns: number }
       admin_anonymize_user: {
         Args: { p_reason: string; p_user_id: string }
         Returns: undefined
@@ -1494,6 +1692,10 @@ export type Database = {
         Args: { p_rule_id: number }
         Returns: undefined
       }
+      admin_review_office_verification: {
+        Args: { p_approve: boolean; p_reason?: string; p_request_id: number }
+        Returns: undefined
+      }
       admin_review_payment: {
         Args: {
           p_bank_reference?: string
@@ -1530,6 +1732,26 @@ export type Database = {
       admin_set_listing_expiry: {
         Args: { p_expires_at: string; p_listing_id: number }
         Returns: Database["public"]["Enums"]["listing_status"]
+      }
+      admin_set_office_plan: {
+        Args: {
+          p_amount?: number
+          p_months: number
+          p_note?: string
+          p_office_id: number
+          p_payment_ref?: string
+          p_plan_slug: string
+        }
+        Returns: string
+      }
+      admin_set_office_status: {
+        Args: {
+          p_office_id: number
+          p_reason: string
+          p_remove_badge: boolean
+          p_suspend: boolean
+        }
+        Returns: undefined
       }
       admin_set_user_status: {
         Args: {
@@ -1687,6 +1909,14 @@ export type Database = {
       }
       setting_int: {
         Args: { p_default: number; p_key: string }
+        Returns: number
+      }
+      submit_office_verification: {
+        Args: {
+          p_commercial_reg_no: string
+          p_documents: string[]
+          p_license_no: string
+        }
         Returns: number
       }
       text_risk_flags: { Args: { p_text: string }; Returns: string[] }

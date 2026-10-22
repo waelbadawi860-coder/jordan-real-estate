@@ -118,6 +118,12 @@ beforeAll(async () => {
 
   await service.from("profiles").update({ status: "suspended" }).eq("id", carol.id);
   await service.from("profiles").update({ role: "admin" }).eq("id", admin.id);
+  // Bob posts many ads across these tests: give him an office package so the
+  // limit on active listings for individuals doesn't get in the way.
+  const office = await service.from("offices").insert({
+    owner_id: bob.id, name: "Bob test office", plan_slug: "premium", plan_until: new Date(Date.now() + 86_400_000).toISOString(),
+  });
+  if (office.error) throw office.error;
 });
 
 afterAll(async () => {
@@ -1099,5 +1105,66 @@ describe("number of floors per type", () => {
     expect(commercial.error?.message).toContain("floor_not_allowed_for_type");
     const villa = await service.from("listings").insert({ ...listingInput("Villa on a floor"), seller_id: alice.id, property_type_id: await typeId("villa"), floor_level: "ground" });
     expect(villa.error?.message).toContain("floor_not_allowed_for_type");
+  });
+});
+
+describe("offices: packages, limits and the verified badge", () => {
+  it("individuals have a limit of live listings; an office package raises it", async () => {
+    const dina = await createUser("dina");
+    try {
+      const limit = Number((await service.from("site_settings").select("value").eq("key", "max_active_listings_individual").single()).data!.value);
+      const ids: number[] = [];
+      for (let i = 0; i <= limit; i++) {
+        const { data } = await service.from("listings").insert({ ...listingInput(`Dina flat ${i}`), seller_id: dina.id }).select("id").single();
+        await makeSubmittable(dina, data!.id);
+        await dina.client.rpc("declare_listing", { p_listing_id: data!.id });
+        ids.push(data!.id);
+      }
+      for (const id of ids.slice(0, limit)) {
+        expect((await dina.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "pending_approval" })).error).toBeNull();
+      }
+      const over = await dina.client.rpc("change_listing_status", { p_listing_id: ids[limit], p_new_status: "pending_approval" });
+      expect(over.error?.message).toContain("active_limit_reached");
+
+      // Office: the owner can't give itself a package or a badge.
+      const created = await dina.client.from("offices").insert({ owner_id: dina.id, name: "Dina Real Estate" }).select("id").single();
+      expect(created.error).toBeNull();
+      const officeId = created.data!.id;
+      expect((await dina.client.from("offices").update({ plan_slug: "premium" }).eq("id", officeId)).error).not.toBeNull();
+      expect((await dina.client.from("offices").update({ verified_until: new Date(Date.now() + 1e10).toISOString() }).eq("id", officeId)).error).not.toBeNull();
+      expect((await dina.client.rpc("admin_set_office_plan", { p_office_id: officeId, p_plan_slug: "basic", p_months: 1 })).error).not.toBeNull();
+
+      const plan = await admin.client.rpc("admin_set_office_plan", { p_office_id: officeId, p_plan_slug: "basic", p_months: 1, p_amount: 20, p_payment_ref: "CLIQ-T" });
+      expect(plan.error).toBeNull();
+      expect((await dina.client.rpc("change_listing_status", { p_listing_id: ids[limit], p_new_status: "pending_approval" })).error).toBeNull();
+      expect((await dina.client.from("office_plan_history").select("plan_slug").eq("office_id", officeId)).data).toHaveLength(1);
+      expect((await anon.from("offices").select("name").eq("id", officeId).single()).data!.name).toBe("Dina Real Estate");
+
+      // Verification: documents stay private; an admin approves; renaming drops the badge.
+      const docs: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const path = `${dina.id}/${randomUUID()}.pdf`;
+        const up = await dina.client.storage.from("office-documents").upload(path, new Blob(["%PDF-1.4 test"], { type: "application/pdf" }));
+        expect(up.error).toBeNull();
+        docs.push(path);
+      }
+      expect((await dina.client.rpc("submit_office_verification", { p_commercial_reg_no: "123", p_license_no: "456", p_documents: [`${alice.id}/x.pdf`, ...docs.slice(1)] })).error).not.toBeNull();
+      const request = await dina.client.rpc("submit_office_verification", { p_commercial_reg_no: "123", p_license_no: "456", p_documents: docs });
+      expect(request.error).toBeNull();
+      expect((await alice.client.storage.from("office-documents").download(docs[0])).error).not.toBeNull();
+      expect((await admin.client.storage.from("office-documents").download(docs[0])).error).toBeNull();
+      expect((await alice.client.rpc("admin_review_office_verification", { p_request_id: request.data, p_approve: true })).error).not.toBeNull();
+
+      expect((await admin.client.rpc("admin_review_office_verification", { p_request_id: request.data, p_approve: true })).error).toBeNull();
+      const verified = (await anon.from("offices").select("verified_until").eq("id", officeId).single()).data!.verified_until;
+      expect(Date.parse(verified!) - Date.now()).toBeGreaterThan(360 * 86_400_000);
+
+      await dina.client.from("offices").update({ name: "Dina Renamed Office" }).eq("id", officeId);
+      expect((await anon.from("offices").select("verified_until").eq("id", officeId).single()).data!.verified_until).toBeNull();
+      await service.storage.from("office-documents").remove(docs);
+    } finally {
+      await service.from("listings").delete().eq("seller_id", dina.id);
+      await service.auth.admin.deleteUser(dina.id);
+    }
   });
 });
