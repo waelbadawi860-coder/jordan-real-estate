@@ -210,8 +210,7 @@
     "city": "Governorate",
     "neighborhood": "Neighborhood",
     "neighborhoodNone": "Not specified",
-    "neighborhoodFind": "Find the neighborhood",
-    "neighborhoodFindHint": "Type part of the name, then choose from the list.",
+    "neighborhoodFind": "Type the area name and pick from the list",
     "title": "Listing title",
     "titleHint": "e.g. 3-bedroom second-floor apartment in Khalda",
     "description": "Description",
@@ -259,7 +258,9 @@
       "phoneBlocked": "This phone number can't be used. Contact us if you think this is a mistake.",
       "activeLimitReached": "You have reached the maximum number of active listings. Withdraw a listing, or subscribe to an office package in “My office” to raise the limit."
     },
-    "floorsCount": "Number of floors"
+    "floorsCount": "Number of floors",
+    "neighborhoodCityFirst": "Choose the governorate first",
+    "neighborhoodNoMatch": "No area by that name."
   },
   "photos": {
     "hint": "Add 1 to {max} photos. We compress them automatically and remove hidden location data.",

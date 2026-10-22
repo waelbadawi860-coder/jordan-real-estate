@@ -32,7 +32,7 @@ const valid = {
   rentPeriod: "monthly",
   propertyTypeId: "1",
   cityId: "1",
-  neighborhoodId: "",
+  neighborhoodId: "5",
   title: "شقة للإيجار في خلدا",
   description: "",
   price: "650",
@@ -53,11 +53,17 @@ function errorsOf(input: Record<string, unknown>) {
 }
 
 describe("listing form validation", () => {
+  it("needs an area", () => {
+    const r = listingSchema.safeParse({ ...valid, neighborhoodId: "" });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues.some((i) => i.path[0] === "neighborhoodId")).toBe(true);
+  });
+
   it("accepts a valid listing and keeps the price as an exact decimal string", () => {
     const result = listingSchema.parse({ ...valid, price: "125,000.125" });
     expect(result.price).toBe("125000.125");
     expect(result.phone).toBe("+962791234567");
-    expect(result.neighborhoodId).toBeUndefined();
+    expect(result.neighborhoodId).toBe(5);
     expect(result.bedrooms).toBe(2);
   });
 

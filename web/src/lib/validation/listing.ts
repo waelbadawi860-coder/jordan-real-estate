@@ -40,7 +40,7 @@ export const listingSchema = z
     rentPeriod: z.preprocess((v) => (v === "" ? undefined : v), z.enum(["monthly", "yearly"]).optional()),
     propertyTypeId: z.coerce.number({ message: "required" }).int().positive("required"),
     cityId: z.coerce.number({ message: "required" }).int().positive("required"),
-    neighborhoodId: optionalInt(1, 2_147_483_647),
+    neighborhoodId: z.coerce.number({ message: "required" }).int().positive("required"),
     title: z.string().trim().min(5, "titleLength").max(120, "titleLength"),
     description: z.string().trim().max(5000, "descriptionLength").default(""),
     // Exact decimal string (JOD has 3 decimals). Never converted to a float.

@@ -5,9 +5,9 @@ import { createListingAction, updateListingAction, type ListingFormState } from 
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { City, Neighborhood, PropertyType } from "@/lib/data/public";
-import { matchesName } from "@/lib/arabic";
 import { FLOOR_LEVELS } from "@/lib/floor";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
+import { AreaCombobox } from "./area-combobox";
 import { LocationInput } from "./location-input";
 
 export type ListingFormValues = {
@@ -45,8 +45,6 @@ type Props = {
 };
 
 const label = "mb-1 block text-sm font-semibold";
-/** Area lists longer than this get a search box above them. */
-const HOOD_FILTER_FROM = 15;
 const section = "flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5";
 
 export function ListingForm({ locale, dict, refData, initial, listingId, warning, requireDeclaration = false }: Props) {
@@ -59,7 +57,6 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
   const [typeId, setTypeId] = useState(initial.propertyTypeId);
   const [cityId, setCityId] = useState(initial.cityId);
   const [hoodId, setHoodId] = useState(initial.neighborhoodId);
-  const [hoodQuery, setHoodQuery] = useState("");
 
   // Linked choices: the deal decides which types are offered, the type decides
   // which details apply, and the city decides which areas are offered.
@@ -82,12 +79,9 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
   const hoods = refData.neighborhoods
     .filter((n) => String(n.cityId) === cityId)
     .sort((a, b) => collator.compare(a.name[locale], b.name[locale]));
-  // Long lists get a search box; the chosen area always stays in the list.
-  const shownHoods = hoods.filter((n) => String(n.id) === hoodId || matchesName(n.name[locale], hoodQuery));
   function changeCity(value: string) {
     setCityId(value);
     setHoodId("");
-    setHoodQuery("");
   }
   const fe = state.fieldErrors ?? {};
   const err = (key: string) => (fe[key] ? ((f.errors as Record<string, string>)[fe[key]] ?? f.errors.generic) : undefined);
@@ -231,40 +225,20 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
           </div>
           <div>
             <label htmlFor="neighborhoodId" className={label}>
-              {f.neighborhood} <span className="font-normal text-muted">({f.optional})</span>
+              {f.neighborhood}
             </label>
-            {hoods.length > HOOD_FILTER_FROM && (
-              <input
-                type="search"
-                value={hoodQuery}
-                onChange={(e) => setHoodQuery(e.target.value)}
-                placeholder={f.neighborhoodFind}
-                aria-label={f.neighborhoodFind}
-                aria-describedby="neighborhood-find-hint"
-                autoComplete="off"
-                className={`${inputClass} mb-2`}
-              />
-            )}
-            <select
+            <AreaCombobox
+              key={cityId}
               id="neighborhoodId"
               name="neighborhoodId"
+              options={hoods.map((n) => ({ id: n.id, name: n.name[locale] }))}
               value={hoodId}
-              onChange={(e) => setHoodId(e.target.value)}
-              className={inputClass}
-              {...aria("neighborhoodId")}
-            >
-              <option value="">{f.neighborhoodNone}</option>
-              {shownHoods.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name[locale]}
-                </option>
-              ))}
-            </select>
-            {hoods.length > HOOD_FILTER_FROM && (
-              <p id="neighborhood-find-hint" className="mt-1 text-xs text-muted">
-                {f.neighborhoodFindHint}
-              </p>
-            )}
+              onChange={setHoodId}
+              placeholder={cityId ? f.neighborhoodFind : f.neighborhoodCityFirst}
+              noMatch={f.neighborhoodNoMatch}
+              invalid={Boolean(fe.neighborhoodId)}
+              describedBy={fe.neighborhoodId ? "neighborhoodId-error" : undefined}
+            />
             <ErrorText name="neighborhoodId" message={err("neighborhoodId")} />
           </div>
         </div>

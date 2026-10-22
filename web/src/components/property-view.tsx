@@ -133,7 +133,6 @@ export function PropertyView({
           <p className="mt-2 text-xs text-muted">{d.contactPrivacy}</p>
         </section>
 
-        <p className="rounded-lg border border-border p-3 text-sm text-muted">{d.disclaimer}</p>
 
         <section aria-labelledby="desc-heading">
           <h2 id="desc-heading" className="sr-only">
@@ -207,6 +206,8 @@ export function PropertyView({
           {d.safetyTip}
         </p>
         {footer}
+        {/* Footnote: still on every listing, without taking space at the top. */}
+        <p className="border-t border-border pt-3 text-xs leading-relaxed text-muted">{d.disclaimer}</p>
       </div>
     </article>
   );
