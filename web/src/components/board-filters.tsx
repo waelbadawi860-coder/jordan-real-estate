@@ -112,14 +112,13 @@ export function BoardTags({
     href: href({ hood: filters.hood === n.slug ? undefined : n.slug }),
   });
   // A governorate can have 100+ areas, too many for one line: the line shows
-  // the chosen area and the busiest ones (then the usual order), and the
-  // full list opens below it with a search box.
+  // the first ones in the admin's order (sort order: the best-known areas),
+  // plus the chosen area if it isn't among them, and the full list opens
+  // below with a search box.
   const tooMany = cityHoods.length > ROW_AREAS;
-  const rowHoods = tooMany
-    ? [...cityHoods]
-        .sort((a, b) => Number(filters.hood === b.n.slug) - Number(filters.hood === a.n.slug) || b.ads - a.ads || a.order - b.order)
-        .slice(0, ROW_AREAS)
-    : [...cityHoods].sort((a, b) => collator.compare(a.n.name[locale], b.n.name[locale]));
+  let rowHoods = tooMany ? cityHoods.slice(0, ROW_AREAS) : [...cityHoods].sort((a, b) => collator.compare(a.n.name[locale], b.n.name[locale]));
+  const chosen = cityHoods.find((h) => h.n.slug === filters.hood);
+  if (tooMany && chosen && !rowHoods.includes(chosen)) rowHoods = [chosen, ...rowHoods.slice(0, ROW_AREAS - 1)];
   const hoodTags = city
     ? [{ text: s.anyNeighborhood, active: !filters.hood, href: href({ hood: undefined }) }, ...rowHoods.map(hoodTag)]
     : [];
