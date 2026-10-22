@@ -55,7 +55,7 @@
     "sortPriceDesc": "Price: high to low",
     "submit": "Search",
     "moreFilters": "More filters",
-    "detailedSearch": "Detailed search",
+    "detailedSearch": "Filters",
     "reset": "Clear filters",
     "resultsTitle": "Search results",
     "noResults": "No matching properties right now.",
@@ -72,7 +72,8 @@
     "anyFloorsCount": "Any",
     "featuredTitle": "Featured listings",
     "verifiedOnly": "Verified offices’ listings only",
-    "verifiedChip": "Verified offices"
+    "verifiedChip": "Verified offices",
+    "closeFilters": "Close filters"
   },
   "home": {
     "latest": "Latest properties",

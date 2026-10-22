@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
+import { confirmTwoStep } from "../totp";
 
 export const base = process.env.SMOKE_BASE_URL ?? "http://localhost:3000";
 export const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -23,13 +24,24 @@ export async function createTestSession(label: string, role: "user" | "admin" = 
   const userId = created.data.user.id;
   if (role === "admin") await service.from("profiles").update({ role: "admin" }).eq("id", userId);
 
-  const jar: { name: string; value: string }[] = [];
+  // Latest value per cookie name (the two-step upgrade replaces the session cookies).
+  const jar = new Map<string, string>();
   const ssr = createServerClient(url, publishableKey, {
-    cookies: { getAll: () => jar, setAll: (items) => items.forEach((c) => jar.push({ name: c.name, value: c.value })) },
+    cookies: {
+      getAll: () => [...jar].map(([name, value]) => ({ name, value })),
+      setAll: (items) => items.forEach((c) => (c.value ? jar.set(c.name, c.value) : jar.delete(c.name))),
+    },
   });
   const signIn = await ssr.auth.signInWithPassword({ email, password });
   if (signIn.error) throw signIn.error;
-  return { userId, email, cookie: jar.map((c) => `${c.name}=${c.value}`).join("; "), accessToken: signIn.data.session!.access_token };
+  if (role === "admin") await confirmTwoStep(ssr);
+  const { data: session } = await ssr.auth.getSession();
+  return {
+    userId,
+    email,
+    cookie: [...jar].map(([name, value]) => `${name}=${value}`).join("; "),
+    accessToken: session.session!.access_token,
+  };
 }
 
 export async function deleteTestSession(session: TestSession | undefined) {

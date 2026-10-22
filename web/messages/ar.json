@@ -55,7 +55,7 @@
     "sortPriceDesc": "السعر: من الأعلى",
     "submit": "ابحث",
     "moreFilters": "خيارات أكثر",
-    "detailedSearch": "بحث مفصّل",
+    "detailedSearch": "فلاتر",
     "reset": "مسح الفلاتر",
     "resultsTitle": "نتائج البحث",
     "noResults": "لا توجد عقارات مطابقة حالياً.",
@@ -72,7 +72,8 @@
     "anyFloorsCount": "أي عدد",
     "featuredTitle": "إعلانات مميزة",
     "verifiedOnly": "إعلانات المكاتب الموثّقة فقط",
-    "verifiedChip": "مكاتب موثّقة"
+    "verifiedChip": "مكاتب موثّقة",
+    "closeFilters": "إغلاق الفلاتر"
   },
   "home": {
     "latest": "أحدث العقارات",

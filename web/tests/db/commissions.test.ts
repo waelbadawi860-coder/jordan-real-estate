@@ -6,6 +6,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { confirmTwoStep } from "../totp";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -23,6 +24,7 @@ async function createUser(name: string, role: "user" | "admin" = "user"): Promis
   const client = createClient(url, publishableKey, noSession);
   const signIn = await client.auth.signInWithPassword({ email, password });
   if (signIn.error) throw signIn.error;
+  if (role === "admin") await confirmTwoStep(client);
   return { id: data.user.id, client };
 }
 

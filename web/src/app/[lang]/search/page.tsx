@@ -1,4 +1,3 @@
-import { SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
@@ -6,7 +5,7 @@ import { BoardSearch, BoardTags } from "@/components/board-filters";
 import { cardLabels, FeaturedList, ListingCard, listingListClass } from "@/components/listing-card";
 import { LoadMore } from "@/components/load-more";
 import { SearchForm } from "@/components/search-form";
-import { SideDetails } from "@/components/side-details";
+import { FilterDrawer } from "@/components/filter-drawer";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { getDictionary, type Dictionary } from "@/i18n/dictionaries";
 import { getAreaFacets, getFeaturedListings, getReferenceData, searchListings, type AreaFacet, type ReferenceData } from "@/lib/data/public";
@@ -31,7 +30,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/[
   const [dict, ref, facets] = await Promise.all([getDictionary(lang), getReferenceData(), getAreaFacets()]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-4 lg:max-w-6xl">
+    <div className="mx-auto max-w-4xl px-4 py-4">
       <h1 className="mb-3 text-xl font-extrabold">{dict.search.resultsTitle}</h1>
       {/* The filters and results depend on the URL, so they render per request. */}
       <Suspense fallback={<ResultsFallback locale={lang} dict={dict} refData={ref} facets={facets} />}>
@@ -123,9 +122,9 @@ function ResultsFallback({
 }
 
 /**
- * Search box and quick tags on top, then the folded detailed search. Once a
- * visitor opens it on a computer, it moves into a column on the right (the
- * start side in Arabic) beside the results (styles: .search-layout).
+ * Search box with a "Filters" button beside it, then the quick tags. The
+ * detailed search opens in a panel over the page (FilterDrawer), so the
+ * results never move.
  */
 function Filters({
   locale,
@@ -142,25 +141,17 @@ function Filters({
   filters?: SearchFilters;
   children: ReactNode;
 }) {
-  const detailed =
-    filters &&
-    [filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.baths, filters.floors, filters.floor].some((v) => v !== undefined);
+  const activeCount = filters
+    ? [filters.min, filters.max, filters.amin, filters.amax, filters.beds, filters.baths, filters.floors, filters.floor].filter((v) => v !== undefined)
+        .length + (filters.sort !== "newest" ? 1 : 0)
+    : 0;
   return (
-    <div className="search-layout flex flex-col gap-3">
-      <div className="search-head flex flex-col gap-3">
-        <BoardSearch locale={locale} dict={dict} q={filters?.q} />
-        <BoardTags locale={locale} dict={dict} refData={refData} filters={filters} facets={facets} />
-      </div>
-      <aside className="search-side">
-        <SideDetails
-          open={detailed}
-          summary={
-            <>
-              <SlidersHorizontal className="size-4" aria-hidden />
-              {dict.search.detailedSearch}
-            </>
-          }
-        >
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-2">
+        <div className="min-w-0 flex-1">
+          <BoardSearch locale={locale} dict={dict} q={filters?.q} />
+        </div>
+        <FilterDrawer label={dict.search.detailedSearch} closeLabel={dict.search.closeFilters} activeCount={activeCount}>
           {/* Keyed by the current search, so the form shows the new choices after a tag is clicked. */}
           <SearchForm
             key={filtersToQuery(filters ?? { sort: "newest" })}
@@ -170,9 +161,10 @@ function Filters({
             facets={facets}
             filters={filters}
           />
-        </SideDetails>
-      </aside>
-      <div className="search-results">{children}</div>
+        </FilterDrawer>
+      </div>
+      <BoardTags locale={locale} dict={dict} refData={refData} filters={filters} facets={facets} />
+      <div>{children}</div>
     </div>
   );
 }

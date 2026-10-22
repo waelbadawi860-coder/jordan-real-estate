@@ -134,7 +134,7 @@ export function SearchForm({
         ))}
       </fieldset>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+      <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label htmlFor="sf-type" className={label}>
             {s.type}
@@ -204,7 +204,7 @@ export function SearchForm({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+      <div className="grid gap-3 sm:grid-cols-2">
         <NumberField id="sf-min" name="min" text={s.minPrice} value={f.min} />
         <NumberField id="sf-max" name="max" text={s.maxPrice} value={f.max} />
         <NumberField id="sf-amin" name="amin" text={s.minArea} value={f.amin} />
@@ -262,10 +262,11 @@ export function SearchForm({
         {s.verifiedOnly}
       </label>
 
-      <div className="flex items-center gap-3">
+      {/* Stays at the bottom of the filters panel while the fields scroll. */}
+      <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center gap-3 border-t border-border bg-surface px-4 py-3">
         <button
           type="submit"
-          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-brand px-6 text-lg font-bold text-white hover:bg-brand-strong sm:flex-none sm:px-10 lg:flex-1 lg:px-6"
+          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-brand px-6 text-lg font-bold text-white hover:bg-brand-strong"
         >
           <Search className="size-5" aria-hidden />
           {s.submit}

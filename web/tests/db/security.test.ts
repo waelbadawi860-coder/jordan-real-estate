@@ -10,6 +10,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { confirmTwoStep } from "../totp";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -118,6 +119,8 @@ beforeAll(async () => {
 
   await service.from("profiles").update({ status: "suspended" }).eq("id", carol.id);
   await service.from("profiles").update({ role: "admin" }).eq("id", admin.id);
+  // Admin powers need a two-step login once "admins must use two-step login" is on.
+  await confirmTwoStep(admin.client);
   // Bob posts many ads across these tests: give him an office package so the
   // limit on active listings for individuals doesn't get in the way.
   const office = await service.from("offices").insert({
