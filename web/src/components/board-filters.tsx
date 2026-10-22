@@ -111,7 +111,7 @@ export function BoardTags({
     active: filters.hood === n.slug,
     href: href({ hood: filters.hood === n.slug ? undefined : n.slug }),
   });
-  // A governorate can have 100+ areas, too many for one line: the line shows
+  // A governorate can have 100+ areas, too many for the two-line row: it shows
   // the chosen area and the busiest ones (then the usual order), and the
   // full list opens below it with a search box.
   const tooMany = cityHoods.length > ROW_AREAS;
@@ -159,8 +159,8 @@ export function BoardTags({
   );
 }
 
-/** How many area tags fit the one-line row before the full list is offered. */
-const ROW_AREAS = 12;
+/** How many area tags fit the two-line row before the full list is offered. */
+const ROW_AREAS = 24;
 
 // Colours per row: deal (main, green), types (blue), governorates (slate), areas (brown).
 const rowStyles = {
@@ -188,7 +188,7 @@ function TagRow({
 }: {
   label: string;
   tags: { text: string; active: boolean; href: string }[];
-  /** Every row but the first has its own colour, stays on one line and has a visible scroll bar underneath. */
+  /** Every row but the first has its own colour, stays on one line (areas: two) and has a visible scroll bar underneath. */
   variant?: "main" | keyof typeof rowStyles;
 }) {
   const style = variant === "main" ? null : rowStyles[variant];
@@ -197,7 +197,10 @@ function TagRow({
       <ul
         className={
           style
-            ? `${style.scroll} -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0`
+            ? variant === "area"
+              ? // Areas: two lines that scroll sideways together.
+                `${style.scroll} -mx-4 grid auto-cols-max grid-flow-col grid-rows-2 gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0`
+              : `${style.scroll} -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0`
             : "no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
         }
       >
