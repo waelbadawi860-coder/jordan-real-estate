@@ -67,8 +67,9 @@ try {
       check(`${who} cannot read ${table}.${cols}`, refused(r), r.error ? "" : `got ${r.data?.length} rows`);
     }
   }
-  const exact = await anon.from("listings").select("latitude, longitude").limit(1);
-  check("visitor cannot read exact map pins", !!exact.error);
+  // Map positions are public by owner decision (2026-10-22), but only on published listings.
+  const draftPins = await anon.from("listings").select("latitude").neq("status", "published").limit(1);
+  check("visitor cannot read positions of unpublished listings", refused(draftPins));
   const hidden = await anon.from("listings").select("id").neq("status", "published").limit(1);
   check("visitor sees only published listings", refused(hidden));
   const privateSettings = await anon.from("site_settings").select("key").eq("is_public", false);

@@ -111,7 +111,7 @@ export const legalEn: LegalDocs = {
         h: "2. What we collect",
         list: [
           "Account data: display name, e-mail, phone number if you add one, preferred language. Your password is stored encrypted by our sign-in provider; we never see it.",
-          "Ad data: type, price, description, photos, contact number, city and area, and a map position if you choose to set one (once maps are enabled). Location data stored inside photos is removed before upload.",
+          "Ad data: type, price, description, photos, contact number, city and area, and the property's map position if you choose to add one. Location data stored inside photos is removed before upload.",
           "Declarations and consents: the wording version and time accepted, an anonymous fingerprint of your IP address (not the address itself) and your browser type.",
           "Reports and messages you send us, and any contact details you add to them.",
           "Technical and security logs: request times and errors, and anonymous counters to prevent abuse.",
@@ -128,7 +128,7 @@ export const legalEn: LegalDocs = {
       },
       {
         h: "4. What is public",
-        p: ["Visitors see the ad's content and photos, your display name, when you joined, and an approximate position (about 1 km) if you set a pin. Your phone number is shown only when someone presses \"Show number\", with a limit per visitor. Your exact position and e-mail are never public."],
+        p: ["Visitors see the ad's content and photos, your display name, when you joined, and the property's map position as you added it, if you added one. Your phone number is shown only when someone presses \"Show number\", with a limit per visitor. Your e-mail is never public."],
       },
       {
         h: "5. Who we share data with",

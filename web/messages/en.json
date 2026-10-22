@@ -379,9 +379,10 @@
     "pinHint": "Tap the map to place a pin. Visitors never see the exact spot, only an approximate area.",
     "removePin": "Remove pin",
     "pinSet": "Location set.",
-    "showMap": "Show approximate location on a map",
-    "approxNote": "The location is approximate (within about a kilometre) to protect the advertiser's privacy.",
-    "loading": "Loading map…"
+    "showMap": "Show the location on the map",
+    "approxNote": "Location as set by the advertiser; it may not be exact. Check it when you view the property.",
+    "loading": "Loading map…",
+    "openGoogle": "Show the location on Google Maps"
   },
   "commission": {
     "nav": "Commissions",
@@ -1146,5 +1147,22 @@
     "banner": "Want your listing to show first? Feature it or move it to the top.",
     "link": "Prices and services",
     "postNote": "Posting is free for up to {n} listings live at the same time. Offices get packages with more."
+  },
+  "location": {
+    "label": "Property location on the map",
+    "optional": "optional",
+    "placeholder": "Paste a Google Maps link or coordinates, e.g. 31.9539, 35.9106",
+    "hint": "In Google Maps: long-press the property's location, tap “Share” and copy the link. Visitors will see this location as you set it; leave it empty if you prefer not to.",
+    "found": "Location set.",
+    "check": "Check link",
+    "checking": "Checking…",
+    "open": "Open it to confirm",
+    "clear": "Clear",
+    "errors": {
+      "notFound": "No location found in this text. Paste a Google Maps link or coordinates like 31.9539, 35.9106.",
+      "outsideJordan": "This location is outside Jordan.",
+      "tooMany": "Too many tries. Please wait a little.",
+      "signIn": "Please sign in first."
+    }
   }
 }

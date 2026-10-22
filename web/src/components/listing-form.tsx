@@ -8,7 +8,7 @@ import type { City, Neighborhood, PropertyType } from "@/lib/data/public";
 import { matchesName } from "@/lib/arabic";
 import { FLOOR_LEVELS } from "@/lib/floor";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
-import { LocationPicker } from "./map/location-picker";
+import { LocationInput } from "./location-input";
 
 export type ListingFormValues = {
   dealType: "sale" | "rent" | "";
@@ -35,7 +35,7 @@ export type ListingFormValues = {
 
 type Props = {
   locale: Locale;
-  dict: Pick<Dictionary, "form" | "search" | "map" | "floors" | "declaration">;
+  dict: Pick<Dictionary, "form" | "search" | "map" | "location" | "floors" | "declaration">;
   refData: { cities: City[]; neighborhoods: Neighborhood[]; propertyTypes: PropertyType[] };
   initial: ListingFormValues;
   listingId?: number;
@@ -268,7 +268,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             <ErrorText name="neighborhoodId" message={err("neighborhoodId")} />
           </div>
         </div>
-        <LocationPicker initialLat={initial.latitude} initialLng={initial.longitude} text={dict.map} />
+        <LocationInput initialLat={initial.latitude} initialLng={initial.longitude} text={dict.location} />
         <ErrorText name="latitude" message={err("latitude")} />
       </section>
 

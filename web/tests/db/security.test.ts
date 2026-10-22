@@ -681,14 +681,16 @@ describe("stage 5: admin functions", () => {
 });
 
 describe("stage 7: location privacy and notifications", () => {
-  it("only the owner and admins can read the exact map pin; others get a rounded position", async () => {
+  it("the map position the seller adds is public on published listings only", async () => {
+    // Owner decision 2026-10-22: visitors see the position as entered by the seller.
     const listing = await createListing(alice, "Alice pinned flat");
     await service.from("listings").update({ latitude: 31.951234, longitude: 35.873456 }).eq("id", listing.id);
 
-    const exact = await bob.client.from("listings").select("latitude").eq("id", listing.id);
-    expect(exact.error?.code).toBe("42501");
-    const anonExact = await anon.from("listings").select("longitude").limit(1);
-    expect(anonExact.error?.code).toBe("42501");
+    // A draft stays private: other people get no row at all.
+    const draft = await bob.client.from("listings").select("latitude").eq("id", listing.id);
+    expect(draft.data ?? []).toHaveLength(0);
+    const anonColumns = await anon.from("listings").select("latitude, longitude").limit(1);
+    expect(anonColumns.error).toBeNull();
 
     const own = await alice.client.rpc("get_listing_location", { p_listing_id: listing.id });
     expect(own.data?.[0]).toEqual({ latitude: 31.951234, longitude: 35.873456 });

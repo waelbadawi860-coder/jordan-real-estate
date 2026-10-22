@@ -6,6 +6,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import type { LocalizedName } from "@/lib/data/public";
 import type { FloorLevel } from "@/lib/floor";
 import { formatDate, formatNumber, formatPrice, t } from "@/lib/format";
+import { googleMapsUrl } from "@/lib/geo";
 import { ApproxMap } from "./map/approx-map";
 import { TimeAgo } from "./time-ago";
 
@@ -33,7 +34,7 @@ export type PropertyViewData = {
   seller: { displayName: string; memberSince: string } | null;
   /** The seller's office page and badge, when the seller has an office. */
   office?: { id: number; name: string; verified: boolean } | null;
-  /** Rounded (≈1 km) public position, if the seller set a pin. */
+  /** The map position the seller added (public as entered), if any. */
   approxLocation?: { lat: number; lng: number } | null;
 };
 
@@ -155,11 +156,24 @@ export function PropertyView({
         <Gallery images={listing.images} dict={dict} />
 
         {listing.approxLocation && (
-          <ApproxMap
-            lat={listing.approxLocation.lat}
-            lng={listing.approxLocation.lng}
-            text={{ showMap: dict.map.showMap, approxNote: dict.map.approxNote, loading: dict.map.loading }}
-          />
+          <div className="flex flex-col gap-2">
+            <ApproxMap
+              lat={listing.approxLocation.lat}
+              lng={listing.approxLocation.lng}
+              text={{ showMap: dict.map.showMap, approxNote: dict.map.approxNote, loading: dict.map.loading }}
+            />
+            {/* The position as the seller entered it, with a note that it may not be exact. */}
+            <a
+              href={googleMapsUrl(listing.approxLocation)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 w-fit items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-bold text-brand hover:border-brand"
+            >
+              <MapPin className="size-4" aria-hidden />
+              {dict.map.openGoogle}
+            </a>
+            <p className="text-xs text-muted">{dict.map.approxNote}</p>
+          </div>
         )}
 
         <dl className="flex flex-wrap gap-x-6 gap-y-1 border-t border-border pt-3 text-sm text-muted">

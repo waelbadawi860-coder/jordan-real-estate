@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import { JORDAN_BOUNDS, mapConfig } from "@/lib/map-config";
 
 /**
- * Shows only an approximate area (the coordinates are already rounded to about
- * 1 km by the database). Loads map tiles only when the visitor asks for it,
+ * Shows the position the seller added (only when a map provider is set up).
+ * Loads map tiles only when the visitor asks for it,
  * which keeps pages light and map-provider costs low.
  */
 export function ApproxMap({ lat, lng, text }: { lat: number; lng: number; text: { showMap: string; approxNote: string; loading: string } }) {
