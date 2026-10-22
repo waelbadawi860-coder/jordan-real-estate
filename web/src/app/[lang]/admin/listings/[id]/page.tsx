@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ListingModeration, RecheckRiskButton, ReportControls } from "@/components/admin/admin-controls";
+import { ListingModeration, PromotionControls, RecheckRiskButton, ReportControls } from "@/components/admin/admin-controls";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireAdminPage } from "@/lib/admin";
@@ -20,11 +20,11 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
   const a = dict.admin;
 
   const supabase = await createClient();
-  const [{ data: listing }, { data: history }, { data: reports }, { data: versions }, { data: declarations }, { data: risk }] = await Promise.all([
+  const [{ data: listing }, { data: history }, { data: reports }, { data: versions }, { data: declarations }, { data: risk }, { data: promotions }] = await Promise.all([
     supabase
       .from("listings")
       .select(
-        "id, title, status, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, description, poster_type, seller_id, submitted_at, expires_at, profiles!listings_seller_id_fkey(display_name, status), listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position)",
+        "id, title, status, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, description, poster_type, seller_id, submitted_at, expires_at, featured_until, bumped_at, profiles!listings_seller_id_fkey(display_name, status), listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -51,6 +51,12 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
       .eq("listing_id", id)
       .order("id", { ascending: false }),
     supabase.from("listing_risk").select("flags, checked_at").eq("listing_id", id).maybeSingle(),
+    supabase
+      .from("listing_promotions")
+      .select("id, kind, days, featured_until, amount, payment_ref, note, created_at")
+      .eq("listing_id", id)
+      .order("id", { ascending: false })
+      .limit(50),
   ]);
   if (!listing) notFound();
 
@@ -135,6 +141,45 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
       </section>
 
       <ListingModeration listingId={listing.id} status={listing.status} a={a} />
+
+      <section className={`${box} flex flex-col gap-3`} aria-label={a.promotion.title}>
+        <p className="text-sm">
+          {listing.featured_until && new Date(listing.featured_until) > new Date()
+            ? `${a.promotion.featuredUntil}: ${formatDateTime(listing.featured_until, lang)}`
+            : a.promotion.notFeatured}
+          {listing.bumped_at && ` · ${a.promotion.lastBump}: ${formatDateTime(listing.bumped_at, lang)}`}
+        </p>
+        <PromotionControls listingId={listing.id} published={listing.status === "published"} a={a} />
+        {promotions && promotions.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-muted">
+                <tr className="text-start">
+                  <th className="p-1 text-start">{a.promotion.when}</th>
+                  <th className="p-1 text-start">{a.promotion.what}</th>
+                  <th className="p-1 text-start">{a.promotion.amount}</th>
+                  <th className="p-1 text-start">{a.promotion.paymentRef}</th>
+                  <th className="p-1 text-start">{a.promotion.note}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {promotions.map((row) => (
+                  <tr key={row.id} className="border-t border-border">
+                    <td className="p-1">{formatDateTime(row.created_at, lang)}</td>
+                    <td className="p-1">
+                      {a.promotion.kinds[row.kind as keyof typeof a.promotion.kinds] ?? row.kind}
+                      {row.days ? ` (${row.days})` : ""}
+                    </td>
+                    <td className="p-1">{row.amount === null ? "—" : formatPrice(Number(row.amount), lang, dict.common.currency)}</td>
+                    <td className="p-1" dir="auto">{row.payment_ref ?? "—"}</td>
+                    <td className="p-1" dir="auto">{row.note ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className={box}>

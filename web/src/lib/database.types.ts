@@ -692,6 +692,60 @@ export type Database = {
           },
         ]
       }
+      listing_promotions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          created_by: string | null
+          days: number | null
+          featured_until: string | null
+          id: number
+          kind: string
+          listing_id: number
+          note: string | null
+          payment_ref: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          days?: number | null
+          featured_until?: string | null
+          id?: never
+          kind: string
+          listing_id: number
+          note?: string | null
+          payment_ref?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          days?: number | null
+          featured_until?: string | null
+          id?: never
+          kind?: string
+          listing_id?: number
+          note?: string | null
+          payment_ref?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_promotions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_promotions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_reports: {
         Row: {
           created_at: string
@@ -851,6 +905,7 @@ export type Database = {
           area_sqm: number | null
           bathrooms: number | null
           bedrooms: number | null
+          bumped_at: string | null
           city_id: number
           created_at: string
           currency: string
@@ -858,6 +913,7 @@ export type Database = {
           description: string
           details: Json
           expires_at: string | null
+          featured_until: string | null
           floor_level: Database["public"]["Enums"]["floor_level"] | null
           floors_count: number | null
           id: number
@@ -868,6 +924,7 @@ export type Database = {
           price: number
           property_type_id: number
           published_at: string | null
+          ranked_at: string | null
           rejection_reason: string | null
           seller_id: string
           status: Database["public"]["Enums"]["listing_status"]
@@ -882,6 +939,7 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          bumped_at?: string | null
           city_id: number
           created_at?: string
           currency?: string
@@ -889,6 +947,7 @@ export type Database = {
           description?: string
           details?: Json
           expires_at?: string | null
+          featured_until?: string | null
           floor_level?: Database["public"]["Enums"]["floor_level"] | null
           floors_count?: number | null
           id?: never
@@ -899,6 +958,7 @@ export type Database = {
           price: number
           property_type_id: number
           published_at?: string | null
+          ranked_at?: string | null
           rejection_reason?: string | null
           seller_id?: string
           status?: Database["public"]["Enums"]["listing_status"]
@@ -913,6 +973,7 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          bumped_at?: string | null
           city_id?: number
           created_at?: string
           currency?: string
@@ -920,6 +981,7 @@ export type Database = {
           description?: string
           details?: Json
           expires_at?: string | null
+          featured_until?: string | null
           floor_level?: Database["public"]["Enums"]["floor_level"] | null
           floors_count?: number | null
           id?: never
@@ -930,6 +992,7 @@ export type Database = {
           price?: number
           property_type_id?: number
           published_at?: string | null
+          ranked_at?: string | null
           rejection_reason?: string | null
           seller_id?: string
           status?: Database["public"]["Enums"]["listing_status"]
@@ -1400,6 +1463,17 @@ export type Database = {
         Returns: number
       }
       admin_overview: { Args: never; Returns: Json }
+      admin_promote_listing: {
+        Args: {
+          p_amount?: number
+          p_days?: number
+          p_kind: string
+          p_listing_id: number
+          p_note?: string
+          p_payment_ref?: string
+        }
+        Returns: string
+      }
       admin_publish_agreement: {
         Args: {
           p_body_ar: string

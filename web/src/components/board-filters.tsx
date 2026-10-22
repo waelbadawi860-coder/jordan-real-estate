@@ -160,7 +160,7 @@ export function BoardTags({
 }
 
 /** How many area tags fit the two-line row before the full list is offered. */
-const ROW_AREAS = 24;
+const ROW_AREAS = 20;
 
 // Colours per row: deal (main, green), types (blue), governorates (slate), areas (brown).
 const rowStyles = {

@@ -86,6 +86,36 @@ export async function setListingExpiryAction(listingId: unknown, mode: unknown):
   return { ok: true };
 }
 
+/** Records a paid promotion (the seller has paid offline: CliQ, eFAWATEERcom, cash). */
+export async function promoteListingAction(input: unknown): Promise<AdminResult> {
+  const p = z
+    .object({
+      listingId: idSchema,
+      kind: z.enum(["feature", "bump", "unfeature"]),
+      days: z.number().int().min(1).max(90).optional(),
+      amount: z.number().min(0).max(100_000).optional(),
+      paymentRef: z.string().trim().max(100).optional(),
+      note: z.string().trim().max(500).optional(),
+    })
+    .refine((v) => v.kind !== "feature" || v.days !== undefined)
+    .safeParse(input);
+  if (!p.success) return { ok: false, error: "invalid" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+
+  const { error } = await actor.supabase.rpc("admin_promote_listing", {
+    p_listing_id: p.data.listingId,
+    p_kind: p.data.kind,
+    p_days: p.data.days,
+    p_amount: p.data.amount,
+    p_payment_ref: p.data.paymentRef || undefined,
+    p_note: p.data.note || undefined,
+  });
+  if (error) return errorOf(error);
+  refreshListing(p.data.listingId);
+  return { ok: true };
+}
+
 // ----------------------------------------------------------------------------
 // Users
 // ----------------------------------------------------------------------------

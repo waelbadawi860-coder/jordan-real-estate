@@ -6,6 +6,7 @@ import {
   addBlockedAction,
   completeDeletionAction,
   moderateListingAction,
+  promoteListingAction,
   recheckRiskAction,
   removeBlockedAction,
   resolveReportAction,
@@ -144,6 +145,70 @@ export function ListingModeration({ listingId, status, a }: { listingId: number;
           </div>
         </div>
       )}
+      {message}
+    </Box>
+  );
+}
+
+// ----------------------------------------------------------------------------
+
+/** Featured / move to top, recorded after the seller has paid. */
+export function PromotionControls({ listingId, published, a }: { listingId: number; published: boolean; a: AdminText }) {
+  const { run, pending, message } = useRun(a);
+  const p = a.promotion;
+  const [amount, setAmount] = useState("");
+  const [paymentRef, setPaymentRef] = useState("");
+  const [note, setNote] = useState("");
+  const paid = () => ({
+    amount: amount.trim() === "" ? undefined : Number(amount),
+    paymentRef: paymentRef || undefined,
+    note: note || undefined,
+  });
+  const clear = () => {
+    setAmount("");
+    setPaymentRef("");
+    setNote("");
+  };
+  const promote = (kind: "feature" | "bump" | "unfeature", days?: number) =>
+    run(() => promoteListingAction({ listingId, kind, days, ...(kind === "unfeature" ? {} : paid()) }), clear);
+
+  return (
+    <Box>
+      <h3 className="font-extrabold">{p.title}</h3>
+      {!published ? (
+        <p className="text-sm text-muted">{p.onlyPublished}</p>
+      ) : (
+        <>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <label className="text-sm font-semibold">
+              {p.amount}
+              <input className={field} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </label>
+            <label className="text-sm font-semibold">
+              {p.paymentRef}
+              <input className={field} maxLength={100} value={paymentRef} onChange={(e) => setPaymentRef(e.target.value)} dir="auto" />
+            </label>
+            <label className="text-sm font-semibold">
+              {p.note}
+              <input className={field} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} dir="auto" />
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[7, 14, 30].map((days) => (
+              <button key={days} type="button" className={primary} disabled={pending} onClick={() => promote("feature", days)}>
+                {p.feature.replace("{n}", String(days))}
+              </button>
+            ))}
+            <button type="button" className={btn} disabled={pending} onClick={() => promote("bump")}>
+              {p.bump}
+            </button>
+          </div>
+        </>
+      )}
+      <button type="button" className={`${danger} w-fit`} disabled={pending} onClick={() => promote("unfeature")}>
+        {p.unfeature}
+      </button>
+      <p className="text-xs text-muted">{p.hint}</p>
       {message}
     </Box>
   );

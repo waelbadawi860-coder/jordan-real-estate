@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BoardSearch, BoardTags } from "@/components/board-filters";
-import { cardLabels, ListingCard, listingListClass } from "@/components/listing-card";
+import { cardLabels, FeaturedList, ListingCard, listingListClass } from "@/components/listing-card";
 import { LoadMore } from "@/components/load-more";
 import { SearchForm } from "@/components/search-form";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { getDictionary, type Dictionary } from "@/i18n/dictionaries";
-import { getAreaFacets, getReferenceData, searchListings, type AreaFacet, type ReferenceData } from "@/lib/data/public";
+import { getAreaFacets, getFeaturedListings, getReferenceData, searchListings, type AreaFacet, type ReferenceData } from "@/lib/data/public";
 import { filtersToQuery, parseSearchParams, type SearchFilters } from "@/lib/search";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/search">): Promise<Metadata> {
@@ -54,8 +54,11 @@ async function Results({
   searchParams: PageProps<"/[lang]/search">["searchParams"];
 }) {
   const { filters, hadInvalid } = parseSearchParams(await searchParams);
-  const page = await searchListings(filters, null);
+  const [page, featured] = await Promise.all([searchListings(filters, null), getFeaturedListings(filters)]);
   const labels = cardLabels(dict);
+  // Featured listings sit on top; on the first page they aren't repeated below.
+  const featuredIds = new Set(featured.map((l) => l.id));
+  const items = page.items.filter((l) => !featuredIds.has(l.id));
 
   return (
     <>
@@ -67,8 +70,9 @@ async function Results({
       )}
 
       <section className="mt-4" aria-live="polite">
+        <FeaturedList listings={featured} title={dict.search.featuredTitle} locale={locale} labels={labels} />
         <h2 className="sr-only">{dict.search.resultsTitle}</h2>
-        {page.items.length === 0 ? (
+        {items.length === 0 && featured.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center">
             <p className="font-bold">{dict.search.noResults}</p>
             <p className="mt-1 text-muted">{dict.search.noResultsHint}</p>
@@ -76,7 +80,7 @@ async function Results({
         ) : (
           <>
             <ul className={listingListClass}>
-              {page.items.map((listing, index) => (
+              {items.map((listing, index) => (
                 <li key={listing.id}>
                   <ListingCard listing={listing} locale={locale} labels={labels} priority={index < 2} />
                 </li>

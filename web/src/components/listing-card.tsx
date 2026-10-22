@@ -1,4 +1,4 @@
-import { Clock, ImageOff, MapPin } from "lucide-react";
+import { Clock, ImageOff, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { ListingCard as Card } from "@/lib/data/public";
@@ -18,6 +18,7 @@ export type CardLabels = {
   bedrooms: string;
   bathrooms: string;
   noPhoto: string;
+  featured: string;
 };
 
 /** Classes for the list that holds listing rows (one ad per line, like a classifieds board). */
@@ -43,8 +44,16 @@ export function ListingCard({
   ].filter(Boolean) as string[];
 
   return (
-    <article className="relative flex gap-3 p-3 transition hover:bg-brand-soft/50 sm:p-4">
+    <article
+      className={`relative flex gap-3 p-3 transition hover:bg-brand-soft/50 sm:p-4 ${listing.featured ? "bg-accent-soft/60" : ""}`}
+    >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
+        {listing.featured && (
+          <span className="flex w-fit items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
+            <Star className="size-3" aria-hidden />
+            {labels.featured}
+          </span>
+        )}
         <h3 className="line-clamp-2 text-base font-bold leading-snug sm:text-lg" dir="auto">
           {/* The link covers the whole row, so the row is one tap target. */}
           <Link
@@ -103,10 +112,37 @@ export function ListingCard({
   );
 }
 
+/** The paid "featured" block shown above a list of results. */
+export function FeaturedList({
+  listings,
+  title,
+  locale,
+  labels,
+}: {
+  listings: Card[];
+  title: string;
+  locale: Locale;
+  labels: CardLabels;
+}) {
+  if (listings.length === 0) return null;
+  return (
+    <section className="mb-3" aria-label={title}>
+      <h2 className="mb-1 text-sm font-bold text-accent">{title}</h2>
+      <ul className={listingListClass}>
+        {listings.map((listing, index) => (
+          <li key={listing.id}>
+            <ListingCard listing={listing} locale={locale} labels={labels} priority={index < 2} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function cardLabels(dict: {
   search: { sale: string; rent: string };
   common: { currency: string };
-  listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string };
+  listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string; featured: string };
 }): CardLabels {
   return {
     sale: dict.search.sale,
@@ -118,5 +154,6 @@ export function cardLabels(dict: {
     bedrooms: dict.listing.bedsValue,
     bathrooms: dict.listing.bathsValue,
     noPhoto: dict.listing.noPhoto,
+    featured: dict.listing.featured,
   };
 }

@@ -584,7 +584,7 @@ describe("stage 5: admin functions", () => {
     const { data: live } = await service.from("listings").select("id").eq("seller_id", bob.id).eq("status", "published").limit(1).single();
     const end = await admin.client.rpc("admin_set_listing_expiry", {
       p_listing_id: live!.id,
-      p_expires_at: new Date(Date.now() - 1000).toISOString(),
+      p_expires_at: new Date(Date.now() - 60_000).toISOString(),
     });
     expect(end.data).toBe("expired");
     const extend = await admin.client.rpc("admin_set_listing_expiry", {
@@ -598,6 +598,56 @@ describe("stage 5: admin functions", () => {
       .eq("action", "listing_expiry_change")
       .eq("entity_id", String(live!.id));
     expect(log.data!.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("only admins can feature or move up a listing, and each promotion is kept", async () => {
+    const { data: live } = await service.from("listings").select("id").eq("seller_id", bob.id).eq("status", "published").limit(1).single();
+    const id = live!.id;
+
+    // Sellers and visitors can neither call the function nor write the columns.
+    for (const client of [anon, bob.client]) {
+      expect((await client.rpc("admin_promote_listing", { p_listing_id: id, p_kind: "feature", p_days: 7 })).error).not.toBeNull();
+    }
+    await bob.client.from("listings").update({ featured_until: new Date(Date.now() + 86_400_000).toISOString() }).eq("id", id);
+    await bob.client.from("listings").update({ bumped_at: new Date().toISOString() }).eq("id", id);
+    const untouched = await service.from("listings").select("featured_until, bumped_at").eq("id", id).single();
+    expect(untouched.data).toEqual({ featured_until: null, bumped_at: null });
+
+    const feature = await admin.client.rpc("admin_promote_listing", {
+      p_listing_id: id, p_kind: "feature", p_days: 7, p_amount: 5, p_payment_ref: "CLIQ-TEST",
+    });
+    expect(feature.error).toBeNull();
+    const until = Date.parse(feature.data as string);
+    expect(until - Date.now()).toBeGreaterThan(6.9 * 86_400_000);
+    // Buying again adds the days on top.
+    const again = await admin.client.rpc("admin_promote_listing", { p_listing_id: id, p_kind: "feature", p_days: 7 });
+    expect(Date.parse(again.data as string) - until).toBeGreaterThan(6.9 * 86_400_000);
+
+    const bump = await admin.client.rpc("admin_promote_listing", { p_listing_id: id, p_kind: "bump" });
+    expect(bump.error).toBeNull();
+    const after = await anon.from("listings").select("featured_until, ranked_at, published_at").eq("id", id).single();
+    expect(after.data!.featured_until).not.toBeNull();
+    expect(Date.parse(after.data!.ranked_at!)).toBeGreaterThan(Date.parse(after.data!.published_at!));
+
+    // Days must be 1–90; drafts can't be promoted.
+    expect((await admin.client.rpc("admin_promote_listing", { p_listing_id: id, p_kind: "feature", p_days: 0 })).error).not.toBeNull();
+    const draft = await createListing(alice, "Draft that cannot be featured");
+    expect((await admin.client.rpc("admin_promote_listing", { p_listing_id: draft.id, p_kind: "feature", p_days: 7 })).error).not.toBeNull();
+    await service.from("listings").delete().eq("id", draft.id);
+
+    // The seller sees their own promotion history and gets a notification; others don't see it.
+    expect((await bob.client.from("listing_promotions").select("kind").eq("listing_id", id)).data).toHaveLength(3);
+    expect((await alice.client.from("listing_promotions").select("kind").eq("listing_id", id)).data ?? []).toHaveLength(0);
+    const notes = await bob.client.from("notifications").select("type").in("type", ["listing_featured", "listing_bumped"]);
+    expect(notes.data!.length).toBeGreaterThanOrEqual(3);
+
+    // Records are permanent.
+    const { data: row } = await service.from("listing_promotions").select("id").eq("listing_id", id).limit(1).single();
+    expect((await service.from("listing_promotions").delete().eq("id", row!.id)).error).not.toBeNull();
+
+    const off = await admin.client.rpc("admin_promote_listing", { p_listing_id: id, p_kind: "unfeature" });
+    expect(off.error).toBeNull();
+    expect((await anon.from("listings").select("featured_until").eq("id", id).single()).data!.featured_until).toBeNull();
   });
 
   it("completing a deletion removes personal data but keeps the listing record", async () => {
@@ -652,7 +702,7 @@ describe("stage 7: location privacy and notifications", () => {
     await service.rpc("notify_expiring_listings"); // no duplicates
     expect((await bob.client.from("notifications").select("id").eq("type", "listing_expiring").eq("data->>listing_id", String(live!.id))).data).toHaveLength(1);
 
-    await service.from("listings").update({ expires_at: new Date(Date.now() - 1000).toISOString() }).eq("id", live!.id);
+    await service.from("listings").update({ expires_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", live!.id);
     await service.rpc("expire_listings");
     expect((await bob.client.from("notifications").select("id").eq("type", "listing_expired").eq("data->>listing_id", String(live!.id))).data).toHaveLength(1);
 

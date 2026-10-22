@@ -1,5 +1,6 @@
 import { Phone } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AcceptAndSubmit } from "@/components/commission/accept-submit";
 import { AgreementBox } from "@/components/commission/agreement-box";
@@ -76,6 +77,17 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
           dict={dict}
         />
         {acceptedCurrent && <p className="text-sm text-muted">{t(dict.commission.acceptedOn, { date: formatDate(acceptedCurrent.acceptedAt, lang) })}</p>}
+        {listing.status === "published" &&
+          (listing.featuredUntil && new Date(listing.featuredUntil) > new Date() ? (
+            <p className="text-sm font-bold text-accent">{t(dict.myListings.featuredUntil, { date: formatDate(listing.featuredUntil, lang) })}</p>
+          ) : (
+            <p className="text-sm">
+              {dict.myListings.promoteHint}{" "}
+              <Link href={`${localePath(lang, "/contact")}?listing=${listing.id}`} className="font-bold text-brand hover:underline">
+                {dict.myListings.promoteLink}
+              </Link>
+            </p>
+          ))}
       </div>
 
       {needsAgreement && submittable && agreement && (

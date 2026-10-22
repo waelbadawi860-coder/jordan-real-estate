@@ -67,7 +67,8 @@
     "bathrooms": "Bathrooms",
     "anyBathrooms": "Any",
     "floorsCount": "Number of floors",
-    "anyFloorsCount": "Any"
+    "anyFloorsCount": "Any",
+    "featuredTitle": "Featured listings"
   },
   "home": {
     "latest": "Latest properties",
@@ -121,7 +122,8 @@
     "notFoundTitle": "Listing not available",
     "notFoundText": "The property may have been sold or rented, or the listing has expired.",
     "disclaimer": "This ad is published by the advertiser, who is responsible for it. Accepting an ad for publication only means it was checked against our posting policy; it does not mean the platform verified its details, the advertiser's ownership or their capacity.",
-    "floorsCount": "Number of floors"
+    "floorsCount": "Number of floors",
+    "featured": "Featured"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -311,7 +313,10 @@
     "renewed": "Listing renewed.",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "photosCount": "{n} photos"
+    "photosCount": "{n} photos",
+    "featuredUntil": "Your listing is featured at the top of search results until {date}.",
+    "promoteHint": "Want more views? Your listing can be featured or moved to the top.",
+    "promoteLink": "Ask for a promotion"
   },
   "status": {
     "draft": "Draft",
@@ -352,6 +357,8 @@
       "commission_updated": "Commission #{id} was updated: {status}",
       "payment_verified": "Your payment on commission #{id} was verified.",
       "payment_rejected": "Your payment on commission #{id} couldn't be verified. See details.",
+      "listing_featured": "Your listing #{id} is now featured at the top of search results.",
+      "listing_bumped": "Your listing #{id} was moved to the top of the list.",
       "other": "New notification."
     },
     "reason": "Reason: {reason}"
@@ -870,6 +877,27 @@
       "empty": "The list is empty.",
       "invalidPhone": "Not a valid Jordanian number.",
       "invalidEmail": "Not a valid e-mail address."
+    },
+    "promotion": {
+      "title": "Promotion (featured and move to top)",
+      "onlyPublished": "Only published listings can be promoted.",
+      "amount": "Amount paid (JOD)",
+      "paymentRef": "Payment reference (CliQ or eFAWATEERcom)",
+      "note": "Note",
+      "feature": "Feature for {n} days",
+      "bump": "Move to top now",
+      "unfeature": "Remove featured",
+      "hint": "Record a promotion after the payment arrives. Every action is kept permanently and the seller is notified.",
+      "featuredUntil": "Featured until",
+      "notFeatured": "Not featured now",
+      "lastBump": "Last moved up",
+      "when": "Date",
+      "what": "Action",
+      "kinds": {
+        "feature": "Featured",
+        "bump": "Moved to top",
+        "unfeature": "Featured removed"
+      }
     }
   },
   "common": {

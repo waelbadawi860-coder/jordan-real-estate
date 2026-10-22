@@ -102,12 +102,15 @@ export type ListingCard = {
   areaSqm: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  /** Publication date, or the last "move to top" (the date lists sort by). */
   publishedAt: string;
   imageUrl: string | null;
+  /** A paid "featured" promotion is running. */
+  featured: boolean;
 };
 
 export const CARD_COLUMNS =
-  "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, listing_images(storage_path, thumb_path, position, public_copied_at)";
+  "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, ranked_at, featured_until, listing_images(storage_path, thumb_path, position, public_copied_at)";
 
 export type CardRow = {
   id: number;
@@ -122,6 +125,8 @@ export type CardRow = {
   bathrooms: number | null;
   details: Json;
   published_at: string | null;
+  ranked_at?: string | null;
+  featured_until?: string | null;
   listing_images: { storage_path: string; thumb_path?: string | null; position: number; public_copied_at: string | null }[];
 };
 
@@ -152,8 +157,9 @@ export function toCard(row: CardRow, ref: ReferenceData): ListingCard {
     areaSqm: row.area_sqm === null ? null : Number(row.area_sqm),
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
-    publishedAt: row.published_at ?? "",
+    publishedAt: row.ranked_at ?? row.published_at ?? "",
     imageUrl: image ? publicImageUrl(image.thumb_path ?? image.storage_path) : null,
+    featured: !!row.featured_until && Date.parse(row.featured_until) > Date.now(),
   };
 }
 
@@ -170,45 +176,72 @@ function escapeLike(value: string): string {
 
 export type ListingPage = { items: ListingCard[]; nextCursor: Cursor | null };
 
+/** Published listings with the columns a list row needs (photos in order). */
+function publishedListings() {
+  return publicClient()
+    .from("listings")
+    .select(CARD_COLUMNS)
+    .eq("status", "published")
+    .order("position", { referencedTable: "listing_images" });
+}
+type ListingQuery = ReturnType<typeof publishedListings>;
+
+/** Applies the search filters to a listings query; null when a filter can't match anything. */
+function applyFilters(query: ListingQuery, filters: SearchFilters, ref: ReferenceData): ListingQuery | null {
+  let q = query;
+  if (filters.deal && filters.deal !== "all") q = q.eq("deal_type", filters.deal);
+  if (filters.type && filters.type !== "all") {
+    const type = ref.propertyTypes.find((t) => t.slug === filters.type);
+    if (!type) return null;
+    q = q.eq("property_type_id", type.id);
+  }
+  const city = filters.city ? ref.cities.find((c) => c.slug === filters.city) : undefined;
+  if (filters.city && !city) return null;
+  if (city) q = q.eq("city_id", city.id);
+  if (filters.hood) {
+    const hood = ref.neighborhoods.find(
+      (n) => n.slug === filters.hood && (!city || n.cityId === city.id),
+    );
+    if (!hood) return null;
+    q = q.eq("neighborhood_id", hood.id);
+  }
+  if (filters.min !== undefined) q = q.gte("price", filters.min);
+  if (filters.max !== undefined) q = q.lte("price", filters.max);
+  if (filters.amin !== undefined) q = q.gte("area_sqm", filters.amin);
+  if (filters.amax !== undefined) q = q.lte("area_sqm", filters.amax);
+  if (filters.beds !== undefined) q = q.gte("bedrooms", filters.beds);
+  if (filters.baths !== undefined) q = q.gte("bathrooms", filters.baths);
+  if (filters.floors !== undefined) q = q.gte("floors_count", filters.floors);
+  if (filters.floor) q = q.eq("floor_level", filters.floor);
+  if (filters.q) q = q.ilike("title", `%${escapeLike(filters.q)}%`);
+  return q;
+}
+
+/** How many paid "featured" listings sit above the results of a search. */
+export const FEATURED_SLOTS = 3;
+
+/** Featured listings that match the search, most recently moved up first. */
+export async function getFeaturedListings(filters: SearchFilters): Promise<ListingCard[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("listings");
+
+  const ref = await getReferenceData();
+  const query = applyFilters(publishedListings().gt("featured_until", new Date().toISOString()), filters, ref);
+  if (!query) return [];
+  const { data, error } = await query.order("ranked_at", { ascending: false }).order("id", { ascending: false }).limit(FEATURED_SLOTS);
+  if (error) throw new Error(`Featured listings failed: ${error.message}`);
+  return ((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref));
+}
+
 export async function searchListings(filters: SearchFilters, cursor: Cursor | null): Promise<ListingPage> {
   "use cache";
   cacheLife("minutes");
   cacheTag("listings");
 
   const ref = await getReferenceData();
-  const sb = publicClient();
-
-  let query = sb
-    .from("listings")
-    .select(CARD_COLUMNS)
-    .eq("status", "published")
-    .order("position", { referencedTable: "listing_images" });
-
-  if (filters.deal && filters.deal !== "all") query = query.eq("deal_type", filters.deal);
-  if (filters.type && filters.type !== "all") {
-    const type = ref.propertyTypes.find((t) => t.slug === filters.type);
-    if (!type) return { items: [], nextCursor: null };
-    query = query.eq("property_type_id", type.id);
-  }
-  const city = filters.city ? ref.cities.find((c) => c.slug === filters.city) : undefined;
-  if (filters.city && !city) return { items: [], nextCursor: null };
-  if (city) query = query.eq("city_id", city.id);
-  if (filters.hood) {
-    const hood = ref.neighborhoods.find(
-      (n) => n.slug === filters.hood && (!city || n.cityId === city.id),
-    );
-    if (!hood) return { items: [], nextCursor: null };
-    query = query.eq("neighborhood_id", hood.id);
-  }
-  if (filters.min !== undefined) query = query.gte("price", filters.min);
-  if (filters.max !== undefined) query = query.lte("price", filters.max);
-  if (filters.amin !== undefined) query = query.gte("area_sqm", filters.amin);
-  if (filters.amax !== undefined) query = query.lte("area_sqm", filters.amax);
-  if (filters.beds !== undefined) query = query.gte("bedrooms", filters.beds);
-  if (filters.baths !== undefined) query = query.gte("bathrooms", filters.baths);
-  if (filters.floors !== undefined) query = query.gte("floors_count", filters.floors);
-  if (filters.floor) query = query.eq("floor_level", filters.floor);
-  if (filters.q) query = query.ilike("title", `%${escapeLike(filters.q)}%`);
+  let query = applyFilters(publishedListings(), filters, ref);
+  if (!query) return { items: [], nextCursor: null };
 
   // Keyset pagination: "give me the rows after the last one I saw".
   // Stays fast no matter how deep the visitor scrolls.
@@ -221,9 +254,9 @@ export async function searchListings(filters: SearchFilters, cursor: Cursor | nu
   } else {
     if (cursor) {
       const at = new Date(cursor.v).toISOString();
-      query = query.or(`published_at.lt."${at}",and(published_at.eq."${at}",id.lt.${cursor.id})`);
+      query = query.or(`ranked_at.lt."${at}",and(ranked_at.eq."${at}",id.lt.${cursor.id})`);
     }
-    query = query.order("published_at", { ascending: false }).order("id", { ascending: false });
+    query = query.order("ranked_at", { ascending: false }).order("id", { ascending: false });
   }
 
   const { data, error } = await query.limit(PAGE_SIZE + 1);

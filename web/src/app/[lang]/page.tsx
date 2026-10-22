@@ -3,22 +3,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { BoardSearch, BoardTags } from "@/components/board-filters";
-import { cardLabels, ListingCard, listingListClass } from "@/components/listing-card";
+import { cardLabels, FeaturedList, ListingCard, listingListClass } from "@/components/listing-card";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { getReferenceData, searchListings, siteName } from "@/lib/data/public";
+import { getFeaturedListings, getReferenceData, searchListings, siteName } from "@/lib/data/public";
 import { publicEnv } from "@/lib/env";
 
 export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [dict, ref, latest] = await Promise.all([
+  const [dict, ref, latest, featured] = await Promise.all([
     getDictionary(lang),
     getReferenceData(),
     searchListings({ sort: "newest" }, null),
+    getFeaturedListings({ sort: "newest" }),
   ]);
   const labels = cardLabels(dict);
+  // Featured listings sit on top and aren't repeated in the latest list.
+  const featuredIds = new Set(featured.map((l) => l.id));
+  const items = latest.items.filter((l) => !featuredIds.has(l.id));
   const Arrow = lang === "ar" ? ArrowLeft : ArrowRight;
 
   const site = publicEnv.NEXT_PUBLIC_SITE_URL;
@@ -44,19 +48,22 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         <BoardTags locale={lang} dict={dict} refData={ref} />
       </div>
 
-      <section className="mt-5" aria-labelledby="latest-heading">
+      <div className="mt-5">
+        <FeaturedList listings={featured} title={dict.search.featuredTitle} locale={lang} labels={labels} />
+      </div>
+      <section className="mt-2" aria-labelledby="latest-heading">
         <h2 id="latest-heading" className="mb-2 text-base font-extrabold text-muted">
           {dict.home.latest}
         </h2>
 
-        {latest.items.length === 0 ? (
+        {items.length === 0 && featured.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border bg-surface p-8 text-center text-muted">
             {dict.home.empty}
           </p>
         ) : (
           <>
             <ul className={listingListClass}>
-              {latest.items.map((listing, index) => (
+              {items.map((listing, index) => (
                 <li key={listing.id}>
                   <ListingCard listing={listing} locale={lang} labels={labels} priority={index < 2} />
                 </li>

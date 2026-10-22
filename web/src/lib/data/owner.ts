@@ -101,6 +101,8 @@ export type MyListing = {
   rejectionReason: string | null;
   expiresAt: string | null;
   publishedAt: string | null;
+  /** End of a paid "featured" promotion (may be in the past). */
+  featuredUntil: string | null;
   updatedAt: string;
   contact: { phone: string; allowCalls: boolean; allowWhatsapp: boolean } | null;
   images: MyListingImage[];
@@ -119,7 +121,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, floor_level, floors_count, poster_type, rejection_reason, expires_at, published_at, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position), accepted_agreements(agreement_version_id, accepted_at)",
+      "id, status, deal_type, details, property_type_id, city_id, neighborhood_id, title, description, price, area_sqm, bedrooms, bathrooms, floor_level, floors_count, poster_type, rejection_reason, expires_at, published_at, featured_until, updated_at, listing_contacts(phone, allow_calls, allow_whatsapp), listing_images(id, storage_path, position), accepted_agreements(agreement_version_id, accepted_at)",
     )
     .eq("id", id)
     .eq("seller_id", userId)
@@ -152,6 +154,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
     rejectionReason: data.rejection_reason,
     expiresAt: data.expires_at,
     publishedAt: data.published_at,
+    featuredUntil: data.featured_until,
     updatedAt: data.updated_at,
     contact: contact ? { phone: contact.phone, allowCalls: contact.allow_calls, allowWhatsapp: contact.allow_whatsapp } : null,
     images: images.map((i) => ({ id: i.id, url: urls.get(i.storage_path) ?? null, position: i.position })),

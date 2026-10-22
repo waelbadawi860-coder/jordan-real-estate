@@ -43,6 +43,8 @@ export function describeNotification(type: string, data: Json, dict: Dictionary,
 
   const links: Record<string, string | null> = {
     listing_status_changed: `/my/listings/${listingId}`,
+    listing_featured: `/my/listings/${listingId}`,
+    listing_bumped: `/my/listings/${listingId}`,
     listing_expiring: "/my/listings",
     listing_expired: "/my/listings",
     listing_submitted: `/admin/listings/${listingId}`,
