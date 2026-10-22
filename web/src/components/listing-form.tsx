@@ -5,6 +5,7 @@ import { createListingAction, updateListingAction, type ListingFormState } from 
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { City, Neighborhood, PropertyType } from "@/lib/data/public";
+import { matchesName } from "@/lib/arabic";
 import { FLOOR_LEVELS } from "@/lib/floor";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
 import { LocationPicker } from "./map/location-picker";
@@ -44,6 +45,8 @@ type Props = {
 };
 
 const label = "mb-1 block text-sm font-semibold";
+/** Area lists longer than this get a search box above them. */
+const HOOD_FILTER_FROM = 15;
 const section = "flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5";
 
 export function ListingForm({ locale, dict, refData, initial, listingId, warning, requireDeclaration = false }: Props) {
@@ -55,6 +58,8 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
   const [dealType, setDealType] = useState(initial.dealType);
   const [typeId, setTypeId] = useState(initial.propertyTypeId);
   const [cityId, setCityId] = useState(initial.cityId);
+  const [hoodId, setHoodId] = useState(initial.neighborhoodId);
+  const [hoodQuery, setHoodQuery] = useState("");
 
   // Linked choices: the deal decides which types are offered, the type decides
   // which details apply, and the city decides which areas are offered.
@@ -73,7 +78,17 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
     const current = refData.propertyTypes.find((t) => String(t.id) === typeId);
     if (current && !current.allowedDeals.includes(value)) setTypeId("");
   }
-  const hoods = refData.neighborhoods.filter((n) => String(n.cityId) === cityId);
+  const collator = new Intl.Collator(locale === "ar" ? "ar" : "en");
+  const hoods = refData.neighborhoods
+    .filter((n) => String(n.cityId) === cityId)
+    .sort((a, b) => collator.compare(a.name[locale], b.name[locale]));
+  // Long lists get a search box; the chosen area always stays in the list.
+  const shownHoods = hoods.filter((n) => String(n.id) === hoodId || matchesName(n.name[locale], hoodQuery));
+  function changeCity(value: string) {
+    setCityId(value);
+    setHoodId("");
+    setHoodQuery("");
+  }
   const fe = state.fieldErrors ?? {};
   const err = (key: string) => (fe[key] ? ((f.errors as Record<string, string>)[fe[key]] ?? f.errors.generic) : undefined);
   const aria = (key: string) => (fe[key] ? { "aria-invalid": true, "aria-describedby": `${key}-error` } : {});
@@ -201,7 +216,7 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
               id="cityId"
               name="cityId"
               value={cityId}
-              onChange={(e) => setCityId(e.target.value)}
+              onChange={(e) => changeCity(e.target.value)}
               className={inputClass}
               {...aria("cityId")}
             >
@@ -218,21 +233,38 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             <label htmlFor="neighborhoodId" className={label}>
               {f.neighborhood} <span className="font-normal text-muted">({f.optional})</span>
             </label>
+            {hoods.length > HOOD_FILTER_FROM && (
+              <input
+                type="search"
+                value={hoodQuery}
+                onChange={(e) => setHoodQuery(e.target.value)}
+                placeholder={f.neighborhoodFind}
+                aria-label={f.neighborhoodFind}
+                aria-describedby="neighborhood-find-hint"
+                autoComplete="off"
+                className={`${inputClass} mb-2`}
+              />
+            )}
             <select
-              key={cityId}
               id="neighborhoodId"
               name="neighborhoodId"
-              defaultValue={String(initial.cityId) === cityId ? initial.neighborhoodId : ""}
+              value={hoodId}
+              onChange={(e) => setHoodId(e.target.value)}
               className={inputClass}
               {...aria("neighborhoodId")}
             >
               <option value="">{f.neighborhoodNone}</option>
-              {hoods.map((n) => (
+              {shownHoods.map((n) => (
                 <option key={n.id} value={n.id}>
                   {n.name[locale]}
                 </option>
               ))}
             </select>
+            {hoods.length > HOOD_FILTER_FROM && (
+              <p id="neighborhood-find-hint" className="mt-1 text-xs text-muted">
+                {f.neighborhoodFindHint}
+              </p>
+            )}
             <ErrorText name="neighborhoodId" message={err("neighborhoodId")} />
           </div>
         </div>

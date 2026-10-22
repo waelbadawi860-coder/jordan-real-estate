@@ -3,7 +3,8 @@ import Link from "next/link";
 import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { AreaFacet, ReferenceData } from "@/lib/data/public";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, t } from "@/lib/format";
+import { AreaPicker, type AreaLink } from "./area-picker";
 import { ScrollActiveArea } from "./scroll-active-area";
 import { filtersToQuery, type SearchFilters } from "@/lib/search";
 
@@ -100,21 +101,37 @@ export function BoardTags({
       0,
     );
   const collator = new Intl.Collator(locale === "ar" ? "ar" : "en");
+  const cityHoods = city
+    ? refData.neighborhoods
+        .filter((n) => n.cityId === city.id)
+        .map((n, order) => ({ n, order, ads: count(n.id) }))
+    : [];
+  const hoodTag = ({ n, ads }: (typeof cityHoods)[number]) => ({
+    text: ads > 0 ? `${n.name[locale]} (${formatNumber(ads, locale)})` : n.name[locale],
+    active: filters.hood === n.slug,
+    href: href({ hood: filters.hood === n.slug ? undefined : n.slug }),
+  });
+  // A governorate can have 100+ areas, too many for one line: the line shows
+  // the chosen area and the busiest ones (then the usual order), and the
+  // full list opens below it with a search box.
+  const tooMany = cityHoods.length > ROW_AREAS;
+  const rowHoods = tooMany
+    ? [...cityHoods]
+        .sort((a, b) => Number(filters.hood === b.n.slug) - Number(filters.hood === a.n.slug) || b.ads - a.ads || a.order - b.order)
+        .slice(0, ROW_AREAS)
+    : [...cityHoods].sort((a, b) => collator.compare(a.n.name[locale], b.n.name[locale]));
   const hoodTags = city
-    ? [
-        { text: s.anyNeighborhood, active: !filters.hood, href: href({ hood: undefined }) },
-        ...refData.neighborhoods
-          .filter((n) => n.cityId === city.id)
-          .sort((a, b) => collator.compare(a.name[locale], b.name[locale]))
-          .map((n) => {
-            const ads = count(n.id);
-            return {
-              text: ads > 0 ? `${n.name[locale]} (${formatNumber(ads, locale)})` : n.name[locale],
-              active: filters.hood === n.slug,
-              href: href({ hood: filters.hood === n.slug ? undefined : n.slug }),
-            };
-          }),
-      ]
+    ? [{ text: s.anyNeighborhood, active: !filters.hood, href: href({ hood: undefined }) }, ...rowHoods.map(hoodTag)]
+    : [];
+  const allAreas: AreaLink[] = tooMany
+    ? [...cityHoods]
+        .sort((a, b) => collator.compare(a.n.name[locale], b.n.name[locale]))
+        .map(({ n, ads }) => ({
+          name: n.name[locale],
+          countText: ads > 0 ? formatNumber(ads, locale) : "",
+          active: filters.hood === n.slug,
+          href: href({ hood: filters.hood === n.slug ? undefined : n.slug }),
+        }))
     : [];
 
   return (
@@ -125,12 +142,25 @@ export function BoardTags({
       {hoodTags.length > 1 && (
         <>
           <TagRow label={s.neighborhood} tags={hoodTags} variant="area" />
+          {tooMany && (
+            <AreaPicker
+              areas={allAreas}
+              text={{
+                more: t(s.moreAreas, { count: formatNumber(cityHoods.length, locale) }),
+                find: s.findArea,
+                none: s.noAreaMatch,
+              }}
+            />
+          )}
         </>
       )}
       {(filters.hood || filters.city || (filters.type && filters.type !== "all")) && <ScrollActiveArea />}
     </div>
   );
 }
+
+/** How many area tags fit the one-line row before the full list is offered. */
+const ROW_AREAS = 12;
 
 // Colours per row: deal (main, green), types (blue), governorates (slate), areas (brown).
 const rowStyles = {
