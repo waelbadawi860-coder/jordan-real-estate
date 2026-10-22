@@ -1,7 +1,7 @@
-import { Clock, MapPin, ShieldCheck, UserRound } from "lucide-react";
+import { BadgeCheck, Clock, MapPin, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { Locale } from "@/i18n/config";
+import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { LocalizedName } from "@/lib/data/public";
 import type { FloorLevel } from "@/lib/floor";
@@ -31,6 +31,8 @@ export type PropertyViewData = {
   updatedAt: string;
   images: { url: string; width: number | null; height: number | null }[];
   seller: { displayName: string; memberSince: string } | null;
+  /** The seller's office page and badge, when the seller has an office. */
+  office?: { id: number; name: string; verified: boolean } | null;
   /** Rounded (≈1 km) public position, if the seller set a pin. */
   approxLocation?: { lat: number; lng: number } | null;
 };
@@ -85,8 +87,20 @@ export function PropertyView({
             {listing.seller && (
               <span className="flex items-center gap-1">
                 <UserRound className="size-4 shrink-0" aria-hidden />
-                <span className="font-bold text-foreground">{listing.seller.displayName}</span>
+                {listing.office ? (
+                  <Link href={localePath(locale, `/office/${listing.office.id}`)} className="font-bold text-foreground hover:text-brand hover:underline" dir="auto">
+                    {listing.office.name}
+                  </Link>
+                ) : (
+                  <span className="font-bold text-foreground">{listing.seller.displayName}</span>
+                )}
                 <span>({listing.posterType === "agent" ? d.agent : d.owner})</span>
+              </span>
+            )}
+            {listing.office?.verified && (
+              <span className="flex items-center gap-1 font-semibold text-brand" title={dict.office.badgeMeaning}>
+                <BadgeCheck className="size-4 shrink-0" aria-hidden />
+                {dict.office.verifiedBadge}
               </span>
             )}
             {listing.publishedAt && (

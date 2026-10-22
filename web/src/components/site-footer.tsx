@@ -8,7 +8,6 @@ export function SiteFooter({ locale, dict, siteName }: { locale: Locale; dict: D
     { href: "/privacy", label: dict.footer.privacy },
     { href: "/posting-policy", label: dict.footer.posting },
     { href: "/reporting-policy", label: dict.footer.reporting },
-    { href: "/commission-policy", label: dict.footer.commission },
     { href: "/contact", label: dict.footer.contact },
   ];
   return (

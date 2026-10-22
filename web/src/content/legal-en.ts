@@ -86,8 +86,8 @@ export const legalEn: LegalDocs = {
         p: ["You can ask to delete your account at any time from \"My account\". The platform may suspend or close accounts that break the rules. Some data is kept for the periods in the Privacy Policy."],
       },
       {
-        h: "12. Commission",
-        p: ["The commission service is not active. No commission will be asked of you unless it is formally switched on and you accept a separate, explicit agreement for each ad."],
+        h: "12. Paid services",
+        p: ["Posting is free for individuals within the allowed number of active listings. The platform offers optional paid services: featuring a listing, moving it to the top, office packages and office verification. Prices are shown before payment, and the platform takes no commission on any sale or rental.", "The “Verified office” badge only means the platform has seen the office’s documents; it is not a guarantee of any listing or dealing. The badge can be removed if a violation is confirmed.", "[Payment and refund terms: to be set by the lawyer.]"],
       },
       {
         h: "13. Changes to these terms",

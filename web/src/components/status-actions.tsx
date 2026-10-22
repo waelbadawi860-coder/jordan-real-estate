@@ -19,6 +19,7 @@ const errorKeyToText = (dict: Pick<Dictionary, "preview" | "form" | "commission"
     agreement_required: dict.commission.errors.agreement_required,
     transaction_details_required: dict.commission.errors.transaction_details_required,
     declaration_required: dict.form.errors.declarationRequired,
+    active_limit_reached: dict.form.errors.activeLimitReached,
     contact_required: dict.preview.needContact,
     images_required: dict.preview.needPhotos,
     account_not_active: dict.form.errors.accountInactive,

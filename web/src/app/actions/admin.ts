@@ -117,6 +117,106 @@ export async function promoteListingAction(input: unknown): Promise<AdminResult>
 }
 
 // ----------------------------------------------------------------------------
+// Offices
+// ----------------------------------------------------------------------------
+
+function refreshOffices() {
+  updateTag("offices");
+}
+
+export async function reviewOfficeAction(requestId: unknown, approve: unknown, reason?: unknown): Promise<AdminResult> {
+  const id = idSchema.safeParse(requestId);
+  const ok = z.boolean().safeParse(approve);
+  const why = reasonSchema.safeParse(reason ?? "");
+  if (!id.success || !ok.success || !why.success) return { ok: false, error: "invalid" };
+  if (!ok.data && !why.data) return { ok: false, error: "reasonRequired" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  const { error } = await actor.supabase.rpc("admin_review_office_verification", {
+    p_request_id: id.data,
+    p_approve: ok.data,
+    p_reason: why.data || undefined,
+  });
+  if (error) return errorOf(error);
+  refreshOffices();
+  return { ok: true };
+}
+
+export async function setOfficePlanAction(input: unknown): Promise<AdminResult> {
+  const p = z
+    .object({
+      officeId: idSchema,
+      planSlug: z.string().regex(/^[a-z0-9-]{2,30}$/).nullable(),
+      months: z.number().int().min(1).max(24).optional(),
+      amount: z.number().min(0).max(100_000).optional(),
+      paymentRef: z.string().trim().max(100).optional(),
+    })
+    .safeParse(input);
+  if (!p.success) return { ok: false, error: "invalid" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  const { error } = await actor.supabase.rpc("admin_set_office_plan", {
+    p_office_id: p.data.officeId,
+    // The generated types say string; null (no package) is allowed by the function.
+    p_plan_slug: p.data.planSlug as string,
+    p_months: p.data.months ?? 1,
+    p_amount: p.data.amount,
+    p_payment_ref: p.data.paymentRef || undefined,
+  });
+  if (error) return errorOf(error);
+  refreshOffices();
+  return { ok: true };
+}
+
+export async function setOfficeStatusAction(officeId: unknown, removeBadge: unknown, suspend: unknown, reason: unknown): Promise<AdminResult> {
+  const id = idSchema.safeParse(officeId);
+  const flags = z.tuple([z.boolean(), z.boolean()]).safeParse([removeBadge, suspend]);
+  const why = reasonSchema.safeParse(reason ?? "");
+  if (!id.success || !flags.success || !why.success) return { ok: false, error: "invalid" };
+  if (!why.data) return { ok: false, error: "reasonRequired" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  const { error } = await actor.supabase.rpc("admin_set_office_status", {
+    p_office_id: id.data,
+    p_remove_badge: flags.data[0],
+    p_suspend: flags.data[1],
+    p_reason: why.data,
+  });
+  if (error) return errorOf(error);
+  refreshOffices();
+  return { ok: true };
+}
+
+export async function savePlanAction(input: unknown): Promise<AdminResult> {
+  const p = z
+    .object({
+      slug: z.string().regex(/^[a-z0-9-]{2,30}$/),
+      priceJod: z.number().min(0).max(100_000),
+      maxActiveListings: z.number().int().min(1).max(10_000),
+      featuredPerMonth: z.number().int().min(0).max(1000),
+      includesVerification: z.boolean(),
+      isActive: z.boolean(),
+    })
+    .safeParse(input);
+  if (!p.success) return { ok: false, error: "invalid" };
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  const { error } = await actor.supabase
+    .from("office_plans")
+    .update({
+      price_jod: p.data.priceJod,
+      max_active_listings: p.data.maxActiveListings,
+      featured_per_month: p.data.featuredPerMonth,
+      includes_verification: p.data.includesVerification,
+      is_active: p.data.isActive,
+    })
+    .eq("slug", p.data.slug);
+  if (error) return errorOf(error);
+  refreshOffices();
+  return { ok: true };
+}
+
+// ----------------------------------------------------------------------------
 // Users
 // ----------------------------------------------------------------------------
 

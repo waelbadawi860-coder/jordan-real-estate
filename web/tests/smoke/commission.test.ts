@@ -115,12 +115,7 @@ describe("commission pages", () => {
     expect(csv.status).toBe(200);
   });
 
-  it("explains the active rules on the public commission policy page", async () => {
-    // This public page is cached for up to a minute, so it may still show the
-    // "commissions are off" message right after the test switched them on.
-    const res = await get("/commission-policy");
-    expect(res.status).toBe(200);
-    const html = await res.text();
-    expect(html.includes("قواعد العمولة الحالية") || html.includes("نظام العمولة غير مفعّل")).toBe(true);
+  it("no longer has a public commission policy page (commission dropped 2026-10-22)", async () => {
+    expect((await get("/commission-policy")).status).toBe(404);
   });
 });

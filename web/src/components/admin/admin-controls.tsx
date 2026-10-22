@@ -7,6 +7,10 @@ import {
   completeDeletionAction,
   moderateListingAction,
   promoteListingAction,
+  reviewOfficeAction,
+  savePlanAction,
+  setOfficePlanAction,
+  setOfficeStatusAction,
   recheckRiskAction,
   removeBlockedAction,
   resolveReportAction,
@@ -652,3 +656,194 @@ export function RemoveBlockedButton({ id, a }: { id: number; a: AdminText }) {
     </span>
   );
 }
+
+// ----------------------------------------------------------------------------
+// Offices
+// ----------------------------------------------------------------------------
+
+export function OfficeReviewControls({ requestId, a }: { requestId: number; a: AdminText }) {
+  const { run, pending, message } = useRun(a);
+  const [reason, setReason] = useState("");
+  const o = a.offices;
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-semibold">
+        {o.reason}
+        <input className={field} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} dir="auto" />
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={primary} disabled={pending} onClick={() => run(() => reviewOfficeAction(requestId, true, reason))}>
+          {o.approve}
+        </button>
+        <button type="button" className={danger} disabled={pending} onClick={() => run(() => reviewOfficeAction(requestId, false, reason))}>
+          {o.reject}
+        </button>
+      </div>
+      {message}
+    </div>
+  );
+}
+
+export function OfficeAdminControls({
+  officeId,
+  plans,
+  verified,
+  suspended,
+  locale,
+  a,
+}: {
+  officeId: number;
+  plans: { slug: string; name: { ar: string; en: string } }[];
+  verified: boolean;
+  suspended: boolean;
+  locale: "ar" | "en";
+  a: AdminText;
+}) {
+  const { run, pending, message } = useRun(a);
+  const o = a.offices;
+  const [plan, setPlan] = useState(plans[0]?.slug ?? "");
+  const [months, setMonths] = useState("1");
+  const [amount, setAmount] = useState("");
+  const [paymentRef, setPaymentRef] = useState("");
+  const [reason, setReason] = useState("");
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid gap-2 sm:grid-cols-4">
+        <label className="text-sm font-semibold">
+          {o.plan}
+          <select className={field} value={plan} onChange={(e) => setPlan(e.target.value)}>
+            {plans.map((p) => (
+              <option key={p.slug} value={p.slug}>
+                {p.name[locale]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm font-semibold">
+          {o.months}
+          <select className={field} value={months} onChange={(e) => setMonths(e.target.value)}>
+            {[1, 3, 6, 12].map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm font-semibold">
+          {o.amount}
+          <input className={field} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        </label>
+        <label className="text-sm font-semibold">
+          {o.paymentRef}
+          <input className={field} maxLength={100} value={paymentRef} onChange={(e) => setPaymentRef(e.target.value)} dir="auto" />
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className={primary}
+          disabled={pending || !plan}
+          onClick={() =>
+            run(() =>
+              setOfficePlanAction({
+                officeId,
+                planSlug: plan,
+                months: Number(months),
+                amount: amount.trim() === "" ? undefined : Number(amount),
+                paymentRef: paymentRef || undefined,
+              }),
+            )
+          }
+        >
+          {o.setPlan}
+        </button>
+        <button type="button" className={btn} disabled={pending} onClick={() => run(() => setOfficePlanAction({ officeId, planSlug: null }))}>
+          {o.clearPlan}
+        </button>
+      </div>
+      <div className="flex flex-col gap-2 border-t border-border pt-3">
+        <label className="text-sm font-semibold">
+          {o.statusReason}
+          <input className={field} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} dir="auto" />
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {verified && (
+            <button type="button" className={danger} disabled={pending} onClick={() => run(() => setOfficeStatusAction(officeId, true, suspended, reason))}>
+              {o.removeBadge}
+            </button>
+          )}
+          <button type="button" className={suspended ? btn : danger} disabled={pending} onClick={() => run(() => setOfficeStatusAction(officeId, false, !suspended, reason))}>
+            {suspended ? o.activate : o.suspend}
+          </button>
+        </div>
+      </div>
+      {message}
+    </div>
+  );
+}
+
+export function PlanEditor({
+  plan,
+  locale,
+  a,
+}: {
+  plan: { slug: string; name: { ar: string; en: string }; priceJod: number; maxActiveListings: number; featuredPerMonth: number; includesVerification: boolean; isActive: boolean };
+  locale: "ar" | "en";
+  a: AdminText;
+}) {
+  const { run, pending, message } = useRun(a);
+  const o = a.offices;
+  const [price, setPrice] = useState(String(plan.priceJod));
+  const [max, setMax] = useState(String(plan.maxActiveListings));
+  const [featured, setFeatured] = useState(String(plan.featuredPerMonth));
+  const [verification, setVerification] = useState(plan.includesVerification);
+  const [active, setActive] = useState(plan.isActive);
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-border p-3">
+      <p className="font-extrabold">{plan.name[locale]}</p>
+      <div className="grid grid-cols-3 gap-2">
+        <label className="text-xs font-semibold">
+          {o.price}
+          <input className={field} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
+        </label>
+        <label className="text-xs font-semibold">
+          {o.maxListings}
+          <input className={field} inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value)} />
+        </label>
+        <label className="text-xs font-semibold">
+          {o.featured}
+          <input className={field} inputMode="numeric" value={featured} onChange={(e) => setFeatured(e.target.value)} />
+        </label>
+      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" className="size-4 accent-brand" checked={verification} onChange={(e) => setVerification(e.target.checked)} />
+        {o.includesVerification}
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" className="size-4 accent-brand" checked={active} onChange={(e) => setActive(e.target.checked)} />
+        {o.active}
+      </label>
+      <button
+        type="button"
+        className={`${primary} w-fit`}
+        disabled={pending}
+        onClick={() =>
+          run(() =>
+            savePlanAction({
+              slug: plan.slug,
+              priceJod: Number(price),
+              maxActiveListings: Number(max),
+              featuredPerMonth: Number(featured),
+              includesVerification: verification,
+              isActive: active,
+            }),
+          )
+        }
+      >
+        {o.savePlan}
+      </button>
+      {message}
+    </div>
+  );
+}
+

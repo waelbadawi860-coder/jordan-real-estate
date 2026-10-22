@@ -1,4 +1,4 @@
-import { Clock, ImageOff, MapPin, Star } from "lucide-react";
+import { BadgeCheck, Clock, ImageOff, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { ListingCard as Card } from "@/lib/data/public";
@@ -19,6 +19,7 @@ export type CardLabels = {
   bathrooms: string;
   noPhoto: string;
   featured: string;
+  verifiedOffice: string;
 };
 
 /** Classes for the list that holds listing rows (one ad per line, like a classifieds board). */
@@ -85,6 +86,12 @@ export function ListingCard({
               <TimeAgo iso={listing.publishedAt} locale={locale} />
             </span>
           )}
+          {listing.office?.verified && (
+            <span className="flex items-center gap-1 font-semibold text-brand">
+              <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
+              {labels.verifiedOffice}
+            </span>
+          )}
         </p>
       </div>
 
@@ -143,6 +150,7 @@ export function cardLabels(dict: {
   search: { sale: string; rent: string };
   common: { currency: string };
   listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string; featured: string };
+  office: { verifiedBadge: string };
 }): CardLabels {
   return {
     sale: dict.search.sale,
@@ -155,5 +163,6 @@ export function cardLabels(dict: {
     bathrooms: dict.listing.bathsValue,
     noPhoto: dict.listing.noPhoto,
     featured: dict.listing.featured,
+    verifiedOffice: dict.office.verifiedBadge,
   };
 }

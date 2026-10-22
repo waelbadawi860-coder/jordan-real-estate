@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import type { Database, Json } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env";
+import { getOfficeDirectory } from "@/lib/data/offices";
 import type { FloorLevel } from "@/lib/floor";
 import { PAGE_SIZE, type Cursor, type SearchFilters } from "@/lib/search";
 
@@ -107,13 +108,17 @@ export type ListingCard = {
   imageUrl: string | null;
   /** A paid "featured" promotion is running. */
   featured: boolean;
+  sellerId: string;
+  /** The seller's office, when it has one ("verified" = documents checked). */
+  office?: { id: number; name: string; verified: boolean } | null;
 };
 
 export const CARD_COLUMNS =
-  "id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, ranked_at, featured_until, listing_images(storage_path, thumb_path, position, public_copied_at)";
+  "id, seller_id, title, price, deal_type, property_type_id, city_id, neighborhood_id, area_sqm, bedrooms, bathrooms, details, published_at, ranked_at, featured_until, listing_images(storage_path, thumb_path, position, public_copied_at)";
 
 export type CardRow = {
   id: number;
+  seller_id?: string;
   title: string;
   price: number;
   deal_type: "sale" | "rent";
@@ -160,7 +165,15 @@ export function toCard(row: CardRow, ref: ReferenceData): ListingCard {
     publishedAt: row.ranked_at ?? row.published_at ?? "",
     imageUrl: image ? publicImageUrl(image.thumb_path ?? image.storage_path) : null,
     featured: !!row.featured_until && Date.parse(row.featured_until) > Date.now(),
+    sellerId: row.seller_id ?? "",
   };
+}
+
+/** Adds each seller's office (name and "verified" badge). Callers also tag their cache "offices". */
+async function withOffices<T extends ListingCard>(cards: T[]): Promise<T[]> {
+  if (cards.length === 0) return cards;
+  const offices = await getOfficeDirectory();
+  return cards.map((c) => ({ ...c, office: offices[c.sellerId] ?? null }));
 }
 
 function furnishedOf(details: Json): boolean | null {
@@ -224,20 +237,35 @@ export const FEATURED_SLOTS = 3;
 export async function getFeaturedListings(filters: SearchFilters): Promise<ListingCard[]> {
   "use cache";
   cacheLife("minutes");
-  cacheTag("listings");
+  cacheTag("listings", "offices");
 
   const ref = await getReferenceData();
   const query = applyFilters(publishedListings().gt("featured_until", new Date().toISOString()), filters, ref);
   if (!query) return [];
   const { data, error } = await query.order("ranked_at", { ascending: false }).order("id", { ascending: false }).limit(FEATURED_SLOTS);
   if (error) throw new Error(`Featured listings failed: ${error.message}`);
-  return ((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref));
+  return withOffices(((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref)));
+}
+
+/** An office's published listings, newest first (its public page). */
+export async function getSellerListings(sellerId: string): Promise<ListingCard[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("listings", "offices");
+  const ref = await getReferenceData();
+  const { data, error } = await publishedListings()
+    .eq("seller_id", sellerId)
+    .order("ranked_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(100);
+  if (error) throw new Error(`Seller listings failed: ${error.message}`);
+  return withOffices(((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref)));
 }
 
 export async function searchListings(filters: SearchFilters, cursor: Cursor | null): Promise<ListingPage> {
   "use cache";
   cacheLife("minutes");
-  cacheTag("listings");
+  cacheTag("listings", "offices");
 
   const ref = await getReferenceData();
   let query = applyFilters(publishedListings(), filters, ref);
@@ -264,7 +292,7 @@ export async function searchListings(filters: SearchFilters, cursor: Cursor | nu
 
   const rows = (data ?? []) as unknown as CardRow[];
   const hasMore = rows.length > PAGE_SIZE;
-  const items = rows.slice(0, PAGE_SIZE).map((row) => toCard(row, ref));
+  const items = await withOffices(rows.slice(0, PAGE_SIZE).map((row) => toCard(row, ref)));
   const last = items[items.length - 1];
   const nextCursor =
     hasMore && last
@@ -290,7 +318,7 @@ export type ListingDetail = ListingCard & {
 export async function getListing(id: number): Promise<ListingDetail | null> {
   "use cache";
   cacheLife("minutes");
-  cacheTag("listings", `listing-${id}`);
+  cacheTag("listings", "offices", `listing-${id}`);
 
   const ref = await getReferenceData();
   const sb = publicClient();
@@ -320,8 +348,9 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
 
   const seller = await sb.rpc("public_seller_info", { p_seller_id: row.seller_id });
 
+  const [card] = await withOffices([toCard(row, ref)]);
   return {
-    ...toCard(row, ref),
+    ...card,
     description: row.description,
     posterType: row.poster_type,
     updatedAt: row.updated_at,

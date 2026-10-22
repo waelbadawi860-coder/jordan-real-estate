@@ -37,6 +37,7 @@ function dbErrorKey(error: { code?: string; message?: string } | null): string {
   const message = error?.message ?? "";
   for (const key of [
     "listing_limit_reached",
+    "active_limit_reached",
     "duplicate_listing",
     "contact_required",
     "images_required",
