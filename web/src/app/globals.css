@@ -7,8 +7,8 @@
   --foreground: #1c2321;
   --muted: #5d6764;
   --border: #e3e1d9;
-  --brand: #0f6b5c;
-  --brand-strong: #0a5045;
+  --brand: #1d6b5d; /* logo green */
+  --brand-strong: #14524a;
   --brand-soft: #e3f1ee;
   --accent: #9a5410; /* white text on it: 5.8:1 (WCAG AA) */
   --accent-soft: #fbefe1;

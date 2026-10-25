@@ -31,7 +31,7 @@ export function LocationPicker({ initialLat, initialLng, text }: { initialLat: s
       L.tileLayer(mapConfig.tileUrl, { attribution: mapConfig.attribution, maxZoom: 18 }).addTo(map);
       const place = (lat: number, lng: number) => {
         markerRef.current?.remove();
-        markerRef.current = L.circleMarker([lat, lng], { radius: 10, color: "#0a5045", fillColor: "#0f6b5c", fillOpacity: 0.9 }).addTo(map);
+        markerRef.current = L.circleMarker([lat, lng], { radius: 10, color: "#14524a", fillColor: "#1d6b5d", fillOpacity: 0.9 }).addTo(map);
       };
       if (pin) place(pin.lat, pin.lng);
       map.on("click", (e) => {

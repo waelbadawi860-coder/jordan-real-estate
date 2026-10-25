@@ -1,4 +1,4 @@
-import { Home, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { localePath, type Locale } from "@/i18n/config";
@@ -12,9 +12,9 @@ export function SiteHeader({ locale, dict, siteName }: { locale: Locale; dict: D
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4">
         <Link href={localePath(locale, "/")} className="flex items-center gap-2 text-xl font-extrabold text-brand">
-          <span className="grid size-9 place-items-center rounded-lg bg-brand text-white" aria-hidden>
-            <Home className="size-5" />
-          </span>
+          {/* The logo (green tile with the «ع» building and map pin). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-96.png" alt="" width={36} height={36} className="size-9 rounded-lg" />
           {/* On very narrow phones only the logo icon shows, to leave room for the buttons. */}
           <span className="hidden min-[380px]:inline">{siteName}</span>
           <span className="sr-only min-[380px]:hidden">{siteName}</span>

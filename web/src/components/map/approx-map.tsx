@@ -24,7 +24,7 @@ export function ApproxMap({ lat, lng, text }: { lat: number; lng: number; text: 
       const map = L.map(container.current, { maxBounds: JORDAN_BOUNDS, minZoom: 7, maxZoom: 15, scrollWheelZoom: false });
       map.setView([lat, lng], 14);
       L.tileLayer(mapConfig.tileUrl, { attribution: mapConfig.attribution, maxZoom: 15 }).addTo(map);
-      L.circle([lat, lng], { radius: 900, color: "#0f6b5c", fillColor: "#0f6b5c", fillOpacity: 0.15 }).addTo(map);
+      L.circle([lat, lng], { radius: 900, color: "#1d6b5d", fillColor: "#1d6b5d", fillOpacity: 0.15 }).addTo(map);
       mapRef.current = map;
     });
     return () => {

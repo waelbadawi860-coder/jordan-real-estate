@@ -377,7 +377,7 @@
   },
   "map": {
     "addPin": "Mark the location on a map (optional)",
-    "pinHint": "Tap the map to place a pin. Visitors never see the exact spot, only an approximate area.",
+    "pinHint": "Tap the map to drop a pin. Visitors will see this location as you set it.",
     "removePin": "Remove pin",
     "pinSet": "Location set.",
     "showMap": "Show the location on the map",
