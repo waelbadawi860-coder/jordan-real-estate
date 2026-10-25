@@ -1,109 +1,127 @@
 # ملخص المشروع للانتقال إلى محادثة جديدة — منصة «عقار»
 
-آخر تحديث: 20 تشرين الأول 2026 · آخر تعديل في الكود: `2b0cdaa` (فرع `main`)
+آخر تحديث: 25 تشرين الأول 2026 · آخر تعديل في الكود: `cbff7cb` (فرع `main`)
 
 > **للبدء في محادثة جديدة:** افتح المشروع في المجلد نفسه، والصق هذه الرسالة:
-> «أكمل العمل على منصة عقار. اقرأ أولًا `docs/HANDOFF.md` و`docs/pre-launch-review.html` و`docs/STAGE-8-LAUNCH.md`.»
+> «أكمل العمل على منصة عقار. اقرأ أولًا `docs/HANDOFF.md`.»
 
 ## 1. ما هو المشروع
-- موقع إعلانات عقارية مبوبة للأردن، بأسلوب «حراج» (قائمة نصية بسيطة، لا بطاقات كبيرة)، عربي أولًا مع الإنجليزية تحت `/en`.
-- الاسم «عقار» باللغتين، والأيقونة بيت أبيض على أخضر.
-- Claude هو المطوّر الوحيد. المالك ليس مبرمجًا: الشرح بلغة بسيطة، والعمل على مراحل يؤكدها المالك.
+- موقع إعلانات عقارية مبوبة للأردن، بأسلوب «حراج» (قائمة بسيطة سريعة)، عربي أولًا والإنجليزية تحت `/en`.
+- الاسم «عقار» باللغتين. **الشعار الجديد:** حرف «ع» مع مبنى ودبوس خريطة برتقالي. الألوان: أخضر `#1d6b5d`، وأخضر داكن `#2a4a47`، وبرتقالي `#e29932`، وبيج `#e1caaa`.
+- Claude هو المطوّر الوحيد. المالك ليس مبرمجًا: الشرح بلغة بسيطة، والعمل على مراحل.
 
 ## 2. الروابط والحسابات
-- **نسخة الاختبار:** https://aqar-staging.vercel.app (Vercel Hobby، مشروع `aqar-staging`، فريق `wael-d2e5`). مخفية عن Google عمدًا.
-- **الكود:** GitHub `waelbadawi860-coder/jordan-real-estate` (خاص). كل دفع إلى `main` يحدّث نسخة الاختبار تلقائيًا.
-- **قاعدة البيانات (تطوير):** Supabase `aqar-dev`، المعرّف `bglfiabquferwviaysqd`، فرانكفورت، الخطة المجانية.
-- **التقارير المنشورة:** [مراجعة الجاهزية (الإصدار 3)](https://claude.ai/artifact/N988q3oyubRSahhN5C18X3) · [مسودة المناطق](https://claude.ai/artifact/VRyDgKKBYKHeKeedZT5mzS)
+- **نسخة الاختبار:** https://aqar-staging.vercel.app (Vercel Hobby، مشروع `aqar-staging`). مخفية عن Google. كل دفع إلى `main` يحدّثها خلال دقيقة أو دقيقتين.
+- **الكود:** GitHub `waelbadawi860-coder/jordan-real-estate` (خاص).
+- **قاعدة البيانات (تطوير واختبار):** Supabase `aqar-dev` (`bglfiabquferwviaysqd`)، فرانكفورت.
+- **حساب المالك المشرف:** whb90@hotmail.com، مع تحقق بخطوتين مفعّل، و«إلزام المشرفين» مفعّل.
+- **إعدادات Vercel الحالية:** `NEXT_PUBLIC_SITE_URL` (صحيح)، و`CRON_SECRET` (مضاف).
 
-## 3. ما اكتمل واختُبر
-- الحسابات (بريد وكلمة مرور وتأكيد)، والإعلانات (إنشاء وتعديل وسحب وتجديد وانتهاء)، والمفضلة، والإشعارات.
-- **البحث بأسلوب حراج، خطوة بخطوة:** الكل/بيع/إيجار ← النوع (مع «الكل»، أزرق) ← المحافظة (رمادي هادئ) ← المنطقة (بني). كل صف على سطر واحد مع شريط تمرير. «بحث مفصّل» للفلاتر الإضافية فقط، ويتبع اختيارات الوسوم.
-- **الحقول حسب النوع، والقاعدة تفرضها:**
+## 3. ما اكتمل (كله على نسخة الاختبار ومختبر)
+**البحث والتصفح**
+- وسوم خطوة بخطوة: نوع العرض، ثم نوع العقار، ثم المحافظة، ثم المنطقة.
+  - مناطق عمّان: 20 منطقة بترتيب المالك في سطر واحد، وزر «كل المناطق (133)» مع بحث بالاسم.
+  - وسم «✓ مكاتب موثّقة».
+- زر **«فلاتر»** بجانب مربع البحث يفتح لوحة جانبية فوق الصفحة: من اليمين على الكمبيوتر، وكامل الشاشة على الهاتف.
+- 12 محافظة و372 منطقة.
 
-  | النوع | غرف | حمامات | طابق | عدد الطوابق | مفروش |
-  |---|---|---|---|---|---|
-  | شقة | ✓ | ✓ | ✓ | – | ✓ |
-  | فيلا | ✓ | ✓ | – | ✓ | ✓ |
-  | بيت مستقل | ✓ | ✓ | – | ✓ | ✓ |
-  | أرض سكنية/تجارية | – | – | – | – | – |
-  | عقار تجاري | – | ✓ | – | ✓ | – |
-  | مكتب | – | ✓ | ✓ | – | ✓ |
-  | محل | – | ✓ | ✓ | – | – |
-  | عمارة | – | – | – | ✓ | – |
-  | أخرى | – | ✓ | – | – | – |
+**الإعلان**
+- النموذج: المنطقة **إجبارية**، وتُختار من خانة بحث واحدة.
+- **موقع العقار:** خانة اختيارية تقبل رابط Google Maps أو إحداثيات. **يظهر للزوار كما أدخله المعلن** (قرار المالك)، مع تنويه «الموقع كما حدده المعلن»، وزر «عرض الموقع على خرائط Google».
+- **«عروض مشابهة»** أسفل كل إعلان، وزر **«متابعة العروض المشابهة»**.
+- عبارة «منشور على مسؤولية المعلن» في أسفل الإعلان بخط صغير.
 
-  الطابق: تسوية، أرضي، الأول حتى الرابع، الخامس فما فوق، الأخير، الأخير مع روف. الأرض السكنية والعمارة للبيع فقط.
-- **المحافظات:** 12 محافظة و172 منطقة (عمّان 40، والباقي 132 باعتماد المالك).
-- **الحماية القانونية:**
-  - إقرار المعلن إلزامي عند كل إرسال أو تعديل لإعلان منشور، ومحفوظ نهائيًا.
-  - عبارة «القبول للنشر ليس تحققًا» في كل إعلان.
-  - سجلات دائمة لا تُحذف، ونسخ لكل تعديل في الإعلان.
-- **البلاغات:** عن الإعلان أو المعلن، برقم مرجعي (L-/U-)، مع إيقاف مؤقت للإعلان وإعادته.
-- **صفحة اتصل بنا:** بريد فقط. يظهر «سيُعلن قريبًا» حتى يُضبط البريد في الإعدادات.
-- **مكافحة الاحتيال:**
-  - 10 إشارات خطر تُحسب عند الإرسال.
-  - بصمة لكل صورة.
-  - قائمة حظر للأرقام والبريد.
-- **التحقق بخطوتين للمشرفين:** صفحة `/my/security`، وإلزامي في الموقع المنشور.
-- **مسودات قانونية** بالعربية والإنجليزية: `/terms` و`/privacy` و`/posting-policy` و`/reporting-policy`، وعليها تنبيه «مسودة».
-- **التنظيف اليومي للصور** (`/api/cron/cleanup`) يحتاج المفتاح `CRON_SECRET` في Vercel.
-- **الاختبارات:** 40 وحدة، و89 قاعدة بيانات، و48 موقع، وكلها ناجحة. Lighthouse على الهاتف: 98–99.
+**المتابعات**
+- إشعار داخل الموقع فورًا عند نشر عرض مطابق.
+- ملخص يومي بالبريد الساعة 9 صباحًا (يعمل عند إضافة Resend).
+- إلغاء بضغطة من رابط البريد، وصفحة «متابعاتي».
+
+**الدخل (لا عمولة نهائيًا)**
+- النشر مجاني للفرد حتى **3 إعلانات منشورة في الوقت نفسه** (يُغيَّر من الإعدادات).
+- **الإعلان المميز** يظهر أعلى الصفحة الرئيسية والبحث بشارة «مميز · مدفوع». السعر: 5 دنانير لـ7 أيام، و9 لـ14 يومًا، و15 لـ30 يومًا. ورفع الإعلان للأعلى: 2 دينار. الأسعار تُغيَّر من الإعدادات.
+- يسجّل المشرف الترويج بعد الدفع اليدوي (CliQ أو إي فواتيركم) من صفحة الإعلان في لوحة الإدارة.
+- **المكاتب:**
+  - صفحة «مكتبي».
+  - صفحة عامة لكل مكتب.
+  - **باقات:** الأساسية 20 دينارًا (25 إعلانًا)، والمتقدمة 45 (75 إعلانًا)، والمميزة 90 (200 إعلان). تُعدَّل من «المكاتب».
+  - **«مكتب موثّق»:** المكتب يرفع السجل التجاري والترخيص والهوية، والمشرف يراجعها، والشارة تبقى سنة.
+- صفحات **«الأسعار والخدمات»** و**«عن عقار»**، وشريط «لماذا عقار» في الصفحة الرئيسية.
+
+**الإدارة والحماية**
+- قائمة تدقيق من 5 بنود قبل قبول أي إعلان.
+- صفحة «المكاتب» في لوحة الإدارة.
+- بلاغات، وقائمة حظر، وإشارات خطر، وبصمة الصور، وسجلات دائمة.
+- التحقق بخطوتين، ومطلوب أيضًا في قاعدة البيانات لمن فعّله.
+
+**القانون**
+- الصفحات الأربع حدّثت حسب المراجعة القانونية، نسخة `draft-2026-10-25`.
+- المراجعة كاملة في `docs/LEGAL-REVIEW-2026-10.md`.
+- صفحة «سياسة العمولة» حُذفت.
+
+**الأمان والسرعة**
+- فحص اختراق آلي (75 محاولة) ناجح بالكامل.
+- مراجعة كود كاملة، وأُصلحت ثغراتها.
+- **سرعة الهاتف** مع 1000 إعلان: الصفحة الرئيسية 99–100، والبحث 98، والإعلان 94–97. وقاعدة البيانات تجيب في 3ms.
+
+**الاختبارات:** 48 وحدة، و93 قاعدة بيانات، و51 موقع، وكلها ناجحة.
 
 ## 4. قرارات المالك
-- البدء صغيرًا.
-- تأكيد الهاتف بـ SMS مؤجل.
-- لا خرائط عند الإطلاق.
-- لا اختبار اختراق بشري الآن.
-- العمولة مبنية لكنها **مطفأة** حتى موافقة المحامي.
-- الاسم «عقار» باللغتين.
-- بريد التواصل يكون على نطاق الموقع لاحقًا.
+- لا عمولة. الدخل من التمييز والرفع والباقات والتوثيق.
+- الموقع الدقيق للعقار يظهر للزوار إذا أدخله المعلن.
+- سقف التعويض في الشروط: ما دفعه المستخدم خلال الشهر السابق فقط.
+- **تأجيل تسجيل الشركة 6–12 شهرًا** ما دام الموقع مجانيًا. **لكن لا تُباع أي خدمة مدفوعة قبل تسجيل نشاط تجاري.**
+- **لا اختبار اختراق بشري الآن** (الميزانية). يُجرى قبل الدفع الإلكتروني أو عند النمو. النطاق جاهز في `docs/PENTEST-SCOPE.md`.
+- **موقع ثانٍ لبيع منتجات أخرى لاحقًا** (بعد استقرار عقار): **بنفس المحرك وقاعدة البيانات**، بحساب واحد ورصيد مشترك و«تاجر موثّق». الاستراحات والشاليهات تُضاف إلى «عقار» نفسه.
+- لا خرائط تفاعلية عند الإطلاق، ولا SMS الآن.
 
-## 5. التكلفة الشهرية عند الإطلاق
-| البند | التكلفة |
-|---|---|
-| Vercel Pro | 20$ شهريًا |
-| Supabase Pro | 25$ شهريًا |
-| نطاق ‎.com | حوالي 11$ سنويًا |
-| Resend، وتحويل البريد عبر Cloudflare، وUptimeRobot | مجانية |
+## 5. المتبقي قبل الإطلاق
+1. **المحامي:** يراجع الصفحات على نسخة الاختبار مع `docs/LEGAL-REVIEW-2026-10.md`، ويحسم ما بين [الأقواس]: مدد الحفظ، والاسترداد، والضريبة، والمحكمة، واسم الجهة المشغّلة. بعده يحوّل Claude النسخ من `draft-…` إلى نهائية.
+2. **الشعار:**
+   - البحث في قاعدة WIPO عن Jordan فقط، بالعربي والإنجليزي، وبصورة الشعار.
+   - ثم بحث رسمي لدى مديرية حماية الملكية الصناعية، ثم تسجيل **الشعار مع الكلمة** في الفئتين 35 و36.
+   - طلب ملف الشعار الأصلي (SVG أو 1024px) من المصمم.
+3. **النطاق**، ثم Resend (`RESEND_API_KEY` و`EMAIL_FROM`) والقوالب العربية وبريد التواصل.
+4. **حسابات الإنتاج** (Supabase Pro وVercel Pro، حوالي 45$ شهريًا): `db push`، و`SITE_STAGE=live`، و`CRON_SECRET`، وحد إنفاق وتنبيهات.
+5. **النسخ الاحتياطي واستعادة تجريبية، وUptimeRobot، وGoogle Search Console.**
+6. **اختبار المالك على الهاتف** (`docs/STAGE-8-LAUNCH.md`، المرحلة E): البريد، والصور، والموافقة برمز التحقق، وملف CSV.
 
-**المجموع: حوالي 45$ (32 دينارًا) شهريًا**، وحوالي 391 دينارًا في السنة الأولى. أتعاب المحامي وتسجيل الشركة غير محسوبة.
-
-## 6. المتبقي قبل الإطلاق (بالترتيب)
-1. **المحامي** يراجع النصوص القانونية والإقرار ودور المنصة ومدد الاحتفاظ. ثم Claude يطبق التعديلات ويغيّر النسخ من `draft-…` إلى نهائية.
-2. **تأسيس الشركة** ونقل الحسابات باسمها.
-3. **شراء النطاق**، ثم Claude يجهّز Resend وSMTP والقوالب العربية، ويضبط `contact_email` وبريد تنبيه الإدارة.
-4. **حسابات الإنتاج** (Supabase Pro وVercel Pro): مشروع `aqar-prod`، و`db push` لكل التحديثات، و`SITE_STAGE=live`، و`CRON_SECRET`.
-5. **النسخ الاحتياطي** (مفتاحا GitHub) واستعادة تجريبية، وUptimeRobot، وGoogle Search Console.
-6. **المالك:** تفعيل التحقق بخطوتين لحسابه، ثم تشغيل «إلزام المشرفين» في الإعدادات.
-7. **اختبار القبول النهائي** على الهاتف (القائمة في `docs/STAGE-8-LAUNCH.md` المرحلة E).
-
-## 7. بعد الإطلاق
-- SMS.
-- أدوار الموظفين، والإجراءات الجماعية.
+## 6. بعد الإطلاق
+- SMS لتأكيد الهاتف.
+- الاستراحات والشاليهات (إيجار يومي).
+- الدفع الإلكتروني، برصيد مشترك يصلح للموقع الثاني لاحقًا.
+- أدوار الموظفين.
 - طلب موافقة جديدة عند تغيير نسخة الشروط.
 - إحصاءات الزيارات.
 - نسخ ملفات الصور احتياطيًا.
-- شجرة فئات للسيارات وغيرها (10–15 يومًا).
-- إعادة قياس Lighthouse لصفحة الإعلان، واختبار سعة من مصادر متعددة.
+- شجرة الفئات للموقع الثاني.
 
 ---
 
 ## Technical notes for the next session (English)
-- **Stack:** Next.js 16.4 App Router in `web/`. It uses `cacheComponents`, `"use cache"` with tags `listings` and `reference-data`, `proxy.ts`, and `app/[lang]` for languages. Read `web/AGENTS.md` and `node_modules/next/dist/docs` before writing Next code. Also Supabase (RLS everywhere, security-definer functions), Tailwind 4, and Vercel functions pinned to `fra1` (`web/vercel.json`, which also defines the cron).
-- **Migrations:** `web/supabase/migrations`, latest `20261027090200_floors_count.sql`.
-  - Apply with `npx supabase db push`, then `npm run db:types`.
-  - Any new `listings` column needs an explicit `grant select (col)` (column-level grant).
-  - The trigger functions `listings_check_type_rules`, `listings_before_update` (bait-and-switch plus risky-text check), `record_listing_version` and `change_listing_status` were redefined several times. Always copy the **latest** definition before changing one.
-- **Tests:** run from `web/`.
-  - `npm test` (unit), `npx vitest run tests/db`, and `npm run test:smoke` (needs the dev server on port 3000).
-  - DB tests share a limit of 3 new listings per day per user: insert through the service client with `seller_id`.
-  - Every submit in tests must call `declare_listing` first.
+- **Stack:** Next.js 16.4 App Router in `web/` with `cacheComponents` (`"use cache"`, tags `listings`, `reference-data`, `offices`, `listing-<id>`), `proxy.ts`, and `app/[lang]`. Read `web/AGENTS.md` and `node_modules/next/dist/docs` first. Supabase with RLS plus column-level grants everywhere, SECURITY DEFINER functions (`search_path=''`), Tailwind 4, Vercel `fra1`.
+- **Migrations:** `web/supabase/migrations`, latest `20261028091100_saved_searches.sql`.
+  - Run `npx supabase db push`, then `npm run db:types`.
+  - A worktree needs `web/supabase/.temp/*` copied from the main checkout to be linked.
+- **Key tables added this session:**
+  - `listings.featured_until`, `bumped_at`, and `ranked_at` (generated; lists sort by `ranked_at`).
+  - `listing_promotions`.
+  - `office_plans`, `offices`, `office_plan_history`, `office_verifications`, plus the private `office-documents` bucket.
+  - `saved_searches` and `saved_search_hits`.
+  - Settings `max_active_listings_individual` and `price_*`.
+- **Key functions:** `admin_promote_listing`, `admin_set_office_plan`, `admin_review_office_verification`, `admin_set_office_status`, `submit_office_verification`, `active_listing_limit` (the trigger `listings_check_active_limit` fires on every update), `notify_saved_searches` (trigger), `unsubscribe_saved_search`.
+- **`is_admin()`** requires aal2 once the admin has a verified TOTP factor, or always when `require_admin_mfa` is on (it is ON on dev). **Test admins enroll TOTP automatically** through `tests/totp.ts` (`confirmTwoStep`).
+- **Cron jobs:** `/api/cron/cleanup` (01:30 UTC) and `/api/cron/alerts` (06:00 UTC, the e-mail digest, which is skipped until `RESEND_API_KEY` and `EMAIL_FROM` are set). Both use `lib/cron.ts` and need `CRON_SECRET`.
+- **Tests (from `web/`):**
+  - `npm test`
+  - `npx vitest run tests/db`
+  - `SMOKE_BASE_URL=http://localhost:3000 npx vitest run tests/smoke` (needs the dev server)
+  - `node --env-file=.env.local scripts/security-probe.mjs` (attacks staging and the dev database)
+  - `scripts/load-test-data.mjs 1000` and `--remove` (speed-test data)
 - **Gotchas:**
-  - PowerShell garbles Arabic: edit with Python or the Write/Edit tools.
+  - With `cacheComponents` the shell streams first, so a missing listing returns 200 with noindex, and old slugs redirect client-side.
+  - A Postgrest query is thenable: never return it bare from an async function (wrap it, as `applyFilters` does with `{ q }`).
+  - The dev server keeps stale CSS and new files: `rm -rf .next` and restart.
+  - Write Arabic text with Python scripts or the Write tool, not shell heredocs with quotes.
   - Commit with `git commit -F`.
-  - `text[] || 'x'` needs `array_append`.
-  - `supabase db query --linked` can't take multi-line `$$`; flatten it to one line.
-  - The dev server sometimes keeps stale CSS after new theme tokens: restart it.
-  - Load-testing staging triggers Vercel's DDoS challenge on our IP for about an hour.
-- **Local-only secrets:** `web/.env.local` (Supabase keys, `CRON_SECRET`). It is never committed.
+  - Staging reference data is cached for hours; a new deploy refreshes it.
+- **Local-only secrets:** `web/.env.local`. The owner also had `C:\Users\WaelBadawi\Downloads\CRON_SECRET-for-Vercel.txt` and was asked to delete it.
