@@ -1495,6 +1495,100 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_search_hits: {
+        Row: {
+          created_at: string
+          emailed_at: string | null
+          listing_id: number
+          saved_search_id: number
+        }
+        Insert: {
+          created_at?: string
+          emailed_at?: string | null
+          listing_id: number
+          saved_search_id: number
+        }
+        Update: {
+          created_at?: string
+          emailed_at?: string | null
+          listing_id?: number
+          saved_search_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_search_hits_saved_search_id_fkey"
+            columns: ["saved_search_id"]
+            isOneToOne: false
+            referencedRelation: "saved_searches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_searches: {
+        Row: {
+          city_id: number | null
+          created_at: string
+          deal_type: Database["public"]["Enums"]["deal_type"] | null
+          email_enabled: boolean
+          id: number
+          neighborhood_id: number | null
+          property_type_id: number | null
+          unsubscribe_token: string
+          user_id: string
+        }
+        Insert: {
+          city_id?: number | null
+          created_at?: string
+          deal_type?: Database["public"]["Enums"]["deal_type"] | null
+          email_enabled?: boolean
+          id?: never
+          neighborhood_id?: number | null
+          property_type_id?: number | null
+          unsubscribe_token?: string
+          user_id: string
+        }
+        Update: {
+          city_id?: number | null
+          created_at?: string
+          deal_type?: Database["public"]["Enums"]["deal_type"] | null
+          email_enabled?: boolean
+          id?: never
+          neighborhood_id?: number | null
+          property_type_id?: number | null
+          unsubscribe_token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_searches_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_searches_neighborhood_id_fkey"
+            columns: ["neighborhood_id"]
+            isOneToOne: false
+            referencedRelation: "neighborhoods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_searches_property_type_id_fkey"
+            columns: ["property_type_id"]
+            isOneToOne: false
+            referencedRelation: "property_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_searches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           description: string | null
@@ -1766,6 +1860,10 @@ export type Database = {
         Args: { p_object_name: string }
         Returns: boolean
       }
+      can_upload_office_document: {
+        Args: { p_object_name: string }
+        Returns: boolean
+      }
       change_listing_status: {
         Args: {
           p_listing_id: number
@@ -1920,6 +2018,7 @@ export type Database = {
         Returns: number
       }
       text_risk_flags: { Args: { p_text: string }; Returns: string[] }
+      unsubscribe_saved_search: { Args: { p_token: string }; Returns: boolean }
     }
     Enums: {
       account_status: "active" | "suspended" | "deletion_requested" | "deleted"

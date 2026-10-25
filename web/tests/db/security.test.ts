@@ -1220,3 +1220,47 @@ describe("offices: packages, limits and the verified badge", () => {
     }
   });
 });
+
+describe("following similar listings", () => {
+  it("notifies followers once when a matching listing is first published; unsubscribe by token works", async () => {
+    const fan = await createUser("fan");
+    try {
+      // Fan follows Amman / Abdoun apartments for sale; others can't see or touch the follow.
+      const follow = await fan.client
+        .from("saved_searches")
+        .insert({ user_id: fan.id, deal_type: "sale", property_type_id: apartmentTypeId, city_id: cityId, neighborhood_id: neighborhoodId })
+        .select("id, unsubscribe_token")
+        .single();
+      expect(follow.error).toBeNull();
+      expect((await alice.client.from("saved_searches").select("id").eq("id", follow.data!.id)).data ?? []).toHaveLength(0);
+      expect((await fan.client.from("saved_searches").insert({ user_id: alice.id, city_id: cityId })).error).not.toBeNull();
+      const dup = await fan.client
+        .from("saved_searches")
+        .insert({ user_id: fan.id, deal_type: "sale", property_type_id: apartmentTypeId, city_id: cityId, neighborhood_id: neighborhoodId });
+      expect(dup.error?.code).toBe("23505");
+
+      // Bob publishes a matching ad (submit, then an admin approves).
+      const { data: ad } = await service.from("listings").insert({ ...listingInput("Abdoun flat for followers"), seller_id: bob.id }).select("id").single();
+      await makeSubmittable(bob, ad!.id);
+      await bob.client.rpc("declare_listing", { p_listing_id: ad!.id });
+      await bob.client.rpc("change_listing_status", { p_listing_id: ad!.id, p_new_status: "pending_approval" });
+      expect((await admin.client.rpc("change_listing_status", { p_listing_id: ad!.id, p_new_status: "published" })).error).toBeNull();
+
+      const notes = await fan.client.from("notifications").select("type, data").eq("type", "similar_listing");
+      expect(notes.data!.filter((n) => (n.data as { listing_id: number }).listing_id === ad!.id)).toHaveLength(1);
+      const hits = await service.from("saved_search_hits").select("listing_id").eq("saved_search_id", follow.data!.id);
+      expect(hits.data).toEqual([{ listing_id: ad!.id }]);
+      // The pending e-mail queue is server-only.
+      expect((await fan.client.from("saved_search_hits").select("listing_id")).error).not.toBeNull();
+
+      // One-click unsubscribe from the e-mail link, without signing in.
+      expect((await anon.rpc("unsubscribe_saved_search", { p_token: randomUUID() })).data).toBe(false);
+      expect((await anon.rpc("unsubscribe_saved_search", { p_token: follow.data!.unsubscribe_token })).data).toBe(true);
+      expect((await service.from("saved_searches").select("id").eq("id", follow.data!.id)).data ?? []).toHaveLength(0);
+      await service.from("listings").delete().eq("id", ad!.id);
+    } finally {
+      await service.auth.admin.deleteUser(fan.id);
+    }
+  });
+});
+

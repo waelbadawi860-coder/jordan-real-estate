@@ -8,11 +8,13 @@ import { JsonLd } from "@/components/json-ld";
 import { PropertyView } from "@/components/property-view";
 import { listingPath } from "@/lib/paths";
 import { ShareButton } from "@/components/share-button";
+import { FollowSimilar } from "@/components/follow-similar";
+import { SimilarListings } from "@/components/similar-listings";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getSessionUser } from "@/lib/auth";
-import { isFavourite } from "@/lib/data/owner";
-import { getListing, getReferenceData, siteName } from "@/lib/data/public";
+import { getFollowId, isFavourite } from "@/lib/data/owner";
+import { getListing, getReferenceData, getSimilarListings, siteName } from "@/lib/data/public";
 import { publicEnv } from "@/lib/env";
 import { formatPrice, slugify, t } from "@/lib/format";
 
@@ -82,7 +84,12 @@ export default async function PropertyPage({ params }: Props) {
 
   const d = dict.listing;
   const user = await getSessionUser();
-  const saved = user ? await isFavourite(user.id, listing.id) : false;
+  const similarOf = { id: listing.id, dealType: listing.dealType, typeId: listing.typeId, cityId: listing.cityId, neighborhoodId: listing.neighborhoodId };
+  const [saved, followId, similar] = await Promise.all([
+    user ? isFavourite(user.id, listing.id) : false,
+    user ? getFollowId(user.id, similarOf) : null,
+    getSimilarListings(similarOf),
+  ]);
 
   const canonical = `${publicEnv.NEXT_PUBLIC_SITE_URL}${listingPath(lang, listing.id, listing.title)}`;
   const structured = {
@@ -158,6 +165,30 @@ export default async function PropertyPage({ params }: Props) {
             {d.report}
           </Link>
         </div>
+      }
+    />
+    <SimilarListings
+      listings={similar}
+      locale={lang}
+      title={d.similarTitle}
+      currency={dict.common.currency}
+      perMonth={d.perMonth}
+      noPhoto={d.noPhoto}
+      action={
+        <FollowSimilar
+          listingId={listing.id}
+          initialId={followId}
+          signedIn={Boolean(user)}
+          loginHref={`${localePath(lang, "/login")}?next=${encodeURIComponent(listingPath(lang, listing.id, listing.title))}`}
+          text={{
+            follow: d.followSimilar,
+            following: d.followingSimilar,
+            unfollow: d.unfollowSimilar,
+            limit: d.followLimit,
+            error: d.followError,
+            hint: d.followHint,
+          }}
+        />
       }
     />
     </>

@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import { connection, NextResponse } from "next/server";
+import { cronAuthorized } from "@/lib/cron";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Daily photo clean-up, called by Vercel Cron (see vercel.json). Vercel sends
@@ -7,18 +7,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // job refuses to run. Removes orphaned uploads, stray public copies, and photo
 // files of ads that left the site longer ago than the retention period.
 
-function authorized(header: string | null): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || secret.length < 16 || !header) return false;
-  const expected = Buffer.from(`Bearer ${secret}`);
-  const given = Buffer.from(header);
-  return given.length === expected.length && timingSafeEqual(given, expected);
-}
-
 export async function GET(request: Request) {
   await connection();
   if (!process.env.CRON_SECRET) return NextResponse.json({ ok: false, error: "not_configured" }, { status: 503 });
-  if (!authorized(request.headers.get("authorization"))) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!cronAuthorized(request.headers.get("authorization"))) return NextResponse.json({ ok: false }, { status: 401 });
 
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("photo_cleanup_candidates", { p_limit: 1000 });

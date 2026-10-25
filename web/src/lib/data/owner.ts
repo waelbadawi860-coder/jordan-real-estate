@@ -194,3 +194,21 @@ export async function isFavourite(userId: string, listingId: number): Promise<bo
   return Boolean(data);
 }
 
+/** The user's follow of this deal/type/governorate/area combination, if any. */
+export async function getFollowId(
+  userId: string,
+  c: { dealType: "sale" | "rent"; typeId: number; cityId: number; neighborhoodId: number | null },
+): Promise<number | null> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("saved_searches")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("deal_type", c.dealType)
+    .eq("property_type_id", c.typeId)
+    .eq("city_id", c.cityId);
+  query = c.neighborhoodId === null ? query.is("neighborhood_id", null) : query.eq("neighborhood_id", c.neighborhoodId);
+  const { data } = await query.maybeSingle();
+  return data?.id ?? null;
+}
+

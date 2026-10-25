@@ -109,6 +109,9 @@ export type ListingCard = {
   /** A paid "featured" promotion is running. */
   featured: boolean;
   sellerId: string;
+  typeId: number;
+  cityId: number;
+  neighborhoodId: number | null;
   /** The seller's office, when it has one ("verified" = documents checked). */
   office?: { id: number; name: string; verified: boolean } | null;
 };
@@ -166,6 +169,9 @@ export function toCard(row: CardRow, ref: ReferenceData): ListingCard {
     imageUrl: image ? publicImageUrl(image.thumb_path ?? image.storage_path) : null,
     featured: !!row.featured_until && Date.parse(row.featured_until) > Date.now(),
     sellerId: row.seller_id ?? "",
+    typeId: row.property_type_id,
+    cityId: row.city_id,
+    neighborhoodId: row.neighborhood_id,
   };
 }
 
@@ -270,6 +276,39 @@ export async function getSellerListings(sellerId: string): Promise<ListingCard[]
     .limit(100);
   if (error) throw new Error(`Seller listings failed: ${error.message}`);
   return withOffices(((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref)));
+}
+
+/**
+ * Listings like this one: same deal and property type, from the same area
+ * first, then the rest of the governorate. Newest (or moved up) first.
+ */
+export async function getSimilarListings(
+  listing: { id: number; dealType: "sale" | "rent"; typeId: number; cityId: number; neighborhoodId: number | null },
+  limit = 6,
+): Promise<ListingCard[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("listings", "offices");
+  const ref = await getReferenceData();
+  const base = () =>
+    publishedListings()
+      .eq("deal_type", listing.dealType)
+      .eq("property_type_id", listing.typeId)
+      .eq("city_id", listing.cityId)
+      .neq("id", listing.id);
+  const rows: CardRow[] = [];
+  if (listing.neighborhoodId !== null) {
+    const { data } = await base().eq("neighborhood_id", listing.neighborhoodId).order("ranked_at", { ascending: false }).limit(limit);
+    rows.push(...((data ?? []) as unknown as CardRow[]));
+  }
+  if (rows.length < limit) {
+    const { data } = await base()
+      .not("id", "in", `(${[listing.id, ...rows.map((r) => r.id)].join(",")})`)
+      .order("ranked_at", { ascending: false })
+      .limit(limit - rows.length);
+    rows.push(...((data ?? []) as unknown as CardRow[]));
+  }
+  return withOffices(rows.map((row) => toCard(row, ref)));
 }
 
 export async function searchListings(filters: SearchFilters, cursor: Cursor | null): Promise<ListingPage> {

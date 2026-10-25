@@ -1,4 +1,4 @@
-import { Bell, Building2, Gauge, HandCoins, Heart, LayoutList, ShieldCheck, UserRound } from "lucide-react";
+import { Bell, BellRing, Building2, Gauge, HandCoins, Heart, LayoutList, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
@@ -22,6 +22,7 @@ export default async function MyLayout({ children, params }: LayoutProps<"/[lang
     { href: "/my/listings", label: dict.account.navListings, icon: LayoutList },
     { href: "/my/favourites", label: dict.account.navFavourites, icon: Heart },
     { href: "/my/office", label: dict.office.nav, icon: Building2 },
+    { href: "/my/follows", label: dict.follows.nav, icon: BellRing },
     ...(showCommissions ? [{ href: "/my/commissions", label: dict.commission.nav, icon: HandCoins }] : []),
     { href: "/my/notifications", label: dict.notifications.title, icon: Bell },
     { href: "/my/account", label: dict.account.navAccount, icon: UserRound },

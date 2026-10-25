@@ -46,6 +46,7 @@ Vercel's free Hobby plan is for non-commercial use — fine for a private test c
    - `NEXT_PUBLIC_SITE_URL` = `https://www.yourname.com`
    - `SITE_STAGE` = `live`
    - Map variables only if a provider was chosen.
+   - `RESEND_API_KEY` (secret) and `EMAIL_FROM` = `عقار <no-reply@yourname.com>` — turns on the daily "similar listings" e-mail digest (without them only in-site notifications are sent).
    - `CRON_SECRET` = a random text of 32+ characters (Vercel → Settings → Environment Variables, type Secret). Without it the daily photo clean-up refuses to run.
 5. **Domain → Vercel (you + Claude):** Vercel → Project → Settings → Domains → add `www.yourname.com` and `yourname.com` (redirect to www) → copy the DNS records into Cloudflare (DNS only / grey cloud). Expected: "Valid Configuration" and an automatic HTTPS certificate.
 
