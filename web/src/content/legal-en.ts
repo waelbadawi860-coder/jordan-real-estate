@@ -29,6 +29,7 @@ export const legalEn: LegalDocs = {
           "You must be at least 18 and legally able to enter into contracts.",
           "You must give true information and keep it up to date, keep your password secret, and you are responsible for everything done through your account.",
           "You may not create several accounts to get round limits or after a suspension, or impersonate any person or organisation.",
+          "Without our written permission, you may not use automated programs or tools to post or edit ads or to collect ads and site data, run security scans or attempt to break into the site, or load its servers beyond normal use.",
         ],
       },
       {
@@ -179,7 +180,7 @@ export const legalEn: LegalDocs = {
         h: "8. Your rights",
         p: [
           "You may access, correct and ask to delete your data, object to its processing, and withdraw consent where processing is based on consent. You can change most of your data in \"My account\" and request account deletion there, or write to {email} with \"Privacy request\". We answer within [30] days.",
-          "You have the right to complain to the competent personal data protection authority in Jordan.",
+          "You have the right to complain to the regulatory unit for personal data protection at the Ministry of Digital Economy and Entrepreneurship. [The lawyer confirms the authority's name.]",
         ],
       },
       {
@@ -225,8 +226,10 @@ export const legalEn: LegalDocs = {
         list: [
           "Fake or misleading ads, or any unreal price to attract attention.",
           "Asking for a deposit, payment or money transfer before a viewing, or any payment request outside normal direct dealings.",
-          "External links, phone numbers or e-mail addresses inside the title or description. Contact happens through the site's buttons only.",
+          "External links, phone numbers or e-mail addresses in the title or description or written on the photos. Contact happens through the site's buttons only.",
           "Repeating the same ad or re-posting an ad removed for a breach.",
+          "Deleting and re-posting an ad to bring it back to the top. The \"Move to top\" service exists for that.",
+          "Offering more than one property in one ad, or changing a published ad into a different property. Each property gets its own ad.",
           "Illegal properties or dealings, or ads without the legal standing to offer the property, including land or units that cannot legally be sold or subdivided, and off-plan sales in breach of the regulations.",
           "Interior photos or the exact position of an occupied property without the occupant's consent.",
           "Offensive, discriminatory or hateful content, or content that breaches others' privacy or rights.",
@@ -283,7 +286,8 @@ export const legalEn: LegalDocs = {
       {
         h: "6. Copyright and impersonation",
         p: [
-          "If your photos, details, name or office name were published without permission, write to {email} with the ad number and proof of your right. We pause the ad within [24] hours of a complete report and let the advertiser respond.",
+          "If your photos, details, name or office name were published without permission, write to {email}. A complete report includes: your name and contact details, the ad number or link, the content you hold rights to and proof of it, and your statement that the information is true, that you hold the right or are authorised by its holder, and that you believe in good faith the content was published without permission.",
+          "We pause the ad within [24] hours of a complete report and let the advertiser respond. A false report of this kind may expose its sender to legal liability.",
         ],
       },
       {

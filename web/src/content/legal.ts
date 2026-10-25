@@ -8,7 +8,7 @@ export type LegalDoc = { title: string; intro: string; sections: LegalSection[] 
 export type LegalDocs = Record<LegalSlug, LegalDoc>;
 
 /** Date the current wording was last changed (shown on the page). */
-export const LEGAL_UPDATED = "2026-10-20";
+export const LEGAL_UPDATED = "2026-10-25";
 
 /** Which site setting holds each document's version (the posting and reporting policies are part of the terms). */
 export const LEGAL_VERSION_SETTING: Record<LegalSlug, "terms_version" | "privacy_version"> = {
