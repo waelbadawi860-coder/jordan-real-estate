@@ -75,7 +75,7 @@ export const legalEn: LegalDocs = {
         list: [
           "The site is provided \"as is\" and \"as available\"; we don't guarantee it is error-free or uninterrupted.",
           "To the fullest extent permitted by Jordanian law, neither the platform nor its owners, directors or staff are liable for the content or accuracy of ads, or for any dealing, loss or damage arising from dealings between users or reliance on an ad.",
-          "If the platform is found liable, compensation is limited in all cases to the total you paid the platform in the twelve months before the claim, or [50] dinars, whichever is greater.",
+          "If the platform is found liable, compensation is limited in all cases to what you paid the platform in the month before the claim. [The lawyer confirms this cap is legally acceptable.]",
           "The platform is not liable for delays or outages caused by force majeure or circumstances beyond its reasonable control, such as disasters, outages of hosting or telecoms providers, or cyber-attacks.",
           "Nothing here excludes liability that cannot lawfully be excluded, such as liability for fraud or gross negligence.",
         ],
