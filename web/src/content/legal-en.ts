@@ -75,6 +75,8 @@ export const legalEn: LegalDocs = {
         list: [
           "The site is provided \"as is\" and \"as available\"; we don't guarantee it is error-free or uninterrupted.",
           "To the fullest extent permitted by Jordanian law, neither the platform nor its owners, directors or staff are liable for the content or accuracy of ads, or for any dealing, loss or damage arising from dealings between users or reliance on an ad.",
+          "If the platform is found liable, compensation is limited in all cases to the total you paid the platform in the twelve months before the claim, or [50] dinars, whichever is greater.",
+          "The platform is not liable for delays or outages caused by force majeure or circumstances beyond its reasonable control, such as disasters, outages of hosting or telecoms providers, or cyber-attacks.",
           "Nothing here excludes liability that cannot lawfully be excluded, such as liability for fraud or gross negligence.",
         ],
       },
@@ -97,7 +99,7 @@ export const legalEn: LegalDocs = {
       {
         h: "13. Changes to these terms",
         p: [
-          "We may change these terms. The version and date appear at the top of the page. We tell you about material changes by e-mail or a notice on the site [7] days before they take effect, and ask you to accept the new version before you continue using account features.",
+          "We may change these terms. The version and date appear at the top of the page. We tell you about material changes by e-mail or a notice on the site [7] days before they take effect, and ask you to accept the new version before you continue using account features. For non-material changes, continuing to use the platform after they are published means you accept them.",
         ],
       },
       {
@@ -153,7 +155,7 @@ export const legalEn: LegalDocs = {
         h: "5. Who we share data with",
         list: [
           "Service providers that run the site for us under data processing agreements: Supabase (database, files and sign-in; servers in Frankfurt, Germany), Vercel (hosting), Resend (e-mail delivery) and Cloudflare (protection and domain names).",
-          "Competent judicial or security authorities upon a request issued in accordance with the law, or to protect the rights of users or the platform.",
+          "Competent judicial or security authorities upon a request issued in accordance with the law, to prevent fraud, or to protect the rights of users or the platform.",
           "We never sell or rent your data.",
         ],
       },
@@ -205,15 +207,16 @@ export const legalEn: LegalDocs = {
         list: [
           "The property owner, or a person properly authorised by the owner (such as a licensed broker or real-estate office), who chooses their role accurately when posting.",
           "If you post as a broker or office, you must give the office name and its valid licence number issued by the Department of Lands and Survey. Unlicensed people may not offer others' properties for a fee.",
-          "One account per person or organisation, and one ad per property.",
+          "One account per person or organisation, and one ad per property. If several brokers post the same property, the platform may keep the ad of the one holding the owner's written authorisation (or the oldest, if this cannot be checked) and remove the others.",
         ],
       },
       {
         h: "2. Ad requirements",
         list: [
-          "A real property that is actually available, at the stated location, at its real price in Jordanian dinars.",
+          "A real property inside the Hashemite Kingdom of Jordan that is actually available, at the stated location, at its real price in Jordanian dinars.",
+          "A property under construction (off-plan sale) must say so clearly in the title or description, with the expected delivery date, and comply with the regulations.",
           "A clear title and description that match the property, and the correct property type (land must not be listed as a flat, for example).",
-          "Real photos of the property itself that you took or have the right to use; no photos from other ads or the internet, and no photos clearly showing people's faces, personal data or number plates.",
+          "Real photos of the property itself that you took or have the right to use; no photos from other ads or the internet, no photos with logos or watermarks of other platforms or offices, and no photos clearly showing people's faces, personal data or number plates.",
           "Update or withdraw the ad as soon as the property is sold or rented or any detail changes.",
         ],
       },
@@ -265,7 +268,7 @@ export const legalEn: LegalDocs = {
       },
       {
         h: "3. Objections",
-        p: ["If your ad was rejected or removed and you think it was a mistake, write to {email} with the ad number and your explanation, and we will review the decision."],
+        p: ["If your ad was rejected or removed and you think it was a mistake, write to {email} with the ad number and your explanation within [14] days of being told of the decision, and we will review it."],
       },
       {
         h: "4. False reports",
@@ -287,7 +290,7 @@ export const legalEn: LegalDocs = {
         h: "7. Evidence and requests from authorities",
         p: [
           "When an ad is removed on suspicion of a crime, we keep a copy of it and the related records to provide to the competent authorities on request.",
-          "We handle requests from the public prosecution, courts or competent security authorities in accordance with the law, via {email}, and remove or block content at once when a competent order is issued.",
+          "We handle requests from the public prosecution, courts or competent security authorities in accordance with the law, via {email} [or a dedicated address for authorities], and remove or block content at once when a competent order is issued.",
         ],
       },
     ],
