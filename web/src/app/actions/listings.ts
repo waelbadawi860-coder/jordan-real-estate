@@ -49,6 +49,7 @@ function dbErrorKey(error: { code?: string; message?: string } | null): string {
     "agreement_required",
     "transaction_details_required",
     "declaration_required",
+    "terms_consent_required",
     "phone_blocked",
   ]) {
     if (message.includes(key)) return key;

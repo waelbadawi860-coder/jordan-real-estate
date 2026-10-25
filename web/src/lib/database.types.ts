@@ -1628,6 +1628,7 @@ export type Database = {
         Row: {
           accepted_at: string
           document: string
+          evidence: Json
           id: number
           user_id: string
           version: string
@@ -1635,6 +1636,7 @@ export type Database = {
         Insert: {
           accepted_at?: string
           document: string
+          evidence?: Json
           id?: never
           user_id?: string
           version: string
@@ -1642,6 +1644,7 @@ export type Database = {
         Update: {
           accepted_at?: string
           document?: string
+          evidence?: Json
           id?: never
           user_id?: string
           version?: string
@@ -1726,6 +1729,7 @@ export type Database = {
         Args: { p_evidence?: Json; p_listing_id: number }
         Returns: number
       }
+      accept_current_terms: { Args: { p_evidence?: Json }; Returns: number }
       active_listing_limit: { Args: { p_user_id: string }; Returns: number }
       admin_anonymize_user: {
         Args: { p_reason: string; p_user_id: string }
@@ -1954,6 +1958,13 @@ export type Database = {
         Returns: undefined
       }
       owns_listing: { Args: { p_listing_id: number }; Returns: boolean }
+      pending_consents: {
+        Args: never
+        Returns: {
+          document: string
+          version: string
+        }[]
+      }
       photo_cleanup_candidates: {
         Args: { p_limit?: number }
         Returns: {

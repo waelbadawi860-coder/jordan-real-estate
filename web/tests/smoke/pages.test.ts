@@ -46,6 +46,8 @@ beforeAll(async () => {
   if (signIn.error) throw signIn.error;
   accessToken = signIn.data.session!.access_token;
   cookie = jar.map((c) => `${c.name}=${c.value}`).join("; ");
+  const consent = await ssr.rpc("accept_current_terms");
+  if (consent.error) throw consent.error;
 
   const [{ data: city }, { data: type }] = await Promise.all([
     service.from("cities").select("id").eq("slug", "amman").single(),
@@ -110,6 +112,32 @@ describe("logged-in pages", () => {
   it("show the add-property form and favourites", async () => {
     expect((await get("/post")).status).toBe(200);
     expect((await get("/my/favourites")).status).toBe(200);
+  });
+
+  it("ask for agreement again when the terms changed, then return to the page", async () => {
+    // Same as a raised terms version: the latest agreement no longer matches.
+    await service.from("user_consents").delete().eq("user_id", userId);
+    for (const path of ["/my/listings", "/post", "/en/my/account"]) {
+      const res = await get(path);
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toContain("/accept-terms?next=");
+    }
+    const page = await get(`/accept-terms?next=${encodeURIComponent("/post")}`);
+    expect(page.status).toBe(200);
+    const html = await page.text();
+    expect(html).toContain("أوافق وأتابع");
+    expect(html).toContain('href="/terms"');
+    expect(html).toContain('href="/privacy"');
+
+    const user = createClient(url, publishableKey, {
+      auth: { persistSession: false },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    });
+    expect((await user.rpc("accept_current_terms")).data).toBe(2);
+    expect((await get("/my/listings")).status).toBe(200);
+    const done = await get(`/accept-terms?next=${encodeURIComponent("/post")}`);
+    expect(done.status).toBe(307);
+    expect(done.headers.get("location")).toContain("/post");
   });
 
   it("redirect logged-in users away from the login page", async () => {

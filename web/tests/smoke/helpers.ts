@@ -35,6 +35,8 @@ export async function createTestSession(label: string, role: "user" | "admin" = 
   const signIn = await ssr.auth.signInWithPassword({ email, password });
   if (signIn.error) throw signIn.error;
   if (role === "admin") await confirmTwoStep(ssr);
+  const consent = await ssr.rpc("accept_current_terms");
+  if (consent.error) throw consent.error;
   const { data: session } = await ssr.auth.getSession();
   return {
     userId,

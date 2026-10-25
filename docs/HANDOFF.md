@@ -1,6 +1,6 @@
 # ملخص المشروع للانتقال إلى محادثة جديدة — منصة «عقار»
 
-آخر تحديث: 25 تشرين الأول 2026 · آخر تعديل في الكود: `cbff7cb` (فرع `main`)
+آخر تحديث: 25 تشرين الأول 2026 · آخر تعديل في الكود: «إعادة الموافقة على الشروط»
 
 > **للبدء في محادثة جديدة:** افتح المشروع في المجلد نفسه، والصق هذه الرسالة:
 > «أكمل العمل على منصة عقار. اقرأ أولًا `docs/HANDOFF.md`.»
@@ -57,13 +57,16 @@
 - الصفحات الأربع حدّثت حسب المراجعة القانونية، نسخة `draft-2026-10-25`.
 - المراجعة كاملة في `docs/LEGAL-REVIEW-2026-10.md`.
 - صفحة «سياسة العمولة» حُذفت.
+- **إعادة الموافقة عند تغيير الشروط:** عندما يرفع المشرف رقم نسخة الشروط أو سياسة الخصوصية من الإعدادات، يُطلب من كل مستخدم الموافقة على النص الجديد قبل استخدام صفحات حسابه أو نشر إعلان. تُحفظ الموافقة مع بصمة مجهولة للجهاز ونوع المتصفح. إذا لم يوافق يستطيع تسجيل الخروج أو طلب حذف حسابه.
+  - **مهم:** ارفع رقم النسخة فقط عند تغيير جوهري. تصحيح خطأ إملائي لا يحتاج نسخة جديدة.
+  - عند تحويل النسخ من `draft-…` إلى نهائية بعد المحامي، سيُطلب من كل المستخدمين الموافقة مرة أخرى، وهذا مقصود.
 
 **الأمان والسرعة**
 - فحص اختراق آلي (75 محاولة) ناجح بالكامل.
 - مراجعة كود كاملة، وأُصلحت ثغراتها.
 - **سرعة الهاتف** مع 1000 إعلان: الصفحة الرئيسية 99–100، والبحث 98، والإعلان 94–97. وقاعدة البيانات تجيب في 3ms.
 
-**الاختبارات:** 48 وحدة، و93 قاعدة بيانات، و51 موقع، وكلها ناجحة.
+**الاختبارات:** 48 وحدة، و95 قاعدة بيانات، و52 موقع، وكلها ناجحة.
 
 ## 4. قرارات المالك
 - لا عمولة. الدخل من التمييز والرفع والباقات والتوثيق.
@@ -90,7 +93,6 @@
 - الاستراحات والشاليهات (إيجار يومي).
 - الدفع الإلكتروني، برصيد مشترك يصلح للموقع الثاني لاحقًا.
 - أدوار الموظفين.
-- طلب موافقة جديدة عند تغيير نسخة الشروط.
 - إحصاءات الزيارات.
 - نسخ ملفات الصور احتياطيًا.
 - شجرة الفئات للموقع الثاني.
@@ -99,7 +101,7 @@
 
 ## Technical notes for the next session (English)
 - **Stack:** Next.js 16.4 App Router in `web/` with `cacheComponents` (`"use cache"`, tags `listings`, `reference-data`, `offices`, `listing-<id>`), `proxy.ts`, and `app/[lang]`. Read `web/AGENTS.md` and `node_modules/next/dist/docs` first. Supabase with RLS plus column-level grants everywhere, SECURITY DEFINER functions (`search_path=''`), Tailwind 4, Vercel `fra1`.
-- **Migrations:** `web/supabase/migrations`, latest `20261028091100_saved_searches.sql`.
+- **Migrations:** `web/supabase/migrations`, latest `20261029090000_terms_reconsent.sql`.
   - Run `npx supabase db push`, then `npm run db:types`.
   - A worktree needs `web/supabase/.temp/*` copied from the main checkout to be linked.
 - **Key tables added this session:**
@@ -108,6 +110,7 @@
   - `office_plans`, `offices`, `office_plan_history`, `office_verifications`, plus the private `office-documents` bucket.
   - `saved_searches` and `saved_search_hits`.
   - Settings `max_active_listings_individual` and `price_*`.
+- **Re-consent:** `pending_consents()` / `accept_current_terms(p_evidence)`; users can no longer insert into `user_consents` directly. `requireCurrentConsent()` (`lib/consent.ts`) gates `/my/*` and `/post`, redirecting to `/accept-terms?next=`. Trigger `listings_require_current_terms` blocks seller submissions while a consent is pending (`terms_consent_required`). Test helpers call `accept_current_terms` after sign-in.
 - **Key functions:** `admin_promote_listing`, `admin_set_office_plan`, `admin_review_office_verification`, `admin_set_office_status`, `submit_office_verification`, `active_listing_limit` (the trigger `listings_check_active_limit` fires on every update), `notify_saved_searches` (trigger), `unsubscribe_saved_search`.
 - **`is_admin()`** requires aal2 once the admin has a verified TOTP factor, or always when `require_admin_mfa` is on (it is ON on dev). **Test admins enroll TOTP automatically** through `tests/totp.ts` (`confirmTwoStep`).
 - **Cron jobs:** `/api/cron/cleanup` (01:30 UTC) and `/api/cron/alerts` (06:00 UTC, the e-mail digest, which is skipped until `RESEND_API_KEY` and `EMAIL_FROM` are set). Both use `lib/cron.ts` and need `CRON_SECRET`.

@@ -42,6 +42,8 @@ async function createUser(name: string): Promise<TestUser> {
   const client = createClient(url, publishableKey, noSession);
   const { error: signInError } = await client.auth.signInWithPassword({ email, password });
   if (signInError) throw signInError;
+  const consent = await client.rpc("accept_current_terms");
+  if (consent.error) throw consent.error;
   return { id: data.user.id, email, client };
 }
 
@@ -922,6 +924,57 @@ describe("seller declaration", () => {
     expect(upd.error?.message).toContain("record_is_permanent");
     const direct = await bob.client.from("listing_declarations").insert({ listing_id: listingId, seller_id: bob.id, version: "x" });
     expect(direct.error).not.toBeNull();
+  });
+});
+
+describe("agreeing again to changed terms", () => {
+  it("a new terms version blocks submissions until the user accepts it; versions come from the database", async () => {
+    const dana = await createUser("reconsent");
+    const { data: setting } = await service.from("site_settings").select("value").eq("key", "terms_version").single();
+    try {
+      // Users can't write consent rows themselves (they could pick any version).
+      const direct = await dana.client.from("user_consents").insert({ document: "terms", version: "forged" });
+      expect(direct.error).not.toBeNull();
+      expect((await dana.client.rpc("pending_consents")).data).toEqual([]);
+
+      const { data: listing, error } = await service
+        .from("listings")
+        .insert({ ...listingInput("Reconsent test flat"), seller_id: dana.id })
+        .select("id")
+        .single();
+      if (error) throw error;
+      await makeSubmittable(dana, listing.id);
+
+      const raised = `test-${runId}`;
+      await service.from("site_settings").update({ value: raised }).eq("key", "terms_version");
+      expect((await dana.client.rpc("pending_consents")).data).toEqual([{ document: "terms", version: raised }]);
+
+      await dana.client.rpc("declare_listing", { p_listing_id: listing.id });
+      const blocked = await dana.client.rpc("change_listing_status", { p_listing_id: listing.id, p_new_status: "pending_approval" });
+      expect(blocked.error?.message).toContain("terms_consent_required");
+
+      const accepted = await dana.client.rpc("accept_current_terms", { p_evidence: { ip_hash: "test" } });
+      expect(accepted.data).toBe(1);
+      expect((await dana.client.rpc("accept_current_terms")).data).toBe(0);
+      const { data: rows } = await dana.client
+        .from("user_consents")
+        .select("document, version, evidence")
+        .order("id", { ascending: false })
+        .limit(1);
+      expect(rows).toEqual([{ document: "terms", version: raised, evidence: { ip_hash: "test" } }]);
+
+      const submit = await dana.client.rpc("change_listing_status", { p_listing_id: listing.id, p_new_status: "pending_approval" });
+      expect(submit.error).toBeNull();
+    } finally {
+      await service.from("site_settings").update({ value: setting!.value }).eq("key", "terms_version");
+      await service.from("listings").delete().eq("seller_id", dana.id);
+      await service.auth.admin.deleteUser(dana.id);
+    }
+  });
+
+  it("visitors who aren't signed in have nothing to accept and can't record anything", async () => {
+    expect((await anon.rpc("accept_current_terms")).error).not.toBeNull();
+    expect((await anon.rpc("pending_consents")).error).not.toBeNull();
   });
 });
 

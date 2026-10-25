@@ -1,6 +1,5 @@
 import "server-only";
-import { headers } from "next/headers";
-import { visitorKey } from "@/lib/rate-limit";
+import { requestEvidence } from "@/lib/consent";
 import type { createClient } from "@/lib/supabase/server";
 
 /**
@@ -9,8 +8,5 @@ import type { createClient } from "@/lib/supabase/server";
  * seller's submission without a fresh declaration.
  */
 export async function recordDeclaration(supabase: Awaited<ReturnType<typeof createClient>>, listingId: number) {
-  const h = await headers();
-  // Anonymous IP fingerprint and browser name; no raw IP is stored.
-  const evidence = { ip_hash: await visitorKey(), user_agent: (h.get("user-agent") ?? "").slice(0, 200) };
-  return supabase.rpc("declare_listing", { p_listing_id: listingId, p_evidence: evidence });
+  return supabase.rpc("declare_listing", { p_listing_id: listingId, p_evidence: await requestEvidence() });
 }

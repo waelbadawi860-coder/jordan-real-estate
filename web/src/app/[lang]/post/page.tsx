@@ -6,6 +6,7 @@ import { ListingForm } from "@/components/listing-form";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getOwnProfile, requireUser } from "@/lib/auth";
+import { requireCurrentConsent } from "@/lib/consent";
 import { getReferenceData } from "@/lib/data/public";
 import { displayPhone, t } from "@/lib/format";
 
@@ -21,6 +22,7 @@ export default async function PostPage({ params }: PageProps<"/[lang]/post">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   await requireUser(lang, "/post");
+  await requireCurrentConsent(lang, "/post");
   const [dict, ref, profile] = await Promise.all([getDictionary(lang), getReferenceData(), getOwnProfile()]);
   const amman = ref.cities.find((c) => c.slug === "amman");
 

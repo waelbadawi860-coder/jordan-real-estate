@@ -263,7 +263,8 @@
       "typeNotForDeal": "This type isn't available for the chosen deal.",
       "declarationRequired": "You must accept the seller declaration before submitting.",
       "phoneBlocked": "This phone number can't be used. Contact us if you think this is a mistake.",
-      "activeLimitReached": "You have reached the maximum number of active listings. Withdraw a listing, or subscribe to an office package in “My office” to raise the limit."
+      "activeLimitReached": "You have reached the maximum number of active listings. Withdraw a listing, or subscribe to an office package in “My office” to raise the limit.",
+      "termsConsentRequired": "You must accept the updated terms first. Open “My listings” to read and accept them."
     },
     "floorsCount": "Number of floors",
     "neighborhoodCityFirst": "Choose the governorate first",
@@ -1189,5 +1190,15 @@
     "emailIntro": "New listings matching what you follow were published:",
     "emailUnsubscribe": "Stop following these listings",
     "emailManage": "Manage all follows"
+  },
+  "consent": {
+    "title": "Updated terms and privacy policy",
+    "intro": "We changed the documents below since you last agreed. Please read them, then accept them to keep using your account.",
+    "version": "(version {v})",
+    "checkbox": "I have read the updated documents and agree to them.",
+    "accept": "Agree and continue",
+    "required": "Tick the agreement box to continue.",
+    "failed": "Something went wrong. Please try again.",
+    "decline": "If you don't agree, you can't post ads or use your account pages. You can sign out, or request deletion of your account."
   }
 }

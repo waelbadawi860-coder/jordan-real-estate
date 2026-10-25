@@ -6,6 +6,7 @@ import { safeNextPath } from "@/lib/auth";
 import { withinVisitorLimit } from "@/lib/rate-limit";
 import { publicEnv } from "@/lib/env";
 import { isBlocked } from "@/lib/blocklist";
+import { requestEvidence } from "@/lib/consent";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { emailSchema, loginSchema, passwordSchema, registerSchema } from "@/lib/validation/auth";
@@ -101,9 +102,10 @@ export async function registerAction(_prev: AuthFormState, formData: FormData): 
       .select("key, value")
       .in("key", ["terms_version", "privacy_version"]);
     const version = (key: string) => String(versions?.find((v) => v.key === key)?.value ?? "unknown");
+    const evidence = await requestEvidence();
     const { error: consentError } = await admin.from("user_consents").insert([
-      { user_id: data.user.id, document: "terms", version: version("terms_version") },
-      { user_id: data.user.id, document: "privacy", version: version("privacy_version") },
+      { user_id: data.user.id, document: "terms", version: version("terms_version"), evidence },
+      { user_id: data.user.id, document: "privacy", version: version("privacy_version"), evidence },
     ]);
     if (consentError) console.error("Recording consent failed", { message: consentError.message });
   }

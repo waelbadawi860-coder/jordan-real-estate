@@ -5,6 +5,7 @@ import { logoutAction } from "@/app/actions/auth";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getOwnProfile, requireUser } from "@/lib/auth";
+import { requireCurrentConsent } from "@/lib/consent";
 import { hasAnyCommission, isCommissionEnabled } from "@/lib/data/commission";
 
 // Everything under /my is private: the server checks the login on every
@@ -15,6 +16,7 @@ export default async function MyLayout({ children, params }: LayoutProps<"/[lang
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const user = await requireUser(lang, "/my/listings");
+  await requireCurrentConsent(lang, "/my/listings");
   const [dict, profile, hasCommissions] = await Promise.all([getDictionary(lang), getOwnProfile(), hasAnyCommission(user.id)]);
   const showCommissions = hasCommissions || (await isCommissionEnabled());
 

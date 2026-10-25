@@ -25,6 +25,8 @@ async function createUser(name: string, role: "user" | "admin" = "user"): Promis
   const signIn = await client.auth.signInWithPassword({ email, password });
   if (signIn.error) throw signIn.error;
   if (role === "admin") await confirmTwoStep(client);
+  const consent = await client.rpc("accept_current_terms");
+  if (consent.error) throw consent.error;
   return { id: data.user.id, client };
 }
 
