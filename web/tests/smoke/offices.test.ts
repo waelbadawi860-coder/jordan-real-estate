@@ -55,7 +55,7 @@ describe("offices", () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain(officeName);
-    expect(html).toContain("لا تعني ضماناً");
+    expect(html).toContain("لا تعني الشارة أن المنصة تضمن");
     expect((await get("/office/999999999")).status).toBe(404);
   });
 

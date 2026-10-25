@@ -45,10 +45,11 @@ export const legalEn: LegalDocs = {
       {
         h: "5. Review and moderation",
         list: [
-          "The platform may review ads before or after publication, manually or with automated tools. The review only checks compliance with the Posting Policy; it does not mean the platform verified the details, the advertiser's ownership or capacity, or that it recommends or guarantees the ad.",
-          "The platform may, without being obliged to, reject, hold, remove or ask for changes to any ad, and suspend or close accounts, for breaches of these terms or policies, suspected fraud, a report, or a request from a competent authority.",
-          "Editing a published ad sends it back for review. Ads expire automatically after the period shown on the site and can be renewed.",
-          "The platform keeps a record of ad creation, edits and actions taken, as described in the Privacy Policy.",
+          "The platform may review ads before or after publishing, manually or with automated tools. The review only checks compliance with the Posting Policy; it does not mean the platform verified the details, the advertiser's ownership or role, nor that it recommends or guarantees the ad.",
+          "The platform may, without being obliged to, refuse, pause, remove or ask to change any ad, and suspend or close accounts, for breaches of the terms or policies, suspected fraud, or following a report or a request from a competent authority.",
+          "The platform may disclose data and records relating to an ad or account to the competent judicial or security authorities, upon a request issued in accordance with the law.",
+          "Editing a published ad sends it back to review. Ads end automatically after the period shown on the site and can be renewed.",
+          "The platform keeps a record of ad creation, edits and actions taken on them, for the periods set out in the Privacy Policy.",
         ],
       },
       {
@@ -65,8 +66,8 @@ export const legalEn: LegalDocs = {
       {
         h: "8. Intellectual property",
         p: [
-          "You keep the rights in the content you post, or they stay with their owners. By posting you grant the platform a free, non-exclusive licence to display, copy, resize and format the content as needed to run the site, show the ad and promote the site, while it is published and afterwards as needed for the purposes in the Privacy Policy.",
-          "The site's design, logo and own content belong to the platform. Ads may not be copied or collected automatically without written permission.",
+          "Rights in the content stay with you or their owners. By publishing an ad you grant the platform a non-exclusive, free, worldwide licence to display, copy, store, resize, format and watermark the content, to run the site, show the ad and promote the platform. The licence lasts while the ad is published and then for the period needed for the retention purposes in the Privacy Policy, and does not include selling the content to others.",
+          "The site's design, logo and own content belong to the platform; ads may not be copied or collected automatically without written permission.",
         ],
       },
       {
@@ -86,18 +87,30 @@ export const legalEn: LegalDocs = {
         p: ["You can ask to delete your account at any time from \"My account\". The platform may suspend or close accounts that break the rules. Some data is kept for the periods in the Privacy Policy."],
       },
       {
-        h: "12. Paid services",
-        p: ["Posting is free for individuals within the allowed number of active listings. The platform offers optional paid services: featuring a listing, moving it to the top, office packages and office verification. Prices are shown before payment, and the platform takes no commission on any sale or rental.", "The “Verified office” badge only means the platform has seen the office’s documents; it is not a guarantee of any listing or dealing. The badge can be removed if a violation is confirmed.", "[Payment and refund terms: to be set by the lawyer.]"],
+        h: "12. Paid services, payment and refunds",
+        p: [
+          "Posting is free for individuals within the allowed number of active listings. The platform offers optional paid services: featuring a listing, moving it to the top, office packages and office verification. Featured listings are labelled as paid. The platform takes no commission on any sale or rental and never handles deal money.",
+          "Prices of paid services are shown in Jordanian dinars [including/excluding] sales tax before payment. A service is activated once payment is confirmed, and an invoice is issued. You get a full refund if the service is not activated within [3] working days of confirmed payment, or if the listing is rejected before the service starts. After a service starts, only the unused part is refunded, and only if it was stopped because of the platform. Removal of a listing or badge because of your breach gives no refund.",
+          "The “Verified office” badge only means the platform saw the office's documents on the review date; it is not a guarantee of the office or any listing or dealing. The badge can be removed if a violation is confirmed.",
+        ],
       },
       {
         h: "13. Changes to these terms",
-        p: ["We may change these terms. The version and date appear at the top of the page; for material changes we will tell you and ask you to accept the new version before you continue using account features."],
+        p: [
+          "We may change these terms. The version and date appear at the top of the page. We tell you about material changes by e-mail or a notice on the site [7] days before they take effect, and ask you to accept the new version before you continue using account features.",
+        ],
       },
       {
         h: "14. Law and jurisdiction",
         p: ["These terms are governed by the laws of the Hashemite Kingdom of Jordan, and the courts of [Amman] have jurisdiction over any dispute. [To be confirmed by the lawyer.]"],
       },
-      { h: "15. Contact", p: ["Questions about these terms: write to {email}."] },
+      {
+        h: "15. General",
+        p: [
+          "The Arabic text prevails over any translation. If any clause is invalid, the rest remain in force.",
+        ],
+      },
+      { h: "16. Contact", p: ["Questions about these terms: write to {email}."] },
     ],
   },
 
@@ -110,49 +123,62 @@ export const legalEn: LegalDocs = {
       {
         h: "2. What we collect",
         list: [
-          "Account data: display name, e-mail, phone number if you add one, preferred language. Your password is stored encrypted by our sign-in provider; we never see it.",
+          "Account data: display name, e-mail, phone number if you add it, and preferred language. Your password is stored encrypted by the sign-in provider; we never see it.",
           "Ad data: type, price, description, photos, contact number, city and area, and the property's map position if you choose to add one. Location data stored inside photos is removed before upload.",
-          "Declarations and consents: the wording version and time accepted, an anonymous fingerprint of your IP address (not the address itself) and your browser type.",
-          "Reports and messages you send us, and any contact details you add to them.",
-          "Technical and security logs: request times and errors, and anonymous counters to prevent abuse.",
+          "Office verification documents: commercial registration, real-estate office licence, the owner's or manager's ID, and the registration and licence numbers.",
+          "Declaration and consent records: the text version and time of acceptance, an encrypted (pseudonymous) fingerprint of your IP address instead of the address itself, and the browser type.",
+          "Reports and messages you send us, and any contact details you choose to include.",
+          "Payment records for paid services: amount, transfer reference and date. We do not store card or bank account details.",
+          "Technical and security logs: request times and errors, and pseudonymous counters to prevent abuse.",
         ],
       },
       {
-        h: "3. Why we use it",
+        h: "3. Why we use it, and on what basis",
         list: [
-          "To run the site: accounts, ads, search and contact between users.",
-          "For safety and fraud prevention: reviewing ads, finding repeated photos and numbers, handling reports, protecting accounts.",
-          "To meet our legal obligations and answer requests from competent authorities.",
-          "To contact you about your account and ads (service messages; no marketing without your consent).",
+          "To provide the service you asked for: account, ads, search, contact and paid services.",
+          "To meet legal obligations: answering requests from competent authorities, keeping records and invoices.",
+          "Your consent: showing the property's map position, marketing messages, and transfers outside Jordan. You can withdraw consent at any time without affecting what happened before.",
+          "Our legitimate interest in security and fraud prevention: reviewing ads, detecting repeated photos and numbers, handling reports and protecting accounts.",
+          "We never send marketing messages without your consent.",
         ],
       },
       {
         h: "4. What is public",
-        p: ["Visitors see the ad's content and photos, your display name, when you joined, and the property's map position as you added it, if you added one. Your phone number is shown only when someone presses \"Show number\", with a limit per visitor. Your e-mail is never public."],
+        p: [
+          "Visitors see the ad's content and photos, your display name or office name, when you joined, and the property's map position as you added it, if you added one. Showing the position is based on your consent and you can remove it from the ad at any time. If the property is occupied, you must get the occupant's consent before publishing interior photos or its exact position.",
+          "Your phone number is shown only when someone presses \"Show number\", with a limit per visitor. Your e-mail is never public. Office documents are seen only by the review team.",
+        ],
       },
       {
         h: "5. Who we share data with",
         list: [
-          "Service providers that run the site for us under data-protection agreements: Supabase (database, files and sign-in; servers in Frankfurt, Germany), Vercel (hosting), and an e-mail delivery provider once enabled.",
-          "Competent authorities when legally required, or to protect users' or the platform's rights.",
+          "Service providers that run the site for us under data processing agreements: Supabase (database, files and sign-in; servers in Frankfurt, Germany), Vercel (hosting), Resend (e-mail delivery) and Cloudflare (protection and domain names).",
+          "Competent judicial or security authorities upon a request issued in accordance with the law, or to protect the rights of users or the platform.",
           "We never sell or rent your data.",
         ],
       },
       {
         h: "6. Transfers outside Jordan",
-        p: ["Data is stored on servers in the European Union (Germany). We apply the safeguards Jordanian law requires for such transfers [the lawyer will specify them]."],
+        p: [
+          "Data is stored with Supabase in Germany and also processed by Vercel, Resend and Cloudflare, possibly through servers in the United States. We rely on data processing agreements and standard contractual clauses that ensure an adequate level of protection. By accepting this policy you consent to these transfers. [The lawyer confirms the requirements under Law No. 24 of 2023.]",
+        ],
       },
       {
         h: "7. How long we keep data",
         list: [
           "Account data: while the account exists. When you ask for deletion your ads are withdrawn at once, then your personal data is removed or unlinked from you.",
-          "Photos of ads that left the site: the files are deleted after {retention} days; a numeric fingerprint that cannot be turned back into the photo is kept to detect reposting of removed ads.",
-          "Declarations, ad edit history, reports and admin actions: kept for [period set by the lawyer] for legal and security purposes.",
+          "Photos of ads that left the site: files are deleted after {retention} days; a fingerprint from which the photo cannot be rebuilt is kept to detect re-posting of removed ads, and is deleted with the records below.",
+          "Declaration records, ad edit history, reports and admin actions, and photo fingerprints: kept for [5] years from the last related activity, then deleted or anonymised; longer if there is a dispute or a request from a competent authority.",
+          "Office verification documents: for the verification period and [one year] after it ends, then deleted.",
+          "Payment records and invoices: for the period required by tax law [set by the accountant].",
         ],
       },
       {
         h: "8. Your rights",
-        p: ["You can access, correct and ask to delete your data, object to processing, and withdraw consent where processing relies on it. You can change most data and request account deletion in \"My account\", or write to {email} mentioning \"Privacy request\". We reply within [the legal period]."],
+        p: [
+          "You may access, correct and ask to delete your data, object to its processing, and withdraw consent where processing is based on consent. You can change most of your data in \"My account\" and request account deletion there, or write to {email} with \"Privacy request\". We answer within [30] days.",
+          "You have the right to complain to the competent personal data protection authority in Jordan.",
+        ],
       },
       {
         h: "9. Cookies",
@@ -160,7 +186,9 @@ export const legalEn: LegalDocs = {
       },
       {
         h: "10. Security",
-        p: ["We use encrypted connections, strict database-level access rules, two-step login for administrators and encrypted backups. No system is perfectly secure; we will notify you and the authorities of any incident affecting your data as the law requires."],
+        p: [
+          "We use encrypted connections, strict database access rules, two-step login for administrators and encrypted backups. No system is perfectly secure. If a breach is likely to affect your data, we notify the supervisory authority within [72] hours of learning of it, and tell you without delay.",
+        ],
       },
       { h: "11. Minors", p: ["The site is not intended for anyone under 18, and we don't knowingly collect their data."] },
       { h: "12. Changes", p: ["The version and date appear at the top of the page. For material changes we will tell you and ask for consent where required."] },
@@ -175,7 +203,8 @@ export const legalEn: LegalDocs = {
       {
         h: "1. Who may post",
         list: [
-          "The property's owner, or someone properly authorised by the owner (such as a licensed broker or agency), who states their capacity accurately when posting.",
+          "The property owner, or a person properly authorised by the owner (such as a licensed broker or real-estate office), who chooses their role accurately when posting.",
+          "If you post as a broker or office, you must give the office name and its valid licence number issued by the Department of Lands and Survey. Unlicensed people may not offer others' properties for a fee.",
           "One account per person or organisation, and one ad per property.",
         ],
       },
@@ -191,13 +220,14 @@ export const legalEn: LegalDocs = {
       {
         h: "3. Not allowed",
         list: [
-          "Fake or misleading ads, or an unreal price to attract attention.",
-          "Asking for a deposit, payment or money transfer before a viewing, or any payment request outside normal direct dealing.",
-          "Links, phone numbers or e-mail addresses in the title or description; contact goes through the site's buttons only.",
-          "Repeating the same ad, or reposting an ad removed for breaking the rules.",
-          "Properties or dealings that break the law, or that you lack the legal standing to offer.",
-          "Offensive, discriminatory or hateful content, or content that invades others' privacy or rights.",
-          "Impersonating an owner, organisation or anyone else.",
+          "Fake or misleading ads, or any unreal price to attract attention.",
+          "Asking for a deposit, payment or money transfer before a viewing, or any payment request outside normal direct dealings.",
+          "External links, phone numbers or e-mail addresses inside the title or description. Contact happens through the site's buttons only.",
+          "Repeating the same ad or re-posting an ad removed for a breach.",
+          "Illegal properties or dealings, or ads without the legal standing to offer the property, including land or units that cannot legally be sold or subdivided, and off-plan sales in breach of the regulations.",
+          "Interior photos or the exact position of an occupied property without the occupant's consent.",
+          "Offensive, discriminatory or hateful content, or content that breaches others' privacy or rights.",
+          "Impersonating an owner, organisation or another person.",
         ],
       },
       {
@@ -239,11 +269,26 @@ export const legalEn: LegalDocs = {
       },
       {
         h: "4. False reports",
-        p: ["Deliberately false or repeated bad-faith reports break the rules and may lead to suspension. The number of reports per user is limited to prevent abuse."],
+        p: [
+          "False or repeated bad-faith reports breach our rules, may lead to account suspension, and may expose the reporter to legal liability. The number of reports per user is limited to prevent abuse.",
+        ],
       },
       {
         h: "5. If you have been defrauded",
         p: ["Stop dealing immediately and transfer nothing, report the ad number to us, and contact the competent security authorities (such as the Cybercrime Unit of the Public Security Directorate). The platform is not a party to the dealing and cannot recover money, but we cooperate with the authorities as the law allows."],
+      },
+      {
+        h: "6. Copyright and impersonation",
+        p: [
+          "If your photos, details, name or office name were published without permission, write to {email} with the ad number and proof of your right. We pause the ad within [24] hours of a complete report and let the advertiser respond.",
+        ],
+      },
+      {
+        h: "7. Evidence and requests from authorities",
+        p: [
+          "When an ad is removed on suspicion of a crime, we keep a copy of it and the related records to provide to the competent authorities on request.",
+          "We handle requests from the public prosecution, courts or competent security authorities in accordance with the law, via {email}, and remove or block content at once when a competent order is issued.",
+        ],
       },
     ],
   },

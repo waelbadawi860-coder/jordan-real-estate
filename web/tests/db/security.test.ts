@@ -910,7 +910,8 @@ describe("seller declaration", () => {
     expect(submit.error).toBeNull();
     const { data } = await bob.client.from("listing_declarations").select("version, seller_id").eq("listing_id", listingId);
     expect(data).toHaveLength(1);
-    expect(data![0].version).toBe("draft-2026-10");
+    const { data: current } = await service.from("site_settings").select("value").eq("key", "declaration_version").single();
+    expect(data![0].version).toBe(current!.value);
   });
 
   it("declarations are permanent, even for the service key, and not writable directly", async () => {

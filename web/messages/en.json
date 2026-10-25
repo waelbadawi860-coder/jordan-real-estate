@@ -128,7 +128,7 @@
     "notFoundText": "The property may have been sold or rented, or the listing has expired.",
     "disclaimer": "This ad is published by the advertiser, who is responsible for it. Accepting an ad for publication only means it was checked against our posting policy; it does not mean the platform verified its details, the advertiser's ownership or their capacity.",
     "floorsCount": "Number of floors",
-    "featured": "Featured"
+    "featured": "Featured · Paid"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -1006,7 +1006,7 @@
   },
   "declaration": {
     "title": "Seller declaration",
-    "text": "I declare that all information and photos in this ad are true and current, that I own the property or am authorised by its owner to advertise it, and that I have the right to publish these photos. I alone am fully responsible for the ad's content and any dealings that result from it. I understand that the platform accepting the ad for publication is only a check against its posting policy, and does not mean it has verified the ad's details, my ownership or my capacity.",
+    "text": "I confirm that all information and photos in this ad are true and current, that I own the property or am authorised by its owner to offer it, that I have the right to publish these photos, and that the phone number, the property's location and any personal data in the ad are published with their owners' consent. I undertake to provide proof of ownership or authorisation when the platform or the competent authorities ask. I alone am fully responsible for the ad's content and any dealing that results from it. I know that a false declaration may expose me to legal liability, and that the platform may provide this declaration and my data to the competent authorities. I understand that the platform's acceptance of the ad only checks it against the Posting Policy and does not mean it verified its details, my ownership or my role.",
     "label": "I have read and accept the seller declaration",
     "required": "You must accept the seller declaration before submitting."
   },
@@ -1053,7 +1053,7 @@
     "viewPublic": "View the office page as visitors see it",
     "suspended": "Your office page is suspended. Contact us to find out why.",
     "verifiedBadge": "Verified office",
-    "badgeMeaning": "“Verified office” means the platform has seen the office’s documents (commercial registration and licence). It is not a guarantee of any listing or dealing.",
+    "badgeMeaning": "“Verified office” means that, at review, the platform saw the office's commercial registration and real-estate office licence as provided by the office. The badge does not mean the platform guarantees the office, its listings or any dealing with it, nor that the licence is still valid afterwards. You can check the licence with the Department of Lands and Survey.",
     "verifyTitle": "Office verification",
     "verifyIntro": "Upload the commercial registration, the real-estate office licence and the owner’s or manager’s ID. We review them and you get the “Verified office” badge for one year. Documents are private and only the review team sees them.",
     "createFirst": "Create the office page first.",
