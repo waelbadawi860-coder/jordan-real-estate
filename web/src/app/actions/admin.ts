@@ -237,6 +237,14 @@ export async function setUserStatusAction(userId: unknown, status: unknown, reas
   });
   if (error) return errorOf(error);
 
+  // Suspension also blocks sign-in and token refresh, so open sessions end
+  // within the hour; the database already refuses their changes right away.
+  // Reactivating lifts the block.
+  const { error: banError } = await createAdminClient().auth.admin.updateUserById(id.data, {
+    ban_duration: s.data === "suspended" ? "876000h" : "none",
+  });
+  if (banError) console.error("Changing the sign-in block failed", { userId: id.data, code: banError.code });
+
   if (s.data === "suspended" && takeDownListings === true) {
     const { data: live } = await actor.supabase
       .from("listings")

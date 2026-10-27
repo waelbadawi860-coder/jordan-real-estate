@@ -177,7 +177,8 @@
       "reauthRequired": "For your security, log out and back in before changing your password.",
       "sessionMissing": "Your session expired. Request a new reset link and open it in this same browser.",
       "generic": "Something went wrong. Please try again.",
-      "registrationBlocked": "An account can't be created with this e-mail. Contact us if you think this is a mistake."
+      "registrationBlocked": "An account can't be created with this e-mail. Contact us if you think this is a mistake.",
+      "accountSuspended": "Your account is suspended and can't be signed in to. If you think this is a mistake, write to us from the Contact page."
     }
   },
   "account": {
@@ -676,7 +677,10 @@
       "openMessages": "Open messages",
       "commissions": "Commissions & payments",
       "commissionsNote": "Added in Stage 6; stays off until legal review.",
-      "reviewNow": "Review"
+      "reviewNow": "Review",
+      "revenueMonth": "Paid services income this month",
+      "revenueTotal": "Paid services income (total)",
+      "featuredNow": "Featured ads now"
     },
     "listings": {
       "search": "Listing ID or a word from the title",

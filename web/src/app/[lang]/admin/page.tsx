@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireAdminPage } from "@/lib/admin";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, formatPrice } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -17,6 +17,9 @@ type Overview = {
   open_listing_reports: number;
   open_user_reports: number;
   open_messages: number;
+  featured_now: number;
+  revenue_month: number;
+  revenue_total: number;
 };
 
 export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/admin">) {
@@ -33,7 +36,11 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
   const byStatus = (s: string) => stats.listings_by_status[s] ?? 0;
   const users = Object.values(stats.users_by_status).reduce((a, b) => a + b, 0);
 
-  const cards: { label: string; value: number; href?: string; highlight?: boolean }[] = [
+  const money = (n: number) => formatPrice(Number(n), lang, dict.common.currency);
+  const cards: { label: string; value: number | string; href?: string; highlight?: boolean }[] = [
+    { label: o.revenueMonth, value: money(stats.revenue_month) },
+    { label: o.revenueTotal, value: money(stats.revenue_total) },
+    { label: o.featuredNow, value: stats.featured_now, href: "/admin/listings?status=published" },
     { label: o.pending, value: byStatus("pending_approval"), href: "/admin/listings?status=pending_approval", highlight: byStatus("pending_approval") > 0 },
     { label: o.liveListings, value: stats.live_listings, href: "/admin/listings?status=published" },
     { label: o.expired, value: byStatus("expired"), href: "/admin/listings?status=expired" },
@@ -66,7 +73,7 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
             className={`flex flex-col gap-1 rounded-2xl border p-4 ${card.highlight ? "border-accent bg-accent-soft" : "border-border bg-surface"}`}
           >
             <span className="text-sm text-muted">{card.label}</span>
-            <span className="text-3xl font-extrabold">{formatNumber(card.value, lang)}</span>
+            <span className="text-3xl font-extrabold">{typeof card.value === "number" ? formatNumber(card.value, lang) : card.value}</span>
             {card.href && (
               <Link href={localePath(lang, card.href)} className="text-sm font-bold text-brand hover:underline">
                 {o.reviewNow}

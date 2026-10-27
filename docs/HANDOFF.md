@@ -70,7 +70,8 @@
 - مراجعة كود كاملة، وأُصلحت ثغراتها.
 - **سرعة الهاتف** مع 1000 إعلان: الصفحة الرئيسية 99–100، والبحث 98، والإعلان 94–97. وقاعدة البيانات تجيب في 3ms.
 
-**الاختبارات:** 51 وحدة، و97 قاعدة بيانات، و52 موقع، وكلها ناجحة.
+**الاختبارات:** 51 وحدة، و113 قاعدة بيانات (منها 16 اختبار جودة جديد)، و52 موقع، وكلها ناجحة. تقرير اختبار الجودة الشامل: `docs/QA-REPORT-2026-10-27.md`.
+- **إيقاف حساب** يمنع الآن تسجيل الدخول وتجديد الجلسة أيضًا، ولوحة الإدارة تعرض دخل الخدمات المدفوعة هذا الشهر والإجمالي وعدد الإعلانات المميزة الآن.
 
 ## 4. قرارات المالك
 - لا عمولة. الدخل من التمييز والرفع والباقات والتوثيق.
@@ -105,7 +106,7 @@
 
 ## Technical notes for the next session (English)
 - **Stack:** Next.js 16.4 App Router in `web/` with `cacheComponents` (`"use cache"`, tags `listings`, `reference-data`, `offices`, `listing-<id>`), `proxy.ts`, and `app/[lang]`. Read `web/AGENTS.md` and `node_modules/next/dist/docs` first. Supabase with RLS plus column-level grants everywhere, SECURITY DEFINER functions (`search_path=''`), Tailwind 4, Vercel `fra1`.
-- **Migrations:** `web/supabase/migrations`, latest `20261030090100_listing_mortgaged.sql`.
+- **Migrations:** `web/supabase/migrations`, latest `20261030090200_overview_revenue.sql`.
   - Run `npx supabase db push`, then `npm run db:types`.
   - A worktree needs `web/supabase/.temp/*` copied from the main checkout to be linked.
 - **Key tables added this session:**

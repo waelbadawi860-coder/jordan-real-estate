@@ -35,6 +35,8 @@ function authErrorKey(error: AuthErrorLike): string {
     case "session_not_found":
     case "session_expired":
       return "sessionMissing";
+    case "user_banned":
+      return "accountSuspended";
     case "over_request_rate_limit":
     case "over_email_send_rate_limit":
       return "rateLimited";
