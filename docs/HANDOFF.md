@@ -71,6 +71,8 @@
 - **سرعة الهاتف** مع 1000 إعلان: الصفحة الرئيسية 99–100، والبحث 98، والإعلان 94–97. وقاعدة البيانات تجيب في 3ms.
 
 **الاختبارات:** 51 وحدة، و113 قاعدة بيانات (منها 16 اختبار جودة جديد)، و52 موقع، وكلها ناجحة. تقرير اختبار الجودة الشامل: `docs/QA-REPORT-2026-10-27.md`.
+- **إيقاف تلقائي بعد البلاغات:** إذا أبلغ 3 مستخدمين مختلفين (مسجّلين) عن الإعلان نفسه خلال 24 ساعة، يُوقف مؤقتًا ويُبلَّغ المشرف والمعلن. العدد يُغيَّر من الإعدادات (0 = معطّل).
+- **رموز الحالة الصحيحة:** الإعلان غير الموجود يعطي 404 حقيقيًا، والصفحات الخاصة تحوّل إلى الدخول، والعناوين القديمة تحوّل 308. والشارة «مميز» تختفي فور انتهاء مدتها.
 - **إيقاف حساب** يمنع الآن تسجيل الدخول وتجديد الجلسة أيضًا، ولوحة الإدارة تعرض دخل الخدمات المدفوعة هذا الشهر والإجمالي وعدد الإعلانات المميزة الآن.
 
 ## 4. قرارات المالك
@@ -106,7 +108,7 @@
 
 ## Technical notes for the next session (English)
 - **Stack:** Next.js 16.4 App Router in `web/` with `cacheComponents` (`"use cache"`, tags `listings`, `reference-data`, `offices`, `listing-<id>`), `proxy.ts`, and `app/[lang]`. Read `web/AGENTS.md` and `node_modules/next/dist/docs` first. Supabase with RLS plus column-level grants everywhere, SECURITY DEFINER functions (`search_path=''`), Tailwind 4, Vercel `fra1`.
-- **Migrations:** `web/supabase/migrations`, latest `20261030090200_overview_revenue.sql`.
+- **Migrations:** `web/supabase/migrations`, latest `20261030090300_report_auto_hold.sql`.
   - Run `npx supabase db push`, then `npm run db:types`.
   - A worktree needs `web/supabase/.temp/*` copied from the main checkout to be linked.
 - **Key tables added this session:**
@@ -127,7 +129,8 @@
   - `node --env-file=.env.local scripts/security-probe.mjs` (attacks staging and the dev database)
   - `scripts/load-test-data.mjs 1000` and `--remove` (speed-test data)
 - **Gotchas:**
-  - With `cacheComponents` the shell streams first, so a missing listing returns 200 with noindex, and old slugs redirect client-side.
+  - With `cacheComponents` the shell streams first, so a notFound()/redirect() inside a page can't change the status. Status-relevant decisions (404s, login/terms redirects, listing slug 308) live in `src/lib/route-guards.ts`, called from `proxy.ts` for GET page loads; pages keep their own checks too. Smoke tests pass against a production build (`next build && next start`).
+  - Cached card lists use `cacheLifeForCards()` (lib/data/public.ts) so they expire when the first featured ad on them ends; every cached function must call cacheLife exactly once on every path.
   - A Postgrest query is thenable: never return it bare from an async function (wrap it, as `applyFilters` does with `{ q }`).
   - The dev server keeps stale CSS and new files: `rm -rf .next` and restart.
   - Write Arabic text with Python scripts or the Write tool, not shell heredocs with quotes.

@@ -1,7 +1,9 @@
 "use server";
 
 import { z } from "zod";
+import { updateTag } from "next/cache";
 import { getListing } from "@/lib/data/public";
+import { syncPublicPhotos } from "@/lib/photos";
 import { withinVisitorLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -85,6 +87,14 @@ export async function reportListingAction(_prev: ContactFormState, formData: For
       .single();
     if (error?.code === "23505") return { error: "alreadyReported" };
     if (error) throw error;
+    // Enough different reporters put the ad on hold (database trigger): take
+    // its photos and pages down now rather than when the cache runs out.
+    const { data: after } = await admin.from("listings").select("status").eq("id", parsed.data.listingId).single();
+    if (after?.status === "on_hold") {
+      await syncPublicPhotos(parsed.data.listingId);
+      updateTag("listings");
+      updateTag(`listing-${parsed.data.listingId}`);
+    }
     return { ok: true, reference: `L-${data.id}` };
   } catch (error) {
     console.error("reportListing failed", { message: (error as Error).message });

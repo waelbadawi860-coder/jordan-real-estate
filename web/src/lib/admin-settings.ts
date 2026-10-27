@@ -25,6 +25,7 @@ export const settingSchemas = {
   require_listing_approval: bool,
   require_admin_mfa: bool,
   max_reports_per_24h: int(1, 100),
+  report_auto_hold_threshold: int(0, 50),
   terms_version: z.string().trim().min(1).max(40),
   declaration_version: z.string().trim().min(1).max(40),
   removed_photo_retention_days: int(30, 3650),
@@ -60,5 +61,6 @@ export const numberSettings: EditableSetting[] = [
   "min_images_per_listing",
   "image_max_dimension_px",
   "max_reports_per_24h",
+  "report_auto_hold_threshold",
   "removed_photo_retention_days",
 ];

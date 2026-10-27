@@ -163,15 +163,34 @@ describe("1. listing lifecycle", () => {
     expect(await publicIds([held])).toEqual([]);
   });
 
-  it("several reports on one ad are kept separately and counted together for the admin", async () => {
+  it("two reports keep the ad up; a third different user puts it on hold and tells the seller and admins", async () => {
     const id = await publishedListing(seller, "QA reported");
-    for (const r of [buyer, reporter2, reporter3]) {
+    for (const r of [buyer, reporter2]) {
       const { error } = await r.client.from("listing_reports").insert({ listing_id: id, reason: "fraud", details: "QA" });
       expect(error).toBeNull();
     }
+    expect(await publicIds([id])).toEqual([id]);
+    // The same person can't report twice to push it over the line.
+    const again = await buyer.client.from("listing_reports").insert({ listing_id: id, reason: "fraud" });
+    expect(again.error).not.toBeNull();
+    expect(await publicIds([id])).toEqual([id]);
+
+    const third = await reporter3.client.from("listing_reports").insert({ listing_id: id, reason: "fraud", details: "QA" });
+    expect(third.error).toBeNull();
     const { count } = await admin1.client.from("listing_reports").select("id", { count: "exact", head: true }).eq("listing_id", id);
     expect(count).toBe(3);
-    // Today there is no automatic hiding after N reports: the ad stays up until an admin acts.
+    expect((await service.from("listings").select("status").eq("id", id).single()).data!.status).toBe("on_hold");
+    expect(await publicIds([id])).toEqual([]);
+
+    const { data: history } = await service.from("listing_status_history").select("to_status, reason").eq("listing_id", id).order("id", { ascending: false }).limit(1);
+    expect(history![0]).toMatchObject({ to_status: "on_hold", reason: "auto_hold_reports" });
+    const sellerNote = await seller.client.from("notifications").select("type, data").eq("type", "listing_status_changed").contains("data", { listing_id: id });
+    expect(sellerNote.data).toHaveLength(1);
+    const adminNote = await admin1.client.from("notifications").select("type").eq("type", "listing_auto_held").contains("data", { listing_id: id });
+    expect(adminNote.data).toHaveLength(1);
+    // An admin can release it unchanged.
+    const release = await admin1.client.rpc("change_listing_status", { p_listing_id: id, p_new_status: "published" });
+    expect(release.error).toBeNull();
     expect(await publicIds([id])).toEqual([id]);
   });
 });

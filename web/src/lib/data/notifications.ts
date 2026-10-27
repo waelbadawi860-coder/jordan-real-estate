@@ -38,7 +38,8 @@ export function describeNotification(type: string, data: Json, dict: Dictionary,
   const statusText =
     (dict.status as Record<string, string>)[status] ?? (dict.commission.statuses as Record<string, string>)[status] ?? status;
   const text = t(n[type] ?? n.other, { id: commissionId || listingId, status: statusText });
-  const reason = str(data, "reason");
+  const rawReason = str(data, "reason");
+  const reason = rawReason === "auto_hold_reports" ? dict.notifications.autoHoldReason : rawReason;
   const full = reason ? `${text} — ${t(dict.notifications.reason, { reason })}` : text;
 
   const links: Record<string, string | null> = {
@@ -55,6 +56,7 @@ export function describeNotification(type: string, data: Json, dict: Dictionary,
     listing_expired: "/my/listings",
     listing_submitted: `/admin/listings/${listingId}`,
     listing_reported: "/admin/reports",
+    listing_auto_held: `/admin/listings/${listingId}`,
     user_reported: "/admin/reports",
     contact_message: "/admin/reports#messages",
     commission_reported: `/admin/commissions/${commissionId}`,

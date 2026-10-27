@@ -246,27 +246,49 @@ async function applyFilters(query: ListingQuery, filters: SearchFilters, ref: Re
   return { q };
 }
 
+/**
+ * Cache lifetime for a list of cards. "Featured" ends at an exact moment, so a
+ * list showing a featured ad expires when the first one ends (a plain
+ * revalidate would still serve the old copy once). Call exactly once per
+ * cached function run, on every path.
+ */
+function cacheLifeForCards(rows: { featured_until?: string | null }[]) {
+  const now = Date.now();
+  const ends = rows.map((r) => (r.featured_until ? Date.parse(r.featured_until) : NaN)).filter((t) => t > now);
+  const seconds = ends.length > 0 ? Math.ceil((Math.min(...ends) - now) / 1000) : Infinity;
+  // The "minutes" profile expires within an hour anyway.
+  if (seconds > 3600) {
+    cacheLife("minutes");
+    return;
+  }
+  const s = Math.max(2, seconds);
+  cacheLife({ stale: Math.min(300, s), revalidate: Math.min(60, s - 1), expire: s });
+}
+
 /** How many paid "featured" listings sit above the results of a search. */
 export const FEATURED_SLOTS = 3;
 
 /** Featured listings that match the search, most recently moved up first. */
 export async function getFeaturedListings(filters: SearchFilters): Promise<ListingCard[]> {
   "use cache";
-  cacheLife("minutes");
   cacheTag("listings", "offices");
 
   const ref = await getReferenceData();
   const filtered = await applyFilters(publishedListings().gt("featured_until", new Date().toISOString()), filters, ref);
-  if (!filtered) return [];
+  if (!filtered) {
+    cacheLife("minutes");
+    return [];
+  }
   const { data, error } = await filtered.q.order("ranked_at", { ascending: false }).order("id", { ascending: false }).limit(FEATURED_SLOTS);
   if (error) throw new Error(`Featured listings failed: ${error.message}`);
-  return withOffices(((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref)));
+  const rows = (data ?? []) as unknown as CardRow[];
+  cacheLifeForCards(rows);
+  return withOffices(rows.map((row) => toCard(row, ref)));
 }
 
 /** An office's published listings, newest first (its public page). */
 export async function getSellerListings(sellerId: string): Promise<ListingCard[]> {
   "use cache";
-  cacheLife("minutes");
   cacheTag("listings", "offices");
   const ref = await getReferenceData();
   const { data, error } = await publishedListings()
@@ -275,7 +297,9 @@ export async function getSellerListings(sellerId: string): Promise<ListingCard[]
     .order("id", { ascending: false })
     .limit(100);
   if (error) throw new Error(`Seller listings failed: ${error.message}`);
-  return withOffices(((data ?? []) as unknown as CardRow[]).map((row) => toCard(row, ref)));
+  const rows = (data ?? []) as unknown as CardRow[];
+  cacheLifeForCards(rows);
+  return withOffices(rows.map((row) => toCard(row, ref)));
 }
 
 /**
@@ -287,7 +311,6 @@ export async function getSimilarListings(
   limit = 6,
 ): Promise<ListingCard[]> {
   "use cache";
-  cacheLife("minutes");
   cacheTag("listings", "offices");
   const ref = await getReferenceData();
   const base = () =>
@@ -308,17 +331,20 @@ export async function getSimilarListings(
       .limit(limit - rows.length);
     rows.push(...((data ?? []) as unknown as CardRow[]));
   }
+  cacheLifeForCards(rows);
   return withOffices(rows.map((row) => toCard(row, ref)));
 }
 
 export async function searchListings(filters: SearchFilters, cursor: Cursor | null): Promise<ListingPage> {
   "use cache";
-  cacheLife("minutes");
   cacheTag("listings", "offices");
 
   const ref = await getReferenceData();
   const filtered = await applyFilters(publishedListings(), filters, ref);
-  if (!filtered) return { items: [], nextCursor: null };
+  if (!filtered) {
+    cacheLife("minutes");
+    return { items: [], nextCursor: null };
+  }
   let query = filtered.q;
 
   // Keyset pagination: "give me the rows after the last one I saw".
@@ -341,6 +367,7 @@ export async function searchListings(filters: SearchFilters, cursor: Cursor | nu
   if (error) throw new Error(`Listing search failed: ${error.message}`);
 
   const rows = (data ?? []) as unknown as CardRow[];
+  cacheLifeForCards(rows.slice(0, PAGE_SIZE));
   const hasMore = rows.length > PAGE_SIZE;
   const items = await withOffices(rows.slice(0, PAGE_SIZE).map((row) => toCard(row, ref)));
   const last = items[items.length - 1];

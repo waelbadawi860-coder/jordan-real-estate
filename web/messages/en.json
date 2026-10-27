@@ -386,9 +386,11 @@
       "office_badge_removed": "The “Verified office” badge was removed from your office.",
       "office_plan_active": "Your office package is active.",
       "similar_listing": "New listing #{id} matches listings you follow.",
-      "other": "New notification."
+      "other": "New notification.",
+      "listing_auto_held": "Listing #{id} was put on hold automatically after several reports and needs review."
     },
-    "reason": "Reason: {reason}"
+    "reason": "Reason: {reason}",
+    "autoHoldReason": "held automatically after reports from several users; the moderation team will review it"
   },
   "map": {
     "addPin": "Mark the location on a map (optional)",
@@ -820,7 +822,8 @@
         "price_feature_7_days": "Price to feature a listing for 7 days (JOD)",
         "price_feature_14_days": "Price to feature a listing for 14 days (JOD)",
         "price_feature_30_days": "Price to feature a listing for 30 days (JOD)",
-        "price_bump": "Price to move a listing to the top once (JOD)"
+        "price_bump": "Price to move a listing to the top once (JOD)",
+        "report_auto_hold_threshold": "Different users reporting an ad within 24 hours before it is put on hold automatically (0 = off)"
       },
       "draftAgreement": "Commissions can't be enabled on the live site while the current agreement is an unreviewed draft.",
       "invalid": "Invalid value.",
