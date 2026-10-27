@@ -12,6 +12,7 @@ import { getMyListing } from "@/lib/data/owner";
 import { getReferenceData } from "@/lib/data/public";
 import { displayPhone } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { extrasFormValues } from "@/lib/listing-details";
 
 export const instant = false;
 
@@ -94,7 +95,7 @@ export default async function EditListingPage({ params, searchParams }: PageProp
             bathrooms: listing.bathrooms?.toString() ?? "",
             floorsCount: listing.floorsCount?.toString() ?? "",
             floor: listing.floor?.toString() ?? "",
-            furnished: listing.furnished === null ? "" : listing.furnished ? "yes" : "no",
+            ...extrasFormValues(listing.extras),
             posterType: listing.posterType,
             phone: listing.contact ? displayPhone(listing.contact.phone).replace(/\s/g, "") : "",
             allowCalls: listing.contact?.allowCalls ?? true,

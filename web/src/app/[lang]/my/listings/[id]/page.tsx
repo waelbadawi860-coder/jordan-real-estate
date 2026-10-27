@@ -118,7 +118,7 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
           bathrooms: listing.bathrooms,
           floorsCount: listing.floorsCount,
           floor: listing.floor,
-          furnished: listing.furnished,
+          extras: listing.extras,
           posterType: listing.posterType,
           publishedAt: listing.publishedAt,
           updatedAt: listing.updatedAt,

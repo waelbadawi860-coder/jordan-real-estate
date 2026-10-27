@@ -6,6 +6,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { City, Neighborhood, PropertyType } from "@/lib/data/public";
 import { FLOOR_LEVELS } from "@/lib/floor";
+import { BUILDING_AGES, FEATURE_GROUPS, LAND_SERVICES, NEARBY, ZONINGS } from "@/lib/listing-details";
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
 import { AreaCombobox } from "./area-combobox";
 import { LocationInput } from "./location-input";
@@ -24,7 +25,13 @@ export type ListingFormValues = {
   bathrooms: string;
   floorsCount: string;
   floor: string;
-  furnished: "yes" | "no" | "";
+  furnished: string;
+  buildingAge: string;
+  features: string[];
+  nearby: string[];
+  zoning: string;
+  frontageM: string;
+  services: string[];
   posterType: "owner" | "agent";
   phone: string;
   allowCalls: boolean;
@@ -35,7 +42,7 @@ export type ListingFormValues = {
 
 type Props = {
   locale: Locale;
-  dict: Pick<Dictionary, "form" | "search" | "map" | "location" | "floors" | "declaration">;
+  dict: Pick<Dictionary, "form" | "search" | "map" | "location" | "floors" | "declaration" | "extras">;
   refData: { cities: City[]; neighborhoods: Neighborhood[]; propertyTypes: PropertyType[] };
   initial: ListingFormValues;
   listingId?: number;
@@ -69,6 +76,10 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
   const hasFloor = type?.hasFloor ?? false;
   const hasFurnished = type?.hasFurnished ?? false;
   const hasFloorsCount = type?.hasFloorsCount ?? false;
+  const hasBuildingAge = type?.hasBuildingAge ?? false;
+  const hasAmenities = type?.hasAmenities ?? false;
+  const hasLandDetails = type?.hasLandDetails ?? false;
+  const x = dict.extras;
 
   function changeDeal(value: "sale" | "rent") {
     setDealType(value);
@@ -272,17 +283,74 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             <ErrorText name="floor" message={err("floor")} />
           </div>
         )}
-        {hasFurnished && (
-          <div className="sm:w-1/2">
-            <label htmlFor="furnished" className={label}>
-              {f.furnished}
-            </label>
-            <select id="furnished" name="furnished" defaultValue={initial.furnished} className={inputClass}>
-              <option value="">{f.notSpecified}</option>
-              <option value="yes">{f.yes}</option>
-              <option value="no">{f.no}</option>
-            </select>
+        {(hasFurnished || hasBuildingAge) && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {hasFurnished && (
+              <div>
+                <label htmlFor="furnished" className={label}>
+                  {f.furnished}
+                </label>
+                <select id="furnished" name="furnished" defaultValue={initial.furnished} className={inputClass}>
+                  <option value="">{f.notSpecified}</option>
+                  <option value="yes">{f.yes}</option>
+                  <option value="no">{f.no}</option>
+                  <option value="partly">{x.furnishedPartly}</option>
+                </select>
+              </div>
+            )}
+            {hasBuildingAge && (
+              <div>
+                <label htmlFor="buildingAge" className={label}>
+                  {x.buildingAge} <span className="font-normal text-muted">({f.optional})</span>
+                </label>
+                <select id="buildingAge" name="buildingAge" defaultValue={initial.buildingAge} className={inputClass}>
+                  <option value="">{f.notSpecified}</option>
+                  {BUILDING_AGES.map((age) => (
+                    <option key={age} value={age}>
+                      {x.buildingAges[age]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
+        )}
+        {hasLandDetails && (
+          <fieldset className="flex flex-col gap-4">
+            <legend className="mb-2 font-bold">
+              {x.landTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
+            </legend>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="zoning" className={label}>
+                  {x.zoning}
+                </label>
+                <select id="zoning" name="zoning" defaultValue={initial.zoning} className={inputClass}>
+                  <option value="">{f.notSpecified}</option>
+                  {ZONINGS.map((zone) => (
+                    <option key={zone} value={zone}>
+                      {x.zonings[zone]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <NumberInput name="frontageM" text={x.frontage} value={initial.frontageM} error={err("frontageM")} />
+            </div>
+            <CheckGroup name="services" title={x.services} keys={LAND_SERVICES} labels={x.servicesList} checked={initial.services} />
+          </fieldset>
+        )}
+        {hasAmenities && (
+          <fieldset className="flex flex-col gap-3">
+            <legend className="font-bold">
+              {x.featuresTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
+            </legend>
+            <p className="text-sm text-muted">{x.tickHint}</p>
+            <CheckGroup name="features" title={x.insideTitle} keys={FEATURE_GROUPS.inside} labels={x.features} checked={initial.features} />
+            <CheckGroup name="features" title={x.buildingTitle} keys={FEATURE_GROUPS.building} labels={x.features} checked={initial.features} />
+          </fieldset>
+        )}
+        {type && (
+          <CheckGroup name="nearby" title={`${x.nearbyTitle} (${f.optional})`} keys={NEARBY} labels={x.nearby} checked={initial.nearby} />
         )}
         <div>
           <label htmlFor="description" className={label}>
@@ -390,6 +458,35 @@ function NumberInput({ name, text, value, decimal, error }: { name: string; text
         </p>
       )}
     </div>
+  );
+}
+
+/** A group of tick boxes sharing one field name (several values). */
+function CheckGroup<K extends string>({
+  name,
+  title,
+  keys,
+  labels,
+  checked,
+}: {
+  name: string;
+  title: string;
+  keys: readonly K[];
+  labels: Record<K, string>;
+  checked: string[];
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-semibold">{title}</legend>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {keys.map((key) => (
+          <label key={key} className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm has-checked:border-brand has-checked:bg-brand-soft">
+            <input type="checkbox" name={name} value={key} defaultChecked={checked.includes(key)} className="size-5 shrink-0 accent-brand" />
+            {labels[key]}
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 

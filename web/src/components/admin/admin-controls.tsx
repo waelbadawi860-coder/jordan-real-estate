@@ -422,6 +422,9 @@ type NamedRow = {
   hasFloor?: boolean;
   hasFurnished?: boolean;
   hasFloorsCount?: boolean;
+  hasBuildingAge?: boolean;
+  hasAmenities?: boolean;
+  hasLandDetails?: boolean;
   allowedDeals?: ("sale" | "rent")[];
 };
 
@@ -458,6 +461,9 @@ export function NamedRowForm({
     hasFloor: false,
     hasFurnished: false,
     hasFloorsCount: false,
+    hasBuildingAge: false,
+    hasAmenities: false,
+    hasLandDetails: false,
     allowedDeals: ["sale", "rent"],
   };
   const [v, setV] = useState<NamedRow>(row ?? empty);
@@ -477,7 +483,7 @@ export function NamedRowForm({
           ? saveCityAction(input)
           : kind === "neighborhood"
             ? saveNeighborhoodAction({ ...input, cityId })
-            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms), hasBathrooms: Boolean(v.hasBathrooms), hasFloor: Boolean(v.hasFloor), hasFurnished: Boolean(v.hasFurnished), hasFloorsCount: Boolean(v.hasFloorsCount), allowedDeals: deals }),
+            : savePropertyTypeAction({ ...input, hasBedrooms: Boolean(v.hasBedrooms), hasBathrooms: Boolean(v.hasBathrooms), hasFloor: Boolean(v.hasFloor), hasFurnished: Boolean(v.hasFurnished), hasFloorsCount: Boolean(v.hasFloorsCount), hasBuildingAge: Boolean(v.hasBuildingAge), hasAmenities: Boolean(v.hasAmenities), hasLandDetails: Boolean(v.hasLandDetails), allowedDeals: deals }),
       () => {
         if (!row) {
           setV(empty);
@@ -553,6 +559,24 @@ export function NamedRowForm({
           <label className="flex items-center gap-1">
             <input type="checkbox" checked={Boolean(v.hasFloorsCount)} onChange={(e) => setV({ ...v, hasFloorsCount: e.target.checked })} className="size-4 accent-brand" />
             {a.types.hasFloorsCount}
+          </label>
+        )}
+        {kind === "type" && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={Boolean(v.hasBuildingAge)} onChange={(e) => setV({ ...v, hasBuildingAge: e.target.checked })} className="size-4 accent-brand" />
+            {a.types.hasBuildingAge}
+          </label>
+        )}
+        {kind === "type" && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={Boolean(v.hasAmenities)} onChange={(e) => setV({ ...v, hasAmenities: e.target.checked })} className="size-4 accent-brand" />
+            {a.types.hasAmenities}
+          </label>
+        )}
+        {kind === "type" && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={Boolean(v.hasLandDetails)} onChange={(e) => setV({ ...v, hasLandDetails: e.target.checked })} className="size-4 accent-brand" />
+            {a.types.hasLandDetails}
           </label>
         )}
         {kind === "type" && (

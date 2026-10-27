@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { FLOOR_LEVELS } from "@/lib/floor";
+import { BUILDING_AGES, FEATURES, FURNISHED, LAND_SERVICES, NEARBY, ZONINGS } from "@/lib/listing-details";
 
 // Shared by the browser (instant feedback) and the server (the real check).
 // Error messages are translation keys from messages/*.json → form.errors.
@@ -34,6 +35,16 @@ const optionalDecimal = (max: number) =>
       .optional(),
   );
 
+const optionalChoice = <T extends readonly [string, ...string[]]>(values: T) =>
+  z.preprocess((v) => (v === "" ? undefined : v), z.enum(values).optional());
+
+/** Ticked boxes: anything not on the list is ignored. */
+const keyList = <T extends string>(values: readonly T[]) =>
+  z
+    .array(z.string())
+    .default([])
+    .transform((list) => values.filter((key) => list.includes(key)));
+
 export const listingSchema = z
   .object({
     dealType: z.enum(["sale", "rent"], { message: "required" }),
@@ -55,7 +66,13 @@ export const listingSchema = z
     bathrooms: optionalInt(0, 50),
     floorsCount: optionalInt(1, 100),
     floor: z.preprocess((v) => (v === "" ? undefined : v), z.enum(FLOOR_LEVELS).optional()),
-    furnished: z.preprocess((v) => (v === "" ? undefined : v), z.enum(["yes", "no"]).optional()),
+    furnished: optionalChoice(FURNISHED),
+    buildingAge: optionalChoice(BUILDING_AGES),
+    features: keyList(FEATURES),
+    nearby: keyList(NEARBY),
+    zoning: optionalChoice(ZONINGS),
+    frontageM: optionalInt(1, 10_000),
+    services: keyList(LAND_SERVICES),
     posterType: z.enum(["owner", "agent"]).default("owner"),
     phone: z
       .string()
@@ -114,6 +131,12 @@ export function listingFormValues(formData: FormData) {
     floorsCount: text("floorsCount"),
     floor: text("floor"),
     furnished: text("furnished"),
+    buildingAge: text("buildingAge"),
+    features: formData.getAll("features").filter((v): v is string => typeof v === "string"),
+    nearby: formData.getAll("nearby").filter((v): v is string => typeof v === "string"),
+    zoning: text("zoning"),
+    frontageM: text("frontageM"),
+    services: formData.getAll("services").filter((v): v is string => typeof v === "string"),
     posterType: text("posterType") || "owner",
     phone: text("phone"),
     allowCalls: formData.get("allowCalls") === "on",

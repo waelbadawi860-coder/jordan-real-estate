@@ -1,6 +1,7 @@
 import "server-only";
 import type { Json } from "@/lib/database.types";
 import type { FloorLevel } from "@/lib/floor";
+import { extrasOf, type ListingExtras } from "@/lib/listing-details";
 import { CARD_COLUMNS, getReferenceData, rentPeriodOf, toCard, type CardRow, type ListingCard } from "@/lib/data/public";
 import { createClient } from "@/lib/supabase/server";
 
@@ -96,7 +97,7 @@ export type MyListing = {
   bathrooms: number | null;
   floorsCount: number | null;
   floor: FloorLevel | null;
-  furnished: boolean | null;
+  extras: ListingExtras;
   posterType: "owner" | "agent";
   rejectionReason: string | null;
   expiresAt: string | null;
@@ -108,13 +109,6 @@ export type MyListing = {
   images: MyListingImage[];
   acceptances: { versionId: number; acceptedAt: string }[];
 };
-
-function furnishedOf(details: Json): boolean | null {
-  if (details && typeof details === "object" && !Array.isArray(details)) {
-    return typeof details.furnished === "boolean" ? details.furnished : null;
-  }
-  return null;
-}
 
 export async function getMyListing(userId: string, id: number): Promise<MyListing | null> {
   const supabase = await createClient();
@@ -149,7 +143,7 @@ export async function getMyListing(userId: string, id: number): Promise<MyListin
     bathrooms: data.bathrooms,
     floorsCount: data.floors_count,
     floor: data.floor_level,
-    furnished: furnishedOf(data.details),
+    extras: extrasOf(data.details),
     posterType: data.poster_type,
     rejectionReason: data.rejection_reason,
     expiresAt: data.expires_at,

@@ -1,10 +1,11 @@
-import { BadgeCheck, Clock, MapPin, ShieldCheck, UserRound } from "lucide-react";
+import { BadgeCheck, Check, Clock, MapPin, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { LocalizedName } from "@/lib/data/public";
 import type { FloorLevel } from "@/lib/floor";
+import type { ListingExtras } from "@/lib/listing-details";
 import { formatDate, formatNumber, formatPrice, t } from "@/lib/format";
 import { googleMapsUrl } from "@/lib/geo";
 import { ApproxMap } from "./map/approx-map";
@@ -26,7 +27,7 @@ export type PropertyViewData = {
   bathrooms: number | null;
   floorsCount: number | null;
   floor: FloorLevel | null;
-  furnished: boolean | null;
+  extras: ListingExtras;
   posterType: "owner" | "agent";
   publishedAt: string | null;
   updatedAt: string;
@@ -57,6 +58,14 @@ export function PropertyView({
   const where = [listing.neighborhood?.[locale], listing.city[locale]].filter(Boolean).join(locale === "ar" ? "، " : ", ");
   const period = listing.rentPeriod === "monthly" ? d.perMonth : listing.rentPeriod === "yearly" ? d.perYear : null;
 
+  const x = listing.extras;
+  // Ticked items, shown only when the seller chose some.
+  const ticked = [
+    { id: "features", title: dict.extras.featuresTitle, items: x.features.map((k) => dict.extras.features[k]) },
+    { id: "services", title: dict.extras.services, items: x.services.map((k) => dict.extras.servicesList[k]) },
+    { id: "nearby", title: dict.extras.nearbyTitle, items: x.nearby.map((k) => dict.extras.nearby[k]) },
+  ].filter((group) => group.items.length > 0);
+
   const facts = [
     { label: d.type, value: listing.type[locale] },
     { label: d.deal, value: listing.dealType === "sale" ? dict.search.sale : dict.search.rent },
@@ -65,7 +74,13 @@ export function PropertyView({
     listing.bathrooms !== null && { label: d.bathrooms, value: formatNumber(listing.bathrooms, locale) },
     listing.floorsCount !== null && { label: d.floorsCount, value: formatNumber(listing.floorsCount, locale) },
     listing.floor !== null && { label: d.floor, value: dict.floors[listing.floor] },
-    listing.furnished !== null && { label: d.furnished, value: listing.furnished ? dict.form.yes : dict.form.no },
+    x.furnished !== null && {
+      label: d.furnished,
+      value: x.furnished === "partly" ? dict.extras.furnishedPartly : x.furnished === "yes" ? dict.form.yes : dict.form.no,
+    },
+    x.buildingAge !== null && { label: dict.extras.buildingAge, value: dict.extras.buildingAges[x.buildingAge] },
+    x.zoning !== null && { label: dict.extras.zoning, value: dict.extras.zonings[x.zoning] },
+    x.frontageM !== null && { label: dict.extras.frontageShort, value: t(dict.extras.frontageValue, { n: formatNumber(x.frontageM, locale) }) },
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
@@ -151,6 +166,24 @@ export function PropertyView({
             </div>
           ))}
         </dl>
+
+        {ticked.map((group) => (
+          <section key={group.id} aria-labelledby={`${group.id}-heading`}>
+            <h2 id={`${group.id}-heading`} className="mb-2 font-extrabold">
+              {group.title}
+            </h2>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-border p-3 text-sm sm:grid-cols-3">
+              {group.items.map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand-soft text-brand">
+                    <Check className="size-4" aria-hidden />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
 
         <Gallery images={listing.images} dict={dict} />
 

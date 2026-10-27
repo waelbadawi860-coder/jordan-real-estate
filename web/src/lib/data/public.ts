@@ -5,6 +5,7 @@ import type { Database, Json } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env";
 import { getOfficeDirectory } from "@/lib/data/offices";
 import type { FloorLevel } from "@/lib/floor";
+import { extrasOf, type ListingExtras } from "@/lib/listing-details";
 import { PAGE_SIZE, type Cursor, type SearchFilters } from "@/lib/search";
 
 // Public data only. Uses the publishable key with no user session, so the
@@ -32,6 +33,9 @@ export type PropertyType = {
   hasFloor: boolean;
   hasFurnished: boolean;
   hasFloorsCount: boolean;
+  hasBuildingAge: boolean;
+  hasAmenities: boolean;
+  hasLandDetails: boolean;
   /** Which deals this type can be listed for (e.g. residential land: sale only). */
   allowedDeals: ("sale" | "rent")[];
 };
@@ -52,7 +56,7 @@ export async function getReferenceData(): Promise<ReferenceData> {
   const [cities, neighborhoods, types, settings] = await Promise.all([
     sb.from("cities").select("id, slug, name_ar, name_en").order("sort_order").order("name_en"),
     sb.from("neighborhoods").select("id, city_id, slug, name_ar, name_en").order("sort_order").order("name_en"),
-    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms, has_bathrooms, has_floor, has_furnished, has_floors_count, allowed_deals").order("sort_order"),
+    sb.from("property_types").select("id, slug, name_ar, name_en, has_bedrooms, has_bathrooms, has_floor, has_furnished, has_floors_count, has_building_age, has_amenities, has_land_details, allowed_deals").order("sort_order"),
     sb.from("site_settings").select("key, value"),
   ]);
   for (const result of [cities, neighborhoods, types, settings]) {
@@ -76,6 +80,9 @@ export async function getReferenceData(): Promise<ReferenceData> {
       hasFloor: t.has_floor,
       hasFurnished: t.has_furnished,
       hasFloorsCount: t.has_floors_count,
+      hasBuildingAge: t.has_building_age,
+      hasAmenities: t.has_amenities,
+      hasLandDetails: t.has_land_details,
       allowedDeals: t.allowed_deals,
     })),
     settings: Object.fromEntries(settings.data!.map((s) => [s.key, s.value])),
@@ -180,13 +187,6 @@ async function withOffices<T extends ListingCard>(cards: T[]): Promise<T[]> {
   if (cards.length === 0) return cards;
   const offices = await getOfficeDirectory();
   return cards.map((c) => ({ ...c, office: offices[c.sellerId] ?? null }));
-}
-
-function furnishedOf(details: Json): boolean | null {
-  if (details && typeof details === "object" && !Array.isArray(details)) {
-    return typeof details.furnished === "boolean" ? details.furnished : null;
-  }
-  return null;
 }
 
 function escapeLike(value: string): string {
@@ -362,7 +362,7 @@ export type ListingDetail = ListingCard & {
   longitude: number | null;
   floor: FloorLevel | null;
   floorsCount: number | null;
-  furnished: boolean | null;
+  extras: ListingExtras;
 };
 
 export async function getListing(id: number): Promise<ListingDetail | null> {
@@ -417,7 +417,7 @@ export async function getListing(id: number): Promise<ListingDetail | null> {
     longitude: row.longitude === null ? null : Number(row.longitude),
     floor: row.floor_level,
     floorsCount: row.floors_count,
-    furnished: furnishedOf(row.details),
+    extras: extrasOf(row.details),
   };
 }
 

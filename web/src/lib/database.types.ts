@@ -1430,11 +1430,14 @@ export type Database = {
         Row: {
           allowed_deals: Database["public"]["Enums"]["deal_type"][]
           created_at: string
+          has_amenities: boolean
           has_bathrooms: boolean
           has_bedrooms: boolean
+          has_building_age: boolean
           has_floor: boolean
           has_floors_count: boolean
           has_furnished: boolean
+          has_land_details: boolean
           id: number
           is_active: boolean
           name_ar: string
@@ -1446,11 +1449,14 @@ export type Database = {
         Insert: {
           allowed_deals?: Database["public"]["Enums"]["deal_type"][]
           created_at?: string
+          has_amenities?: boolean
           has_bathrooms?: boolean
           has_bedrooms?: boolean
+          has_building_age?: boolean
           has_floor?: boolean
           has_floors_count?: boolean
           has_furnished?: boolean
+          has_land_details?: boolean
           id?: never
           is_active?: boolean
           name_ar: string
@@ -1462,11 +1468,14 @@ export type Database = {
         Update: {
           allowed_deals?: Database["public"]["Enums"]["deal_type"][]
           created_at?: string
+          has_amenities?: boolean
           has_bathrooms?: boolean
           has_bedrooms?: boolean
+          has_building_age?: boolean
           has_floor?: boolean
           has_floors_count?: boolean
           has_furnished?: boolean
+          has_land_details?: boolean
           id?: never
           is_active?: boolean
           name_ar?: string
@@ -1921,6 +1930,10 @@ export type Database = {
         Args: { p_kind: string; p_value: string }
         Returns: boolean
       }
+      jsonb_is_key_list: {
+        Args: { p_allowed: string[]; p_value: Json }
+        Returns: boolean
+      }
       listing_area_facets: {
         Args: never
         Returns: {
@@ -1931,12 +1944,16 @@ export type Database = {
           property_type_id: number
         }[]
       }
+      listing_building_ages: { Args: never; Returns: string[] }
+      listing_feature_keys: { Args: never; Returns: string[] }
       listing_is_editable_by_owner: {
         Args: { p_listing_id: number }
         Returns: boolean
       }
       listing_is_public: { Args: { p_listing_id: number }; Returns: boolean }
+      listing_nearby_keys: { Args: never; Returns: string[] }
       listing_risk_flags: { Args: { p_listing_id: number }; Returns: string[] }
+      listing_zoning_keys: { Args: never; Returns: string[] }
       log_commission_event: {
         Args: {
           p_amount: number

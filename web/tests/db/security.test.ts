@@ -832,7 +832,7 @@ describe("floor and property type rules", () => {
     expect(bedrooms.error?.message).toContain("bedrooms_not_allowed_for_type");
     const furnished = await service
       .from("listings")
-      .insert({ ...listingInput("Furnished shop"), seller_id: alice.id, property_type_id: shop, bedrooms: null, details: { furnished: true } });
+      .insert({ ...listingInput("Furnished shop"), seller_id: alice.id, property_type_id: shop, bedrooms: null, details: { furnished: "yes" } });
     expect(furnished.error?.message).toContain("furnished_not_allowed_for_type");
   });
 
@@ -1123,6 +1123,60 @@ describe("fraud checks", () => {
       expect((await bob.client.from("listing_risk").select("listing_id")).data).toEqual([]);
     } finally {
       await admin.client.from("blocked_identifiers").delete().eq("value", blocked);
+    }
+  });
+});
+
+describe("extra ad details", () => {
+  async function typeId(slug: string) {
+    const { data } = await service.from("property_types").select("id").eq("slug", slug).single();
+    return data!.id;
+  }
+
+  it("saves features, nearby places and building age on a flat, and land details on land", async () => {
+    const flat = await service
+      .from("listings")
+      .insert({
+        ...listingInput("Flat with features"),
+        seller_id: alice.id,
+        details: { furnished: "partly", building_age: "1_5", features: ["elevator", "central_heating"], nearby: ["school"] },
+      })
+      .select("details")
+      .single();
+    expect(flat.error).toBeNull();
+    expect(flat.data!.details).toMatchObject({ furnished: "partly", features: ["elevator", "central_heating"] });
+
+    const land = await service
+      .from("listings")
+      .insert({
+        ...listingInput("Zoned land"),
+        seller_id: alice.id,
+        property_type_id: await typeId("residential-land"),
+        bedrooms: null,
+        bathrooms: null,
+        details: { zoning: "res_b", frontage_m: 25, services: ["electricity", "water"], nearby: ["main_road"] },
+      })
+      .select("id")
+      .single();
+    expect(land.error).toBeNull();
+  });
+
+  it("refuses details that don't fit the type, unknown keys and unknown values", async () => {
+    const land = await typeId("residential-land");
+    const onLand = { ...listingInput("Bad land"), seller_id: alice.id, property_type_id: land, bedrooms: null, bathrooms: null };
+    const cases: [Record<string, unknown>, string][] = [
+      [{ ...onLand, details: { features: ["elevator"] } }, "amenities_not_allowed_for_type"],
+      [{ ...onLand, details: { building_age: "1_5" } }, "building_age_not_allowed_for_type"],
+      [{ ...listingInput("Flat with zoning"), seller_id: alice.id, details: { zoning: "res_a" } }, "land_details_not_allowed_for_type"],
+      [{ ...listingInput("Flat with junk"), seller_id: alice.id, details: { colour: "blue" } }, "unknown_detail"],
+      [{ ...listingInput("Flat with odd feature"), seller_id: alice.id, details: { features: ["helipad"] } }, "invalid_detail"],
+      [{ ...listingInput("Flat with repeated feature"), seller_id: alice.id, details: { features: ["pool", "pool"] } }, "invalid_detail"],
+      [{ ...listingInput("Flat with old furnished"), seller_id: alice.id, details: { furnished: true } }, "invalid_detail"],
+      [{ ...onLand, details: { frontage_m: 2.5 } }, "invalid_detail"],
+    ];
+    for (const [row, message] of cases) {
+      const { error } = await service.from("listings").insert(row);
+      expect(error?.message, JSON.stringify(row.details)).toContain(message);
     }
   });
 });

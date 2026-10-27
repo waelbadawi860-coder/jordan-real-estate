@@ -120,7 +120,7 @@ async function add(total) {
         bathrooms: type.has_bathrooms ? 1 + (i % 3) : null,
         floor_level: type.has_floor ? floors[i % floors.length] : null,
         floors_count: type.has_floors_count ? 1 + (i % 4) : null,
-        details: { ...(deal === "rent" ? { rent_period: "monthly" } : {}), ...(type.has_furnished ? { furnished: i % 3 === 0 } : {}) },
+        details: { ...(deal === "rent" ? { rent_period: "monthly" } : {}), ...(type.has_furnished ? { furnished: i % 3 === 0 ? "yes" : "no" } : {}) },
         poster_type: i % 3 === 0 ? "agent" : "owner",
       })
       .select("id")

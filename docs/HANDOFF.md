@@ -30,6 +30,7 @@
 - **موقع العقار:** خانة اختيارية تقبل رابط Google Maps أو إحداثيات. **يظهر للزوار كما أدخله المعلن** (قرار المالك)، مع تنويه «الموقع كما حدده المعلن»، وزر «عرض الموقع على خرائط Google».
 - **«عروض مشابهة»** أسفل كل إعلان، وزر **«متابعة العروض المشابهة»**.
 - عبارة «منشور على مسؤولية المعلن» في أسفل الإعلان بخط صغير.
+- **تفاصيل إضافية اختيارية** (تظهر في صفحة الإعلان فقط، وليست في الفلاتر): عمر البناء، و«مفروشة جزئيًا»، ومميزات العقار (19 بندًا داخل العقار وفي البناية)، و«قريب من» (9 أماكن). وللأراضي: التنظيم، وطول الواجهة على الشارع، والخدمات الواصلة. أي نوع عقار يأخذ أي مجموعة يُضبط من «أنواع العقارات» في لوحة الإدارة.
 
 **المتابعات**
 - إشعار داخل الموقع فورًا عند نشر عرض مطابق.
@@ -67,7 +68,7 @@
 - مراجعة كود كاملة، وأُصلحت ثغراتها.
 - **سرعة الهاتف** مع 1000 إعلان: الصفحة الرئيسية 99–100، والبحث 98، والإعلان 94–97. وقاعدة البيانات تجيب في 3ms.
 
-**الاختبارات:** 48 وحدة، و95 قاعدة بيانات، و52 موقع، وكلها ناجحة.
+**الاختبارات:** 51 وحدة، و97 قاعدة بيانات، و52 موقع، وكلها ناجحة.
 
 ## 4. قرارات المالك
 - لا عمولة. الدخل من التمييز والرفع والباقات والتوثيق.
@@ -102,7 +103,7 @@
 
 ## Technical notes for the next session (English)
 - **Stack:** Next.js 16.4 App Router in `web/` with `cacheComponents` (`"use cache"`, tags `listings`, `reference-data`, `offices`, `listing-<id>`), `proxy.ts`, and `app/[lang]`. Read `web/AGENTS.md` and `node_modules/next/dist/docs` first. Supabase with RLS plus column-level grants everywhere, SECURITY DEFINER functions (`search_path=''`), Tailwind 4, Vercel `fra1`.
-- **Migrations:** `web/supabase/migrations`, latest `20261029090000_terms_reconsent.sql`.
+- **Migrations:** `web/supabase/migrations`, latest `20261030090000_listing_extra_details.sql`.
   - Run `npx supabase db push`, then `npm run db:types`.
   - A worktree needs `web/supabase/.temp/*` copied from the main checkout to be linked.
 - **Key tables added this session:**
@@ -112,6 +113,7 @@
   - `saved_searches` and `saved_search_hits`.
   - Settings `max_active_listings_individual` and `price_*`.
 - **Re-consent:** `pending_consents()` / `accept_current_terms(p_evidence)`; users can no longer insert into `user_consents` directly. `requireCurrentConsent()` (`lib/consent.ts`) gates `/my/*` and `/post`, redirecting to `/accept-terms?next=`. Trigger `listings_require_current_terms` blocks seller submissions while a consent is pending (`terms_consent_required`). Test helpers call `accept_current_terms` after sign-in.
+- **Extra ad details** live in `listings.details` (keys: rent_period, furnished 'yes'|'no'|'partly', building_age, features[], nearby[], zoning, frontage_m, services[]). Lists are in `src/lib/listing-details.ts` and must match the SQL functions `listing_feature_keys()` etc.; `listings_check_type_rules` refuses unknown keys/values and groups the type doesn't allow (`has_building_age`, `has_amenities`, `has_land_details`). Not searchable by design.
 - **Key functions:** `admin_promote_listing`, `admin_set_office_plan`, `admin_review_office_verification`, `admin_set_office_status`, `submit_office_verification`, `active_listing_limit` (the trigger `listings_check_active_limit` fires on every update), `notify_saved_searches` (trigger), `unsubscribe_saved_search`.
 - **`is_admin()`** requires aal2 once the admin has a verified TOTP factor, or always when `require_admin_mfa` is on (it is ON on dev). **Test admins enroll TOTP automatically** through `tests/totp.ts` (`confirmTwoStep`).
 - **Cron jobs:** `/api/cron/cleanup` (01:30 UTC) and `/api/cron/alerts` (06:00 UTC, the e-mail digest, which is skipped until `RESEND_API_KEY` and `EMAIL_FROM` are set). Both use `lib/cron.ts` and need `CRON_SECRET`.

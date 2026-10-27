@@ -9,6 +9,7 @@ import { getOwnProfile, requireUser } from "@/lib/auth";
 import { requireCurrentConsent } from "@/lib/consent";
 import { getReferenceData } from "@/lib/data/public";
 import { displayPhone, t } from "@/lib/format";
+import { extrasFormValues } from "@/lib/listing-details";
 
 export const instant = false;
 
@@ -56,7 +57,7 @@ export default async function PostPage({ params }: PageProps<"/[lang]/post">) {
             bathrooms: "",
             floorsCount: "",
             floor: "",
-            furnished: "",
+            ...extrasFormValues(),
             posterType: "owner",
             phone: profile.phone ? displayPhone(profile.phone).replace(/\s/g, "") : "",
             allowCalls: true,

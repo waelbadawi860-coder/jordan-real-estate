@@ -74,9 +74,18 @@ async function toRow(input: ListingInput) {
   const ref = await getReferenceData();
   const type = ref.propertyTypes.find((t) => t.id === input.propertyTypeId);
   const hasBedrooms = type?.hasBedrooms ?? false;
-  const details: Record<string, string | number | boolean> = {};
+  // Only the details that apply to the type are kept (the database checks this too).
+  const details: Record<string, string | number | string[]> = {};
   if (input.dealType === "rent" && input.rentPeriod) details.rent_period = input.rentPeriod;
-  if (type?.hasFurnished && input.furnished) details.furnished = input.furnished === "yes";
+  if (type?.hasFurnished && input.furnished) details.furnished = input.furnished;
+  if (type?.hasBuildingAge && input.buildingAge) details.building_age = input.buildingAge;
+  if (type?.hasAmenities && input.features.length) details.features = input.features;
+  if (input.nearby.length) details.nearby = input.nearby;
+  if (type?.hasLandDetails) {
+    if (input.zoning) details.zoning = input.zoning;
+    if (input.frontageM !== undefined) details.frontage_m = input.frontageM;
+    if (input.services.length) details.services = input.services;
+  }
 
   return {
     deal_type: input.dealType,

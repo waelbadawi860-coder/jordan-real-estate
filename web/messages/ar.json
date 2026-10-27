@@ -844,7 +844,10 @@
       "rent": "إيجار",
       "hasBathrooms": "له حمامات",
       "hasFurnished": "يمكن أن يكون مفروشًا",
-      "hasFloorsCount": "له عدد طوابق (فيلا، عمارة…)"
+      "hasFloorsCount": "له عدد طوابق (فيلا، عمارة…)",
+      "hasBuildingAge": "يُسأل عن عمر البناء",
+      "hasAmenities": "له مميزات (تدفئة، مصعد…)",
+      "hasLandDetails": "أرض (التنظيم والواجهة والخدمات)"
     },
     "audit": {
       "when": "الوقت",
@@ -1200,5 +1203,75 @@
     "required": "ضع علامة على مربع الموافقة للمتابعة.",
     "failed": "حدث خطأ. حاول مرة أخرى.",
     "decline": "إذا لم توافق، لن تستطيع نشر الإعلانات أو استخدام صفحات حسابك. يمكنك تسجيل الخروج، أو طلب حذف حسابك."
+  },
+  "extras": {
+    "furnishedPartly": "مفروشة جزئيًا",
+    "buildingAge": "عمر البناء",
+    "buildingAges": {
+      "under_construction": "قيد الإنشاء",
+      "under_1": "أقل من سنة",
+      "1_5": "1–5 سنوات",
+      "6_9": "6–9 سنوات",
+      "10_19": "10–19 سنة",
+      "20_plus": "20 سنة أو أكثر"
+    },
+    "featuresTitle": "مميزات العقار",
+    "insideTitle": "داخل العقار",
+    "buildingTitle": "البناية والخدمات",
+    "tickHint": "اختر ما ينطبق فقط. تظهر في صفحة الإعلان.",
+    "features": {
+      "central_heating": "تدفئة مركزية",
+      "air_conditioning": "تكييف",
+      "underfloor_heating": "تدفئة تحت البلاط",
+      "maid_room": "غرفة خادمة",
+      "laundry_room": "غرفة غسيل",
+      "built_in_kitchen": "مطبخ راكب",
+      "balcony": "شرفة / بلكونة",
+      "double_glazing": "زجاج شبابيك مزدوج",
+      "wardrobes": "خزائن حائط",
+      "elevator": "مصعد",
+      "parking": "موقف سيارات",
+      "storage": "مخزن",
+      "garden": "حديقة",
+      "solar_heater": "سخان شمسي",
+      "solar_panels": "ألواح طاقة شمسية",
+      "backup_power": "مولّد / كهرباء احتياطية",
+      "security": "حارس / نظام أمن",
+      "pool": "بركة سباحة",
+      "accessibility": "تسهيلات لذوي الإعاقة"
+    },
+    "nearbyTitle": "قريب من",
+    "nearby": {
+      "school": "مدرسة",
+      "university": "جامعة",
+      "mosque": "مسجد",
+      "hospital": "مستشفى",
+      "pharmacy": "صيدلية",
+      "supermarket": "سوبرماركت",
+      "mall": "مول",
+      "public_transport": "مواصلات عامة",
+      "main_road": "شارع رئيسي"
+    },
+    "landTitle": "تفاصيل الأرض",
+    "zoning": "التنظيم",
+    "zonings": {
+      "res_a": "سكن أ",
+      "res_b": "سكن ب",
+      "res_c": "سكن ج",
+      "res_d": "سكن د",
+      "rural": "سكن ريفي",
+      "commercial": "تجاري",
+      "industrial": "صناعي",
+      "agricultural": "زراعي"
+    },
+    "frontage": "طول الواجهة على الشارع (متر)",
+    "frontageShort": "الواجهة على الشارع",
+    "frontageValue": "{n} م",
+    "services": "الخدمات الواصلة",
+    "servicesList": {
+      "electricity": "كهرباء",
+      "water": "ماء",
+      "sewage": "صرف صحي"
+    }
   }
 }

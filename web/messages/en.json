@@ -844,7 +844,10 @@
       "rent": "Rent",
       "hasBathrooms": "Has bathrooms",
       "hasFurnished": "Can be furnished",
-      "hasFloorsCount": "Has a number of floors (villa, building…)"
+      "hasFloorsCount": "Has a number of floors (villa, building…)",
+      "hasBuildingAge": "Asks for building age",
+      "hasAmenities": "Has features (heating, lift…)",
+      "hasLandDetails": "Land (zoning, frontage, services)"
     },
     "audit": {
       "when": "When",
@@ -1200,5 +1203,75 @@
     "required": "Tick the agreement box to continue.",
     "failed": "Something went wrong. Please try again.",
     "decline": "If you don't agree, you can't post ads or use your account pages. You can sign out, or request deletion of your account."
+  },
+  "extras": {
+    "furnishedPartly": "Partly furnished",
+    "buildingAge": "Building age",
+    "buildingAges": {
+      "under_construction": "Under construction",
+      "under_1": "Under 1 year",
+      "1_5": "1–5 years",
+      "6_9": "6–9 years",
+      "10_19": "10–19 years",
+      "20_plus": "20 years or more"
+    },
+    "featuresTitle": "Property features",
+    "insideTitle": "Inside the property",
+    "buildingTitle": "Building and services",
+    "tickHint": "Tick only what applies. Shown on the ad page.",
+    "features": {
+      "central_heating": "Central heating",
+      "air_conditioning": "Air conditioning",
+      "underfloor_heating": "Underfloor heating",
+      "maid_room": "Maid's room",
+      "laundry_room": "Laundry room",
+      "built_in_kitchen": "Fitted kitchen",
+      "balcony": "Balcony",
+      "double_glazing": "Double glazing",
+      "wardrobes": "Built-in wardrobes",
+      "elevator": "Lift",
+      "parking": "Parking",
+      "storage": "Storage room",
+      "garden": "Garden",
+      "solar_heater": "Solar water heater",
+      "solar_panels": "Solar panels",
+      "backup_power": "Generator / backup power",
+      "security": "Guard / security system",
+      "pool": "Swimming pool",
+      "accessibility": "Disabled access"
+    },
+    "nearbyTitle": "Close to",
+    "nearby": {
+      "school": "School",
+      "university": "University",
+      "mosque": "Mosque",
+      "hospital": "Hospital",
+      "pharmacy": "Pharmacy",
+      "supermarket": "Supermarket",
+      "mall": "Mall",
+      "public_transport": "Public transport",
+      "main_road": "Main road"
+    },
+    "landTitle": "Land details",
+    "zoning": "Zoning",
+    "zonings": {
+      "res_a": "Residential A",
+      "res_b": "Residential B",
+      "res_c": "Residential C",
+      "res_d": "Residential D",
+      "rural": "Rural residential",
+      "commercial": "Commercial",
+      "industrial": "Industrial",
+      "agricultural": "Agricultural"
+    },
+    "frontage": "Street frontage (metres)",
+    "frontageShort": "Street frontage",
+    "frontageValue": "{n} m",
+    "services": "Connected services",
+    "servicesList": {
+      "electricity": "Electricity",
+      "water": "Water",
+      "sewage": "Sewage"
+    }
   }
 }

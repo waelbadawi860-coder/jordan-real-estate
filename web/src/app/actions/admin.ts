@@ -377,6 +377,9 @@ const typeInput = z.object({
   hasFloor: z.boolean().default(false),
   hasFurnished: z.boolean().default(false),
   hasFloorsCount: z.boolean().default(false),
+  hasBuildingAge: z.boolean().default(false),
+  hasAmenities: z.boolean().default(false),
+  hasLandDetails: z.boolean().default(false),
   allowedDeals: z.array(z.enum(["sale", "rent"])).min(1).max(2).default(["sale", "rent"]),
   isActive: z.boolean().default(true),
 });
@@ -425,6 +428,9 @@ export async function savePropertyTypeAction(input: unknown): Promise<AdminResul
     has_floor: p.data.hasFloor,
     has_furnished: p.data.hasFurnished,
     has_floors_count: p.data.hasFloorsCount,
+    has_building_age: p.data.hasBuildingAge,
+    has_amenities: p.data.hasAmenities,
+    has_land_details: p.data.hasLandDetails,
     allowed_deals: [...new Set(p.data.allowedDeals)],
   };
   const { error } = p.data.id
