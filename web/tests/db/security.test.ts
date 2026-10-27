@@ -1139,7 +1139,7 @@ describe("extra ad details", () => {
       .insert({
         ...listingInput("Flat with features"),
         seller_id: alice.id,
-        details: { furnished: "partly", building_age: "1_5", features: ["elevator", "central_heating"], nearby: ["school"] },
+        details: { furnished: "partly", building_age: "1_5", features: ["elevator", "central_heating"], nearby: ["school"], mortgaged: "yes" },
       })
       .select("details")
       .single();
@@ -1154,7 +1154,7 @@ describe("extra ad details", () => {
         property_type_id: await typeId("residential-land"),
         bedrooms: null,
         bathrooms: null,
-        details: { zoning: "res_b", frontage_m: 25, services: ["electricity", "water"], nearby: ["main_road"] },
+        details: { zoning: "res_b", frontage_m: 25, services: ["electricity", "water"], nearby: ["main_road"], mortgaged: "no" },
       })
       .select("id")
       .single();
@@ -1173,6 +1173,8 @@ describe("extra ad details", () => {
       [{ ...listingInput("Flat with repeated feature"), seller_id: alice.id, details: { features: ["pool", "pool"] } }, "invalid_detail"],
       [{ ...listingInput("Flat with old furnished"), seller_id: alice.id, details: { furnished: true } }, "invalid_detail"],
       [{ ...onLand, details: { frontage_m: 2.5 } }, "invalid_detail"],
+      [{ ...onLand, details: { mortgaged: "maybe" } }, "invalid_detail"],
+      [{ ...onLand, details: { mortgaged: true } }, "invalid_detail"],
     ];
     for (const [row, message] of cases) {
       const { error } = await service.from("listings").insert(row);

@@ -268,7 +268,12 @@
     },
     "floorsCount": "Number of floors",
     "neighborhoodCityFirst": "Choose the governorate first",
-    "neighborhoodNoMatch": "No area by that name."
+    "neighborhoodNoMatch": "No area by that name.",
+    "stepDetails": "Step 1 of 2: ad details, then photos",
+    "stepPhotos": "Step 2 of 2",
+    "photosStepTitle": "Add photos",
+    "photosStepIntro": "Your ad details are saved. Add the photos now, then press “Continue to preview” to check and submit it.",
+    "backToDetails": "Back to edit the ad details"
   },
   "photos": {
     "hint": "Add 1 to {max} photos. We compress them automatically and remove hidden location data.",
@@ -1272,6 +1277,9 @@
       "electricity": "Electricity",
       "water": "Water",
       "sewage": "Sewage"
-    }
+    },
+    "mortgaged": "Is the property mortgaged?",
+    "mortgagedHint": "Shown as you choose it and on your responsibility, so pick the correct answer.",
+    "mortgagedNote": "\"Is the property mortgaged?\" is as stated by the advertiser. Check it with the Department of Lands and Survey before committing to anything."
   }
 }

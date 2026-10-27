@@ -35,6 +35,8 @@ export const FEATURES = [...FEATURE_GROUPS.inside, ...FEATURE_GROUPS.building] a
 export const NEARBY = ["school", "university", "mosque", "hospital", "pharmacy", "supermarket", "mall", "public_transport", "main_road"] as const;
 export const ZONINGS = ["res_a", "res_b", "res_c", "res_d", "rural", "commercial", "industrial", "agricultural"] as const;
 export const LAND_SERVICES = ["electricity", "water", "sewage"] as const;
+/** "Is the property mortgaged?", as the seller states it. */
+export const MORTGAGED = ["yes", "no"] as const;
 
 export type Furnished = (typeof FURNISHED)[number];
 export type BuildingAge = (typeof BUILDING_AGES)[number];
@@ -42,6 +44,7 @@ export type Feature = (typeof FEATURES)[number];
 export type Nearby = (typeof NEARBY)[number];
 export type Zoning = (typeof ZONINGS)[number];
 export type LandService = (typeof LAND_SERVICES)[number];
+export type Mortgaged = (typeof MORTGAGED)[number];
 
 export type ListingExtras = {
   furnished: Furnished | null;
@@ -51,6 +54,7 @@ export type ListingExtras = {
   zoning: Zoning | null;
   frontageM: number | null;
   services: LandService[];
+  mortgaged: Mortgaged | null;
 };
 
 function pick<T extends string>(value: unknown, allowed: readonly T[]): T | null {
@@ -74,6 +78,7 @@ export function extrasOf(details: Json): ListingExtras {
     zoning: pick(d.zoning, ZONINGS),
     frontageM: typeof d.frontage_m === "number" ? d.frontage_m : null,
     services: pickAll(d.services, LAND_SERVICES),
+    mortgaged: pick(d.mortgaged, MORTGAGED),
   };
 }
 
@@ -88,5 +93,6 @@ export function extrasFormValues(extras?: ListingExtras) {
     zoning: extras?.zoning ?? "",
     frontageM: extras?.frontageM === null || extras?.frontageM === undefined ? "" : String(extras.frontageM),
     services: extras?.services ?? [],
+    mortgaged: extras?.mortgaged ?? "",
   };
 }

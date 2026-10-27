@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FLOOR_LEVELS } from "@/lib/floor";
-import { BUILDING_AGES, FEATURES, FURNISHED, LAND_SERVICES, NEARBY, ZONINGS } from "@/lib/listing-details";
+import { BUILDING_AGES, FEATURES, FURNISHED, LAND_SERVICES, MORTGAGED, NEARBY, ZONINGS } from "@/lib/listing-details";
 
 // Shared by the browser (instant feedback) and the server (the real check).
 // Error messages are translation keys from messages/*.json → form.errors.
@@ -73,6 +73,7 @@ export const listingSchema = z
     zoning: optionalChoice(ZONINGS),
     frontageM: optionalInt(1, 10_000),
     services: keyList(LAND_SERVICES),
+    mortgaged: optionalChoice(MORTGAGED),
     posterType: z.enum(["owner", "agent"]).default("owner"),
     phone: z
       .string()
@@ -135,6 +136,7 @@ export function listingFormValues(formData: FormData) {
     features: formData.getAll("features").filter((v): v is string => typeof v === "string"),
     nearby: formData.getAll("nearby").filter((v): v is string => typeof v === "string"),
     zoning: text("zoning"),
+    mortgaged: text("mortgaged"),
     frontageM: text("frontageM"),
     services: formData.getAll("services").filter((v): v is string => typeof v === "string"),
     posterType: text("posterType") || "owner",

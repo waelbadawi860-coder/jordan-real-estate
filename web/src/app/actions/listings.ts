@@ -81,6 +81,7 @@ async function toRow(input: ListingInput) {
   if (type?.hasBuildingAge && input.buildingAge) details.building_age = input.buildingAge;
   if (type?.hasAmenities && input.features.length) details.features = input.features;
   if (input.nearby.length) details.nearby = input.nearby;
+  if (input.mortgaged) details.mortgaged = input.mortgaged;
   if (type?.hasLandDetails) {
     if (input.zoning) details.zoning = input.zoning;
     if (input.frontageM !== undefined) details.frontage_m = input.frontageM;

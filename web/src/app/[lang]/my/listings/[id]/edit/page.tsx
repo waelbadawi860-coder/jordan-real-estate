@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pencil } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -38,7 +38,9 @@ export default async function EditListingPage({ params, searchParams }: PageProp
 
   const Arrow = lang === "ar" ? ArrowLeft : ArrowRight;
   const editable = EDITABLE.includes(listing.status);
-  const photosFirst = sp.step === "photos";
+  // Right after the ad text is saved, the photos are a separate second step:
+  // only the photos are shown, not the whole form again.
+  const photosStep = sp.step === "photos" && editable;
 
   const photos = (
     <section id="photos" className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5" aria-labelledby="s-photos">
@@ -67,12 +69,31 @@ export default async function EditListingPage({ params, searchParams }: PageProp
     </section>
   );
 
+  if (photosStep) {
+    return (
+      <div className="flex max-w-3xl flex-col gap-5">
+        <div>
+          <p className="text-sm font-bold text-brand">{dict.form.stepPhotos}</p>
+          <h1 className="text-2xl font-extrabold">{dict.form.photosStepTitle}</h1>
+          <p className="mt-1 text-muted">{dict.form.photosStepIntro}</p>
+        </div>
+        {photos}
+        <Link
+          href={localePath(lang, `/my/listings/${listing.id}/edit`)}
+          className="flex w-fit items-center gap-2 text-sm font-semibold text-brand hover:underline"
+        >
+          <Pencil className="size-4" aria-hidden />
+          {dict.form.backToDetails}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <h1 className="text-2xl font-extrabold">
         {dict.form.editTitle} <span className="text-base font-semibold text-muted">· {dict.status[listing.status]}</span>
       </h1>
-      {photosFirst && photos}
       {editable ? (
         <ListingForm
           locale={lang}
@@ -107,7 +128,7 @@ export default async function EditListingPage({ params, searchParams }: PageProp
       ) : (
         <FormMessage kind="info">{dict.form.errors.notEditable}</FormMessage>
       )}
-      {!photosFirst && photos}
+      {photos}
     </div>
   );
 }

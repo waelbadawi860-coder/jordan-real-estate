@@ -29,6 +29,7 @@ export default async function PostPage({ params }: PageProps<"/[lang]/post">) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
+      <p className="text-sm font-bold text-brand">{dict.form.stepDetails}</p>
       <h1 className="mb-2 text-2xl font-extrabold">{dict.form.newTitle}</h1>
       <p className="mb-5 text-sm text-muted">
         {t(dict.promote.postNote, { n: Number(ref.settings.max_active_listings_individual ?? 3) })}{" "}

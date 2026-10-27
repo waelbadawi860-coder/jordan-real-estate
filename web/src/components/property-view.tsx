@@ -81,6 +81,7 @@ export function PropertyView({
     x.buildingAge !== null && { label: dict.extras.buildingAge, value: dict.extras.buildingAges[x.buildingAge] },
     x.zoning !== null && { label: dict.extras.zoning, value: dict.extras.zonings[x.zoning] },
     x.frontageM !== null && { label: dict.extras.frontageShort, value: t(dict.extras.frontageValue, { n: formatNumber(x.frontageM, locale) }) },
+    x.mortgaged !== null && { label: dict.extras.mortgaged, value: x.mortgaged === "yes" ? dict.form.yes : dict.form.no },
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
@@ -166,6 +167,8 @@ export function PropertyView({
             </div>
           ))}
         </dl>
+
+        {x.mortgaged !== null && <p className="-mt-2 text-xs text-muted">{dict.extras.mortgagedNote}</p>}
 
         {ticked.map((group) => (
           <section key={group.id} aria-labelledby={`${group.id}-heading`}>

@@ -32,6 +32,7 @@ export type ListingFormValues = {
   zoning: string;
   frontageM: string;
   services: string[];
+  mortgaged: string;
   posterType: "owner" | "agent";
   phone: string;
   allowCalls: boolean;
@@ -348,6 +349,21 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             <CheckGroup name="features" title={x.insideTitle} keys={FEATURE_GROUPS.inside} labels={x.features} checked={initial.features} />
             <CheckGroup name="features" title={x.buildingTitle} keys={FEATURE_GROUPS.building} labels={x.features} checked={initial.features} />
           </fieldset>
+        )}
+        {type && (
+          <div className="sm:w-1/2">
+            <label htmlFor="mortgaged" className={label}>
+              {x.mortgaged} <span className="font-normal text-muted">({f.optional})</span>
+            </label>
+            <select id="mortgaged" name="mortgaged" defaultValue={initial.mortgaged} className={inputClass} aria-describedby="mortgaged-hint">
+              <option value="">{f.notSpecified}</option>
+              <option value="yes">{f.yes}</option>
+              <option value="no">{f.no}</option>
+            </select>
+            <p id="mortgaged-hint" className="mt-1 text-xs text-muted">
+              {x.mortgagedHint}
+            </p>
+          </div>
         )}
         {type && (
           <CheckGroup name="nearby" title={`${x.nearbyTitle} (${f.optional})`} keys={NEARBY} labels={x.nearby} checked={initial.nearby} />

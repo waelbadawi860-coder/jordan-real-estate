@@ -36,6 +36,9 @@ describe("extra ad details", () => {
     expect(listingSchema.safeParse({ ...base, zoning: "res_z" }).success).toBe(false);
     expect(listingSchema.safeParse({ ...base, frontageM: "0" }).success).toBe(false);
     expect(listingSchema.safeParse({ ...base, frontageM: "12.5" }).success).toBe(false);
+    expect(listingSchema.safeParse({ ...base, mortgaged: "maybe" }).success).toBe(false);
+    expect(listingSchema.parse({ ...base, mortgaged: "no" }).mortgaged).toBe("no");
+    expect(listingSchema.parse({ ...base, mortgaged: "" }).mortgaged).toBeUndefined();
   });
 
   it("reads saved details safely, ignoring anything unexpected", () => {
@@ -45,6 +48,8 @@ describe("extra ad details", () => {
     expect(x.features).toEqual(["balcony", "pool"]);
     expect(x.frontageM).toBeNull();
     expect(x.nearby).toEqual([]);
+    expect(x.mortgaged).toBeNull();
+    expect(extrasOf({ mortgaged: "yes" }).mortgaged).toBe("yes");
     expect(extrasFormValues(x)).toMatchObject({ buildingAge: "6_9", furnished: "", frontageM: "" });
   });
 });
