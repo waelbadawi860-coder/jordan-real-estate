@@ -11,10 +11,10 @@ export function SiteHeader({ locale, dict, siteName }: { locale: Locale; dict: D
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4">
-        <Link href={localePath(locale, "/")} className="flex items-center gap-2 text-xl font-extrabold text-brand">
+        <Link href={localePath(locale, "/")} className="flex items-center gap-2 text-[1.375rem] font-extrabold text-brand">
           {/* The logo (green tile with the «ع» building and map pin). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo-96.png" alt="" width={36} height={36} className="size-9 rounded-lg" />
+          <img src="/brand/logo-96.png" alt="" width={40} height={40} className="size-10 rounded-lg" />
           {/* On very narrow phones only the logo icon shows, to leave room for the buttons. */}
           <span className="hidden min-[380px]:inline">{siteName}</span>
           <span className="sr-only min-[380px]:hidden">{siteName}</span>
