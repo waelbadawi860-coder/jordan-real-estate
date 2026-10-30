@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
+import { getReferenceData } from "@/lib/data/public";
+import { t } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/about">): Promise<Metadata> {
   const { lang } = await params;
@@ -19,10 +21,10 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/about">): 
 export default async function AboutPage({ params }: PageProps<"/[lang]/about">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  const dict = await getDictionary(lang);
+  const [dict, ref] = await Promise.all([getDictionary(lang), getReferenceData()]);
   const a = dict.about;
   const sections = [
-    { icon: Eye, title: a.reviewTitle, text: a.reviewText },
+    { icon: Eye, title: a.reviewTitle, text: t(a.reviewText, { d: Number(ref.settings.listing_expiry_days ?? 30) }) },
     { icon: Search, title: a.searchTitle, text: a.searchText },
     { icon: BadgeCheck, title: a.verifiedTitle, text: a.verifiedText },
     { icon: ShieldCheck, title: a.safetyTitle, text: a.safetyText },

@@ -113,6 +113,7 @@ export default async function MyListingsPage({ params }: PageProps<"/[lang]/my/l
                     requireApproval={requireApproval}
                     needsAgreement={commissionOn && !l.acceptedVersionIds.includes(currentAgreementId)}
                     hasAgreement={l.acceptedVersionIds.length > 0}
+                    expiryDays={Number(ref.settings.listing_expiry_days ?? 30)}
                     dict={dict}
                   />
                 </div>

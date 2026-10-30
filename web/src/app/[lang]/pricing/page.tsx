@@ -40,7 +40,7 @@ export default async function PricingPage({ params }: PageProps<"/[lang]/pricing
         <h2 id="free-heading" className="text-lg font-extrabold">
           {p.freeTitle}
         </h2>
-        <p className="mt-1">{t(p.freeText, { n: freeLimit })}</p>
+        <p className="mt-1">{t(p.freeText, { n: freeLimit, d: Number(ref.settings.listing_expiry_days ?? 30) })}</p>
       </section>
 
       <section className={box} aria-labelledby="promote-heading">

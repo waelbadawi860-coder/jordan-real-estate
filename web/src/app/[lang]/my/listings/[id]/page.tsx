@@ -74,6 +74,7 @@ export default async function PreviewListingPage({ params }: PageProps<"/[lang]/
           requireApproval={requireApproval}
           needsAgreement={needsAgreement}
           hasAgreement={listing.acceptances.length > 0}
+          expiryDays={Number(ref.settings.listing_expiry_days ?? 30)}
           dict={dict}
         />
         {acceptedCurrent && <p className="text-sm text-muted">{t(dict.commission.acceptedOn, { date: formatDate(acceptedCurrent.acceptedAt, lang) })}</p>}

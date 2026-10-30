@@ -8,6 +8,7 @@ import type { Locale } from "@/i18n/config";
 import { localePath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { ListingStatus } from "@/lib/data/owner";
+import { t } from "@/lib/format";
 
 type Confirm =
   | { kind: "submit"; message: string }
@@ -41,6 +42,7 @@ export function StatusActions({
   requireApproval,
   needsAgreement = false,
   hasAgreement = false,
+  expiryDays,
   dict,
 }: {
   locale: Locale;
@@ -56,6 +58,8 @@ export function StatusActions({
   needsAgreement?: boolean;
   /** Published under a commission agreement: selling/renting is reported with transaction details. */
   hasAgreement?: boolean;
+  /** How long a renewal keeps the ad up (site setting). */
+  expiryDays: number;
   dict: Pick<Dictionary, "myListings" | "preview" | "form" | "commission" | "declaration">;
 }) {
   const m = dict.myListings;
@@ -126,7 +130,7 @@ export function StatusActions({
         )}
         {canRenew && (status === "published" || status === "expired") && (
           <button type="button" disabled={pending} className={primary} onClick={() => run(() => renewListingAction(listingId))}>
-            {m.renew}
+            {t(m.renew, { d: expiryDays })}
           </button>
         )}
         {hasAgreement && (status === "published" || status === "expired") && (
