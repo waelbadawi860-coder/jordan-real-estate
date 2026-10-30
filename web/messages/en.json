@@ -1326,7 +1326,7 @@
       "sewage": "Sewage"
     },
     "mortgaged": "Is the property mortgaged?",
-    "mortgagedHint": "Shown as you choose it and on your responsibility, so pick the correct answer.",
+    "mortgagedHint": "Shown as you choose it, on your responsibility.",
     "mortgagedNote": "\"Is the property mortgaged?\" is as stated by the advertiser. Check it with the Department of Lands and Survey before committing to anything.",
     "moreTitle": "More details",
     "moreOpen": "+ Add",
