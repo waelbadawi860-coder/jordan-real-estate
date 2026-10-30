@@ -390,7 +390,8 @@
       "office_plan_active": "Your office package is active.",
       "similar_listing": "New listing #{id} matches listings you follow.",
       "other": "New notification.",
-      "listing_auto_held": "Listing #{id} was put on hold automatically after several reports and needs review."
+      "listing_auto_held": "Listing #{id} was put on hold automatically after several reports and needs review.",
+      "system_failures": "Alert: {id} failures in the last 15 minutes. Check the failures section of the admin dashboard."
     },
     "reason": "Reason: {reason}",
     "autoHoldReason": "held automatically after reports from several users; the moderation team will review it"
@@ -826,7 +827,8 @@
         "price_feature_14_days": "Price to feature a listing for 14 days (JOD)",
         "price_feature_30_days": "Price to feature a listing for 30 days (JOD)",
         "price_bump": "Price to move a listing to the top once (JOD)",
-        "report_auto_hold_threshold": "Different users reporting an ad within 24 hours before it is put on hold automatically (0 = off)"
+        "report_auto_hold_threshold": "Different users reporting an ad within 24 hours before it is put on hold automatically (0 = off)",
+        "alert_failures_per_15min": "Failures within 15 minutes before admins are alerted (0 = off)"
       },
       "draftAgreement": "Commissions can't be enabled on the live site while the current agreement is an unreviewed draft.",
       "invalid": "Invalid value.",
@@ -1027,6 +1029,19 @@
       "minutesValue": "{n} min",
       "period7": "{n} days",
       "periodN": "{n} days"
+    },
+    "system": {
+      "title": "Failures (last 24 hours)",
+      "none": "No failures recorded in the last 24 hours.",
+      "count": "{n} failures",
+      "kinds": {
+        "server_error": "Server error",
+        "photo_upload_failed": "Photo upload failed",
+        "photo_publish_refused": "Photo refused for publishing",
+        "listing_save_failed": "Ad could not be saved",
+        "job_failed": "Scheduled job failed"
+      },
+      "note": "Failures are recorded without personal data and kept for 30 days. Over 10 failures within 15 minutes notify the admins (at most once an hour). The number is in Settings."
     }
   },
   "common": {
@@ -1321,5 +1336,13 @@
     "tooBroad": "Choose a deal, property type or governorate first.",
     "error": "Couldn't save. Please try again.",
     "manage": "Manage my follows"
+  },
+  "seo": {
+    "forSale": "for sale",
+    "forRent": "for rent",
+    "allTypes": "Properties",
+    "what": "{type} {deal} in {place}",
+    "jordan": "Jordan",
+    "description": "{title}: {n} listings live now on Aqar. Browse prices and details and contact owners and offices directly."
   }
 }

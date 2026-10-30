@@ -1,14 +1,15 @@
 import type { MetadataRoute } from "next";
 import { listingPath } from "@/lib/paths";
 import { localePath, locales } from "@/i18n/config";
-import { getSitemapListings } from "@/lib/data/public";
+import { getAreaFacets, getReferenceData, getSitemapListings } from "@/lib/data/public";
+import { seoSearchesWithListings, seoSearchPath } from "@/lib/seo-search";
 import { publicEnv } from "@/lib/env";
 
 // Only published listings appear here; drafts, rejected, expired and
 // withdrawn listings are never exposed (the database query can't see them).
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = publicEnv.NEXT_PUBLIC_SITE_URL;
-  const listings = await getSitemapListings();
+  const [listings, ref, facets] = await Promise.all([getSitemapListings(), getReferenceData(), getAreaFacets()]);
 
   const staticPages = ["/", "/search", "/about", "/pricing"].flatMap((path) =>
     locales.map((locale) => ({
@@ -27,5 +28,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   );
 
-  return [...staticPages, ...listingPages];
+  // "Apartments for sale in Abdoun" and the like, only while they have listings.
+  const areaPages = seoSearchesWithListings(ref, facets).flatMap((s) =>
+    locales.map((locale) => ({
+      url: `${base}${seoSearchPath(locale, s)}`,
+      changeFrequency: "daily" as const,
+      priority: s.hood ? 0.5 : 0.7,
+    })),
+  );
+
+  return [...staticPages, ...areaPages, ...listingPages];
 }

@@ -26,6 +26,7 @@ export const settingSchemas = {
   require_admin_mfa: bool,
   max_reports_per_24h: int(1, 100),
   report_auto_hold_threshold: int(0, 50),
+  alert_failures_per_15min: int(0, 1000),
   terms_version: z.string().trim().min(1).max(40),
   declaration_version: z.string().trim().min(1).max(40),
   removed_photo_retention_days: int(30, 3650),
@@ -62,5 +63,6 @@ export const numberSettings: EditableSetting[] = [
   "image_max_dimension_px",
   "max_reports_per_24h",
   "report_auto_hold_threshold",
+  "alert_failures_per_15min",
   "removed_photo_retention_days",
 ];

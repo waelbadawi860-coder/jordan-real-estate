@@ -61,3 +61,80 @@ jobs:
           path: "*.tar.gz.gpg"
           retention-days: 30
           if-no-files-found: error
+
+  # Restore test: every backup is restored into a fresh, throw-away copy of
+  # Supabase's database (same Postgres version) and the number of rows in each
+  # table is compared with the live database. A backup that can't be restored
+  # turns this job red, and GitHub e-mails the repository owner.
+  restore-test:
+    needs: backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    services:
+      restore:
+        image: supabase/postgres:17.11.0.003 # same version as the project (web/supabase/.temp/postgres-version)
+        env:
+          POSTGRES_PASSWORD: restore-test
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 30
+    steps:
+      - name: Check configuration
+        id: check
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.check.outputs.configured == 'true'
+        with:
+          name: db-backup-${{ github.run_id }}
+
+      - name: Decrypt and restore
+        if: steps.check.outputs.configured == 'true'
+        env:
+          PGPASSWORD: restore-test
+        run: |
+          set -euo pipefail
+          gpg --batch --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" -o backup.tar.gz --decrypt db-backup-*.tar.gz.gpg
+          tar -xzf backup.tar.gz
+          psql "postgresql://postgres@localhost:54329/postgres" --single-transaction --variable ON_ERROR_STOP=1 \
+            --file backup/roles.sql --file backup/schema.sql \
+            --command "SET session_replication_role = replica" --file backup/data.sql
+
+      - name: Compare row counts with the live database
+        if: steps.check.outputs.configured == 'true'
+        env:
+          PGPASSWORD: restore-test
+        run: |
+          set -euo pipefail
+          COUNTS="select string_agg(format('%s=%s', c.relname, (xpath('/row/n/text()', query_to_xml(format('select count(*) as n from public.%I', c.relname), false, true, '')))[1]::text), ' ' order by c.relname)
+                  from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                  where n.nspname = 'public' and c.relkind = 'r'"
+          live=$(psql "$SUPABASE_DB_URL" -At -c "$COUNTS")
+          restored=$(psql "postgresql://postgres@localhost:54329/postgres" -At -c "$COUNTS")
+          echo "Live:     $live"
+          echo "Restored: $restored"
+          # Rows written between the backup and this check (new ads, logs) can
+          # make the live side slightly larger; the restored copy must never be
+          # empty where the live table has data, nor miss a table.
+          python3 - "$live" "$restored" <<'PY'
+          import sys
+          live = dict(x.split("=") for x in sys.argv[1].split())
+          restored = dict(x.split("=") for x in sys.argv[2].split())
+          missing = sorted(set(live) - set(restored))
+          empty = sorted(t for t, n in live.items() if int(n) > 0 and int(restored.get(t, 0)) == 0)
+          short = sorted(t for t, n in live.items() if int(restored.get(t, 0)) < int(n) * 0.95 - 5)
+          print(f"{len(restored)} tables restored, {sum(int(n) for n in restored.values())} rows")
+          if missing or empty or short:
+              print("Missing tables:", missing, "Empty tables:", empty, "Far short:", short)
+              sys.exit(1)
+          print("Restore test passed.")
+          PY

@@ -1,5 +1,6 @@
 import { connection, NextResponse } from "next/server";
 import { cronAuthorized } from "@/lib/cron";
+import { recordSystemEvent } from "@/lib/monitoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Daily photo clean-up, called by Vercel Cron (see vercel.json). Vercel sends
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
   const { data, error } = await admin.rpc("photo_cleanup_candidates", { p_limit: 1000 });
   if (error) {
     console.error("cleanup: listing candidates failed", { message: error.message });
+    await recordSystemEvent("job_failed", "photo cleanup", error.code ?? "candidates");
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
@@ -25,7 +27,10 @@ export async function GET(request: Request) {
   for (const [bucket, paths] of byBucket) {
     for (let i = 0; i < paths.length; i += 100) {
       const { error: removeError } = await admin.storage.from(bucket).remove(paths.slice(i, i + 100));
-      if (removeError) console.error("cleanup: remove failed", { bucket, message: removeError.message });
+      if (removeError) {
+        console.error("cleanup: remove failed", { bucket, message: removeError.message });
+        await recordSystemEvent("job_failed", "photo cleanup", `remove from ${bucket}`);
+      }
     }
   }
   for (const row of data ?? []) removed[row.reason] = (removed[row.reason] ?? 0) + 1;

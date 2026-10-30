@@ -10,18 +10,36 @@ import { FilterDrawer } from "@/components/filter-drawer";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
 import { getDictionary, type Dictionary } from "@/i18n/dictionaries";
 import { getAreaFacets, getFeaturedListings, getReferenceData, searchListings, type AreaFacet, type ReferenceData } from "@/lib/data/public";
+import { t } from "@/lib/format";
 import { filtersToQuery, parseSearchParams, type SearchFilters } from "@/lib/search";
+import { isPlainSeoSearch, seoSearchCount, seoSearchOf, seoSearchPath, seoSearchTitle } from "@/lib/seo-search";
 
-export async function generateMetadata({ params }: PageProps<"/[lang]/search">): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps<"/[lang]/search">): Promise<Metadata> {
   const { lang } = await params;
   if (!hasLocale(lang)) return {};
-  const dict = await getDictionary(lang);
+  const [dict, ref, facets, sp] = await Promise.all([getDictionary(lang), getReferenceData(), getAreaFacets(), searchParams]);
+  const { filters } = parseSearchParams(sp);
+  const seo = seoSearchOf(filters);
+  if (!seo) {
+    return {
+      title: dict.search.resultsTitle,
+      alternates: { canonical: localePath(lang, "/search"), languages: { ar: localePath("ar", "/search"), en: localePath("en", "/search") } },
+      // Only the plain search page itself is indexed among general searches.
+      ...(filtersToQuery(filters) ? { robots: { index: false, follow: true } } : {}),
+    };
+  }
+  // "Apartments for sale in Abdoun": its own address, title and description.
+  const count = seoSearchCount(seo, ref, facets);
+  const title = seoSearchTitle(lang, seo, ref, dict.seo);
   return {
-    title: dict.search.resultsTitle,
+    title,
+    description: t(dict.seo.description, { title, n: count }),
     alternates: {
-      canonical: localePath(lang, "/search"),
-      languages: { ar: localePath("ar", "/search"), en: localePath("en", "/search") },
+      canonical: seoSearchPath(lang, seo),
+      languages: { ar: seoSearchPath("ar", seo), en: seoSearchPath("en", seo) },
     },
+    // Extra filters (price, rooms, sort…) or an empty page aren't indexed.
+    ...(!isPlainSeoSearch(filters, seo) || count === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

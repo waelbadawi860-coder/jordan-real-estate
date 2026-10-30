@@ -8,6 +8,8 @@ import { getReferenceData } from "@/lib/data/public";
 import { isBlocked } from "@/lib/blocklist";
 import { storePhotoHash } from "@/lib/phash";
 import { deletePhotoFiles, syncPublicPhotos } from "@/lib/photos";
+import { recordSystemEvent } from "@/lib/monitoring";
+import { withinVisitorLimit } from "@/lib/rate-limit";
 import { recordDeclaration } from "@/lib/declaration";
 import { createClient } from "@/lib/supabase/server";
 import { listingFormValues, listingSchema, type ListingInput } from "@/lib/validation/listing";
@@ -130,6 +132,7 @@ export async function createListingAction(_prev: ListingFormState, formData: For
   if (error) {
     if (error.code === "23503") return { error: "fixErrors", fieldErrors: { neighborhoodId: "required" } };
     const key = dbErrorKey(error);
+    if (key === "generic") await recordSystemEvent("listing_save_failed", "createListing", error.code ?? error.message?.slice(0, 80));
     return {
       error:
         key === "listing_limit_reached"
@@ -184,7 +187,9 @@ export async function updateListingAction(
     .select("id");
   if (error) {
     if (error.code === "23503") return { error: "fixErrors", fieldErrors: { neighborhoodId: "required" } };
-    return { error: dbErrorKey(error) === "account_not_active" ? "accountInactive" : "generic" };
+    const key = dbErrorKey(error);
+    if (key === "generic") await recordSystemEvent("listing_save_failed", "updateListing", error.code ?? error.message?.slice(0, 80));
+    return { error: key === "account_not_active" ? "accountInactive" : "generic" };
   }
   if (!data || data.length === 0) return { error: "notEditable" };
 
@@ -240,7 +245,9 @@ export async function addPhotoAction(input: unknown): Promise<ActionResult> {
     .insert({ listing_id: listingId, storage_path: storagePath, thumb_path: thumbPath, position, width, height });
   if (error) {
     await deletePhotoFiles([storagePath, thumbPath].filter((p): p is string => Boolean(p)));
-    return { ok: false, error: dbErrorKey(error) };
+    const key = dbErrorKey(error);
+    if (key === "generic") await recordSystemEvent("photo_upload_failed", "addPhoto", error.code ?? error.message?.slice(0, 80));
+    return { ok: false, error: key };
   }
   await storePhotoHash(storagePath, thumbPath);
   // Adding a photo to an approved listing sends it back for review (trigger).
@@ -382,4 +389,16 @@ export async function toggleFavouriteAction(listingId: unknown): Promise<{ saved
   const { error } = await supabase.from("favourites").insert({ listing_id: id.data });
   if (error) return { error: "generic" };
   return { saved: true };
+}
+
+/**
+ * The photo uploader reports uploads that failed in the browser (network,
+ * storage refusal), so admins see them. Limited per visitor; only a short
+ * technical reason is kept.
+ */
+export async function reportPhotoUploadFailureAction(reason: unknown): Promise<void> {
+  const text = z.string().max(80).safeParse(reason);
+  if (!text.success) return;
+  if (!(await withinVisitorLimit("photo-failure", 20, 3600).catch(() => false))) return;
+  await recordSystemEvent("photo_upload_failed", "browser upload", text.data);
 }

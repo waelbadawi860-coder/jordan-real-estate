@@ -3,7 +3,7 @@
 import { ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { addPhotoAction, deletePhotoAction, makeMainPhotoAction } from "@/app/actions/listings";
+import { addPhotoAction, deletePhotoAction, makeMainPhotoAction, reportPhotoUploadFailureAction } from "@/app/actions/listings";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { ImageError, prepareImage } from "@/lib/images/prepare";
 import { publicEnv } from "@/lib/env";
@@ -83,12 +83,15 @@ export function PhotoManager({
           setProgress((base + (0.85 + f * 0.15) / files.length) * 100),
         );
         const result = await addPhotoAction({ listingId, storagePath: mainPath, thumbPath, width: image.width, height: image.height });
+        // Saving failures are recorded on the server; nothing to report here.
         if (!result.ok) problems.push(t(text.uploadFailed, { name }));
       } catch (error) {
         if (error instanceof ImageError) {
           problems.push(t(error.reason === "tooLarge" ? text.tooLarge : text.notImage, { name }));
         } else {
           problems.push(t(text.uploadFailed, { name }));
+          // Upload failures happen in the browser: tell the server so admins see them.
+          void reportPhotoUploadFailureAction(error instanceof Error ? error.message.slice(0, 80) : "unknown").catch(() => undefined);
         }
       }
     }

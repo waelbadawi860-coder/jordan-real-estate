@@ -409,3 +409,32 @@ describe("6. indicators and saved searches", () => {
     await service.from("saved_searches").delete().eq("user_id", buyer.id);
   });
 });
+
+describe("7. monitoring", () => {
+  it("only the server records failures; only admins read them; too many in 15 minutes alert the admins once", async () => {
+    expect((await anon.rpc("record_system_event", { p_kind: "server_error", p_source: "x" })).error).not.toBeNull();
+    expect((await buyer.client.rpc("record_system_event", { p_kind: "server_error", p_source: "x" })).error).not.toBeNull();
+    expect((await service.rpc("record_system_event", { p_kind: "made_up", p_source: "x" })).error).not.toBeNull();
+
+    const before = (await service.from("site_settings").select("value").eq("key", "alert_failures_per_15min").single()).data!.value;
+    const tag = `qa-${runId}`;
+    try {
+      // A low threshold just for this test.
+      await service.from("site_settings").update({ value: 2 }).eq("key", "alert_failures_per_15min");
+      await service.from("notifications").delete().eq("type", "system_failures");
+      for (let i = 0; i < 3; i++) {
+        const r = await service.rpc("record_system_event", { p_kind: "photo_upload_failed", p_source: tag, p_detail: "network" });
+        expect(r.error).toBeNull();
+      }
+      const seen = await admin1.client.from("system_events").select("id").eq("source", tag);
+      expect(seen.data).toHaveLength(3);
+      expect((await buyer.client.from("system_events").select("id").eq("source", tag)).data ?? []).toHaveLength(0);
+      const alerts = await admin1.client.from("notifications").select("id").eq("type", "system_failures");
+      expect(alerts.data).toHaveLength(1); // one alert, not one per failure
+    } finally {
+      await service.from("site_settings").update({ value: before }).eq("key", "alert_failures_per_15min");
+      await service.from("system_events").delete().eq("source", tag);
+      await service.from("notifications").delete().eq("type", "system_failures");
+    }
+  });
+});

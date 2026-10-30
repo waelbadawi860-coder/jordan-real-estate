@@ -6,6 +6,7 @@ import { emailConfigured, escapeHtml, sendEmail } from "@/lib/email";
 import { publicEnv } from "@/lib/env";
 import { formatPrice } from "@/lib/format";
 import { listingPath } from "@/lib/paths";
+import { recordSystemEvent } from "@/lib/monitoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Daily "similar listings" e-mail digest, called by Vercel Cron (vercel.json).
@@ -39,6 +40,7 @@ export async function GET(request: Request) {
     .limit(5000);
   if (error) {
     console.error("alerts: loading matches failed", { message: error.message });
+    await recordSystemEvent("job_failed", "e-mail alerts", error.code ?? "matches");
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 

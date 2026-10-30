@@ -36,6 +36,8 @@ async function copyToPublic(admin: ReturnType<typeof createAdminClient>, path: s
   const type = detectImageType(bytes);
   if (!type || bytes.length > MAX_BYTES) {
     console.warn("Refused to publish a file that is not a valid image", { path });
+    const { recordSystemEvent } = await import("@/lib/monitoring");
+    await recordSystemEvent("photo_publish_refused", "syncPublicPhotos", type ? "too large" : "not an image");
     return false;
   }
   const upload = await admin.storage.from(PUBLIC).upload(path, bytes, { contentType: type, upsert: true });

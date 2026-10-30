@@ -20,4 +20,9 @@ export const onRequestError: Instrumentation.onRequestError = async (err, reques
       type: context.routeType,
     }),
   );
+  // Also counted on the admin dashboard (server runtime only; never throws).
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { recordSystemEvent } = await import("@/lib/monitoring");
+    await recordSystemEvent("server_error", `${request.method} ${context.routePath}`, `${error?.name ?? "Error"}: ${String(error?.message ?? err).slice(0, 200)}`);
+  }
 };

@@ -58,6 +58,9 @@ try {
     ["user_reports", "*"],
     ["commission_records", "*"],
     ["payment_records", "*"],
+    ["saved_searches", "*"],
+    ["saved_search_hits", "*"],
+    ["office_verifications", "*"],
   ]) {
     for (const [who, client] of [["visitor", anon], ["other user", user]]) {
       // The signed-in user may read their own profile; look at everyone else's.
@@ -108,10 +111,20 @@ try {
     ["admin_set_listing_expiry", { p_listing_id: someListing.id, p_expires_at: "2099-01-01" }],
     ["admin_set_user_status", { p_user_id: otherUser.id, p_status: "suspended", p_reason: "probe" }],
     ["admin_anonymize_user", { p_user_id: otherUser.id, p_reason: "probe" }],
+    ["admin_kpis", { p_days: 30 }],
+    ["listing_reports_auto_hold", {}],
+    ["notify_saved_searches", {}],
+    ["accept_current_terms", { p_evidence: { forged: "x".repeat(5000) } }],
   ]) {
     const r = await user.rpc(fn, args);
     check(`user cannot call ${fn}`, !!r.error, r.error?.code ?? "allowed!");
   }
+  // Consent records can't be written directly (only through accept_current_terms).
+  const forgedConsent = await user.from("user_consents").insert({ document: "terms", version: "forged" });
+  check("user cannot write a consent record directly", !!forgedConsent.error);
+  // A saved search can't be created for someone else.
+  const foreignSearch = await user.from("saved_searches").insert({ user_id: otherUser.id, deal_type: "sale" });
+  check("user cannot save a search for someone else", !!foreignSearch.error);
   const office = await user.from("offices").insert({ owner_id: me, name: "Probe office", plan_slug: "premium", verified_until: "2099-01-01" }).select("plan_slug, verified_until");
   check("user cannot give their office a package or badge", !!office.error || (!office.data?.[0]?.plan_slug && !office.data?.[0]?.verified_until), office.error?.message);
   const otherOffice = await user.from("offices").insert({ owner_id: otherUser.id, name: "Fake office" });

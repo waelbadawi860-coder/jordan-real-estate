@@ -1639,6 +1639,30 @@ export type Database = {
           },
         ]
       }
+      system_events: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: number
+          kind: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: never
+          kind: string
+          source: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: never
+          kind?: string
+          source?: string
+        }
+        Relationships: []
+      }
       user_consents: {
         Row: {
           accepted_at: string
@@ -2013,6 +2037,10 @@ export type Database = {
           p_entity_id: string
           p_entity_type: string
         }
+        Returns: undefined
+      }
+      record_system_event: {
+        Args: { p_detail?: string; p_kind: string; p_source: string }
         Returns: undefined
       }
       renew_listing: { Args: { p_listing_id: number }; Returns: string }

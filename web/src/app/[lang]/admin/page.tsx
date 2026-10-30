@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireAdminPage } from "@/lib/admin";
-import { formatNumber, formatPrice, t } from "@/lib/format";
+import { formatDateTime, formatNumber, formatPrice, t } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -40,6 +40,18 @@ type Kpis = {
 
 const KPI_PERIODS = [7, 30, 90] as const;
 
+/** Failures recorded in the last 24 hours (admins only, by database rule). */
+async function recentSystemEvents(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const since = new Date(Date.now() - 86_400_000).toISOString();
+  return supabase
+    .from("system_events")
+    .select("id, kind, source, detail, created_at")
+    .gt("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(200)
+    .then((r) => r);
+}
+
 export default async function AdminOverviewPage({ params, searchParams }: PageProps<"/[lang]/admin">) {
   const { lang } = await params;
   const rawDays = Number((await searchParams).days);
@@ -50,7 +62,17 @@ export default async function AdminOverviewPage({ params, searchParams }: PagePr
   const o = dict.admin.overview;
 
   const supabase = await createClient();
-  const [{ data, error }, kpiResult] = await Promise.all([supabase.rpc("admin_overview"), supabase.rpc("admin_kpis", { p_days: days })]);
+  const [{ data, error }, kpiResult, eventsResult] = await Promise.all([
+    supabase.rpc("admin_overview"),
+    supabase.rpc("admin_kpis", { p_days: days }),
+    recentSystemEvents(supabase),
+  ]);
+  const events = eventsResult.data ?? [];
+  const sy = dict.admin.system;
+  const eventKinds = sy.kinds as Record<string, string>;
+  const byKind = Object.entries(
+    events.reduce<Record<string, number>>((acc, e) => ({ ...acc, [e.kind]: (acc[e.kind] ?? 0) + 1 }), {}),
+  ).sort((a, b) => b[1] - a[1]);
   if (error) throw new Error(`Loading overview failed: ${error.message}`);
   if (kpiResult.error) throw new Error(`Loading indicators failed: ${kpiResult.error.message}`);
   const k = kpiResult.data as unknown as Kpis;
@@ -156,6 +178,37 @@ export default async function AdminOverviewPage({ params, searchParams }: PagePr
           ))}
         </ul>
         <p className="text-xs text-muted">{ki.note}</p>
+      </section>
+      <section id="system" className="flex flex-col gap-3" aria-labelledby="system-heading">
+        <h2 id="system-heading" className="text-lg font-extrabold">
+          {sy.title}
+        </h2>
+        {events.length === 0 ? (
+          <p className="rounded-2xl border border-border bg-surface p-4 text-sm text-muted">{sy.none}</p>
+        ) : (
+          <div className="flex flex-col gap-3 rounded-2xl border border-accent bg-accent-soft p-4">
+            <p className="font-bold">
+              {t(sy.count, { n: formatNumber(events.length, lang) })}
+              {" — "}
+              {byKind.map(([kind, n]) => `${eventKinds[kind] ?? kind} (${formatNumber(n, lang)})`).join(" · ")}
+            </p>
+            <ul className="flex flex-col gap-1 text-sm">
+              {events.slice(0, 10).map((e) => (
+                <li key={e.id} className="flex flex-wrap gap-x-2">
+                  <span className="text-muted" dir="ltr">
+                    {formatDateTime(e.created_at, lang)}
+                  </span>
+                  <span className="font-semibold">{eventKinds[e.kind] ?? e.kind}</span>
+                  <span className="text-muted" dir="ltr">
+                    {e.source}
+                    {e.detail ? ` — ${e.detail}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <p className="text-xs text-muted">{sy.note}</p>
       </section>
       <Link
         href={localePath(lang, "/admin/commissions")}

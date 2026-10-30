@@ -18,7 +18,7 @@ Nothing in this document is "active" until the steps marked **(you)** are done a
    - Name `SUPABASE_DB_URL`, value: the connection string.
    - Name `BACKUP_PASSPHRASE`, value: a long random passphrase from your password manager. **If you lose it, the backups can't be opened.**
 3. GitHub → **Actions → Database backup → Run workflow**. After ~2 minutes it should be green and show a file `db-backup-YYYY-MM-DD.tar.gz.gpg` under **Artifacts**.
-4. Do a **restore test** (section 2) at least once before launch, then every 3 months.
+4. **Restore test:** automatic. Every GitHub backup is restored into a fresh database of the same version and its row counts are compared with the live database (job `restore-test` in `.github/workflows/db-backup.yml`). A red job means the backup can't be trusted, and GitHub e-mails the owner. A manual restore into a new Supabase project (section 2) is still worth doing once before launch.
 
 ### Photos
 Supabase backups do not include Storage files. If photos were lost, the database would still be intact
@@ -42,6 +42,7 @@ This replaces the current database; the site is briefly unavailable.
 | What | How | Cost | Status |
 |---|---|---|---|
 | Server errors | Written as one JSON line per error (no personal data) to **Vercel → Project → Logs** (`src/instrumentation.ts`) | Included | Active once deployed |
+| Failures on the admin dashboard | Server errors, failed photo uploads (also from the browser), photos refused for publishing, failed ad saves and scheduled jobs → table `system_events` (30 days), shown on /admin; over `alert_failures_per_15min` (10) in 15 min notifies the admins once an hour | Included | Active |
 | Site + database up? | `https://YOUR-DOMAIN/api/health` returns 200 / 503 | — | Ready |
 | Uptime alerts | **(you)** free UptimeRobot (or similar) monitor on `/api/health` every 5 min, alerting your email | Free | Not set up |
 | Database health | Supabase dashboard → Reports / Advisors | Included | Available |
