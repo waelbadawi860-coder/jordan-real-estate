@@ -1329,8 +1329,9 @@
     "mortgagedHint": "Shown as you choose it and on your responsibility, so pick the correct answer.",
     "mortgagedNote": "\"Is the property mortgaged?\" is as stated by the advertiser. Check it with the Department of Lands and Survey before committing to anything.",
     "moreTitle": "More details",
-    "moreOpen": "Show",
-    "moreHint": "Property features, what's nearby and more. Shown on the ad page and help buyers compare."
+    "moreOpen": "+ Add",
+    "moreHint": "Property features, what's nearby and more. Shown on the ad page and help buyers compare.",
+    "moreTeaser": "Add features and what's nearby to attract more buyers"
   },
   "saveSearch": {
     "save": "Save this search",

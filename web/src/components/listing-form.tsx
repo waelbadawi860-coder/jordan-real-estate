@@ -353,14 +353,19 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
         {type && (
           // Optional extras stay folded so the form looks short; it opens by
           // itself when editing an ad that already has some of them.
-          <details open={hasExtras} className="group rounded-xl border border-border">
-            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-bold">
-              <span>
-                {x.moreTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
+          <details open={hasExtras} className="group rounded-xl border-2 border-gold/60 bg-gold-soft open:bg-surface">
+            {/* A light gold box with a short hint, so sellers notice it without it shouting. */}
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+              <span className="flex flex-col gap-0.5">
+                <span className="font-bold">
+                  <span aria-hidden>✨ </span>
+                  {x.moreTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
+                </span>
+                <span className="text-xs text-gold-ink/80 group-open:hidden">{x.moreTeaser}</span>
               </span>
-              <span className="text-sm font-semibold text-brand group-open:hidden">{x.moreOpen}</span>
+              <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-sm font-bold text-gold-ink group-open:hidden">{x.moreOpen}</span>
             </summary>
-            <div className="flex flex-col gap-5 border-t border-border p-4">
+            <div className="flex flex-col gap-5 border-t border-gold/40 p-4">
               <p className="text-sm text-muted">{x.moreHint}</p>
             {hasLandDetails && (
               <fieldset className="flex flex-col gap-4">
