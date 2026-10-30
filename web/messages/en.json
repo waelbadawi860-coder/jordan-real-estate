@@ -1007,6 +1007,26 @@
       "regNo": "Registration",
       "licenseNo": "Licence",
       "submitted": "Sent"
+    },
+    "kpis": {
+      "title": "Performance indicators (last {n} days)",
+      "period": "Period",
+      "daysValue": "{n} days",
+      "hoursValue": "{n} h",
+      "submitted": "Ads sent for review",
+      "reviewMedian": "Review time (median)",
+      "reviewNote": "Average {avg} · 90% within {p90}",
+      "oldestPending": "Oldest ad waiting for review",
+      "pendingNow": "{n} waiting now",
+      "rejectionRate": "Rejection rate",
+      "decided": "{approved} approved · {rejected} rejected",
+      "flaggedRate": "Ads with risk signals",
+      "held": "Ads put on hold",
+      "heldNote": "{auto} automatically after reports · {admin} by an admin",
+      "note": "Calculated from the ad status history. Conversion (WhatsApp clicks vs views) comes with per-ad statistics in phase 2.",
+      "minutesValue": "{n} min",
+      "period7": "{n} days",
+      "periodN": "{n} days"
     }
   },
   "common": {
@@ -1197,7 +1217,7 @@
     "nav": "My follows",
     "title": "My follows",
     "intro": "Listings you follow. You get a notification when a matching listing is published, and a daily e-mail digest.",
-    "empty": "You are not following anything yet. Open any listing and press “Follow similar listings”.",
+    "empty": "You are not following anything yet. Open any listing and press “Follow similar listings”, or press “Save this search” on the search page.",
     "stop": "Stop following",
     "unsubscribeTitle": "Stop following listings",
     "unsubscribeIntro": "You will no longer receive e-mails about these listings.",
@@ -1207,7 +1227,8 @@
     "emailSubject": "New listings matching what you follow",
     "emailIntro": "New listings matching what you follow were published:",
     "emailUnsubscribe": "Stop following these listings",
-    "emailManage": "Manage all follows"
+    "emailManage": "Manage all follows",
+    "maxPrice": "up to {price}"
   },
   "consent": {
     "title": "Updated terms and privacy policy",
@@ -1291,5 +1312,14 @@
     "mortgaged": "Is the property mortgaged?",
     "mortgagedHint": "Shown as you choose it and on your responsibility, so pick the correct answer.",
     "mortgagedNote": "\"Is the property mortgaged?\" is as stated by the advertiser. Check it with the Department of Lands and Survey before committing to anything."
+  },
+  "saveSearch": {
+    "save": "Save this search",
+    "saved": "Search saved",
+    "hint": "We'll tell you when a matching property is published, on the site and in a daily e-mail. Saved: deal, property type, area, maximum price and “direct from owner”.",
+    "limit": "You've reached the limit (20 saved searches). Remove one in “My follows” first.",
+    "tooBroad": "Choose a deal, property type or governorate first.",
+    "error": "Couldn't save. Please try again.",
+    "manage": "Manage my follows"
   }
 }

@@ -354,3 +354,58 @@ describe("5. admin control", () => {
     expect(visitorTry.error).not.toBeNull();
   });
 });
+
+describe("6. indicators and saved searches", () => {
+  it("indicators: review time, rejections and holds come from the status history; admins only", async () => {
+    // Submitted, then approved by an admin about now.
+    const { data: draft } = await service
+      .from("listings")
+      .insert({ seller_id: seller.id, title: `QA kpi ${runId}`, deal_type: "sale", property_type_id: apartmentId, city_id: cityId, neighborhood_id: hoodId, price: 1000 })
+      .select("id")
+      .single();
+    await service.from("listings").update({ status: "pending_approval", submitted_at: new Date().toISOString() }).eq("id", draft!.id);
+    const approve = await admin1.client.rpc("change_listing_status", { p_listing_id: draft!.id, p_new_status: "published" });
+    expect(approve.error).toBeNull();
+
+    const { data, error } = await admin1.client.rpc("admin_kpis", { p_days: 7 });
+    expect(error).toBeNull();
+    const k = data as Record<string, unknown>;
+    expect(k.days).toBe(7);
+    expect(Number(k.submitted)).toBeGreaterThanOrEqual(1);
+    expect(Number(k.approved)).toBeGreaterThanOrEqual(1);
+    expect(k.review_hours_median).not.toBeNull();
+    expect(typeof k.flags).toBe("object");
+    expect((await buyer.client.rpc("admin_kpis", { p_days: 7 })).error).not.toBeNull();
+    expect((await anon.rpc("admin_kpis", { p_days: 7 })).error).not.toBeNull();
+  });
+
+  it("a saved search with a maximum price and 'owner only' is told only about matching ads", async () => {
+    const save = await buyer.client
+      .from("saved_searches")
+      .insert({ user_id: buyer.id, deal_type: "sale", city_id: cityId, max_price: 100000, owner_only: true })
+      .select("id")
+      .single();
+    expect(save.error).toBeNull();
+    const hits = async (listingId: number) =>
+      (await service.from("saved_search_hits").select("listing_id").eq("saved_search_id", save.data!.id).eq("listing_id", listingId)).data ?? [];
+
+    const match = await publishedListing(seller, "QA alert match", { price: 95000, poster_type: "owner" });
+    const tooDear = await publishedListing(seller, "QA alert dear", { price: 150000, poster_type: "owner" });
+    const broker = await publishedListing(seller, "QA alert broker", { price: 90000, poster_type: "agent" });
+    expect(await hits(match)).toHaveLength(1);
+    expect(await hits(tooDear)).toHaveLength(0);
+    expect(await hits(broker)).toHaveLength(0);
+    const notes = await buyer.client.from("notifications").select("data").eq("type", "similar_listing");
+    const ids = (notes.data ?? []).map((n) => (n.data as { listing_id: number }).listing_id);
+    expect(ids).toContain(match);
+    expect(ids).not.toContain(tooDear);
+    expect(ids).not.toContain(broker);
+
+    // The same search twice is one entry; a plain follow of the same area is a separate one.
+    const again = await buyer.client.from("saved_searches").insert({ user_id: buyer.id, deal_type: "sale", city_id: cityId, max_price: 100000, owner_only: true });
+    expect(again.error?.code).toBe("23505");
+    const plain = await buyer.client.from("saved_searches").insert({ user_id: buyer.id, deal_type: "sale", city_id: cityId });
+    expect(plain.error).toBeNull();
+    await service.from("saved_searches").delete().eq("user_id", buyer.id);
+  });
+});

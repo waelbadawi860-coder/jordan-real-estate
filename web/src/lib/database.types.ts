@@ -1540,7 +1540,9 @@ export type Database = {
           deal_type: Database["public"]["Enums"]["deal_type"] | null
           email_enabled: boolean
           id: number
+          max_price: number | null
           neighborhood_id: number | null
+          owner_only: boolean
           property_type_id: number | null
           unsubscribe_token: string
           user_id: string
@@ -1551,7 +1553,9 @@ export type Database = {
           deal_type?: Database["public"]["Enums"]["deal_type"] | null
           email_enabled?: boolean
           id?: never
+          max_price?: number | null
           neighborhood_id?: number | null
+          owner_only?: boolean
           property_type_id?: number | null
           unsubscribe_token?: string
           user_id: string
@@ -1562,7 +1566,9 @@ export type Database = {
           deal_type?: Database["public"]["Enums"]["deal_type"] | null
           email_enabled?: boolean
           id?: never
+          max_price?: number | null
           neighborhood_id?: number | null
+          owner_only?: boolean
           property_type_id?: number | null
           unsubscribe_token?: string
           user_id?: string
@@ -1767,6 +1773,7 @@ export type Database = {
         }
         Returns: number
       }
+      admin_kpis: { Args: { p_days?: number }; Returns: Json }
       admin_overview: { Args: never; Returns: Json }
       admin_promote_listing: {
         Args: {

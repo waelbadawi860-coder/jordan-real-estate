@@ -6,7 +6,7 @@ import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireUser } from "@/lib/auth";
 import { getReferenceData } from "@/lib/data/public";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatPrice, t } from "@/lib/format";
 import { filtersToQuery } from "@/lib/search";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,7 +28,7 @@ export default async function FollowsPage({ params }: PageProps<"/[lang]/my/foll
   const supabase = await createClient();
   const { data: rows } = await supabase
     .from("saved_searches")
-    .select("id, deal_type, property_type_id, city_id, neighborhood_id, created_at")
+    .select("id, deal_type, property_type_id, city_id, neighborhood_id, max_price, owner_only, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -47,13 +47,24 @@ export default async function FollowsPage({ params }: PageProps<"/[lang]/my/foll
             const city = ref.cities.find((c) => c.id === r.city_id);
             const hood = ref.neighborhoods.find((n) => n.id === r.neighborhood_id);
             const deal = r.deal_type === "sale" ? dict.search.sale : r.deal_type === "rent" ? dict.search.rent : "";
-            const label = [type?.name[lang], deal, hood?.name[lang], city?.name[lang]].filter(Boolean).join(" · ");
+            const label = [
+              type?.name[lang],
+              deal,
+              hood?.name[lang],
+              city?.name[lang],
+              r.max_price !== null && t(f.maxPrice, { price: formatPrice(r.max_price, lang, dict.common.currency) }),
+              r.owner_only && dict.search.ownerChip,
+            ]
+              .filter(Boolean)
+              .join(" · ");
             const query = filtersToQuery({
               sort: "newest",
               deal: r.deal_type ?? "all",
               type: type?.slug ?? "all",
               city: city?.slug,
               hood: hood?.slug,
+              max: r.max_price ?? undefined,
+              own: r.owner_only ? "1" : undefined,
             });
             return (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface p-3">

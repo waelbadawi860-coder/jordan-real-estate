@@ -200,7 +200,10 @@ export async function getFollowId(
     .eq("user_id", userId)
     .eq("deal_type", c.dealType)
     .eq("property_type_id", c.typeId)
-    .eq("city_id", c.cityId);
+    .eq("city_id", c.cityId)
+    // The plain follow from an ad page (searches saved with a price or "owner only" are separate).
+    .is("max_price", null)
+    .eq("owner_only", false);
   query = c.neighborhoodId === null ? query.is("neighborhood_id", null) : query.eq("neighborhood_id", c.neighborhoodId);
   const { data } = await query.maybeSingle();
   return data?.id ?? null;

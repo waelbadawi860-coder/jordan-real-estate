@@ -313,7 +313,7 @@ describe("listings: approval workflow", () => {
     expect(error?.message).toContain("reason_required");
   });
 
-  it("admin approves; listing becomes public with a 30-day expiry and the action is audited", async () => {
+  it("admin approves; listing becomes public for the configured number of days and the action is audited", async () => {
     const { data, error } = await admin.client.rpc("change_listing_status", {
       p_listing_id: id,
       p_new_status: "published",
@@ -325,7 +325,8 @@ describe("listings: approval workflow", () => {
     expect(pub.data).not.toBeNull();
     const days =
       (new Date(pub.data!.expires_at).getTime() - new Date(pub.data!.published_at).getTime()) / 86_400_000;
-    expect(Math.round(days)).toBe(30);
+    const expiry = (await service.from("site_settings").select("value").eq("key", "listing_expiry_days").single()).data!.value;
+    expect(Math.round(days)).toBe(Number(expiry));
 
     const images = await anon.from("listing_images").select("id").eq("listing_id", id);
     expect(images.data).toHaveLength(1);
@@ -470,9 +471,10 @@ describe("anti-spam limits", () => {
 
 describe("settings and reference data", () => {
   it("ordinary users cannot change settings, cities or the audit log", async () => {
+    const before = (await service.from("site_settings").select("value").eq("key", "listing_expiry_days").single()).data!.value;
     await alice.client.from("site_settings").update({ value: 999 }).eq("key", "listing_expiry_days");
     const { data } = await service.from("site_settings").select("value").eq("key", "listing_expiry_days").single();
-    expect(data!.value).toBe(30);
+    expect(data!.value).toBe(before);
 
     const city = await alice.client.from("cities").insert({ slug: "fake-city", name_ar: "مدينة", name_en: "Fake" });
     expect(city.error).not.toBeNull();
@@ -486,9 +488,11 @@ describe("settings and reference data", () => {
   });
 
   it("admins can change settings and the change is audited", async () => {
-    const change = await admin.client.from("site_settings").update({ value: 31 }).eq("key", "listing_expiry_days");
+    // Puts back whatever the site uses now (the owner may have changed it).
+    const before = (await service.from("site_settings").select("value").eq("key", "listing_expiry_days").single()).data!.value;
+    const change = await admin.client.from("site_settings").update({ value: Number(before) + 1 }).eq("key", "listing_expiry_days");
     expect(change.error).toBeNull();
-    const revert = await admin.client.from("site_settings").update({ value: 30 }).eq("key", "listing_expiry_days");
+    const revert = await admin.client.from("site_settings").update({ value: before }).eq("key", "listing_expiry_days");
     expect(revert.error).toBeNull();
     const log = await admin.client
       .from("admin_audit_logs")

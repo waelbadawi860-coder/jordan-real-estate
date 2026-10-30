@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { BoardSearch, BoardTags } from "@/components/board-filters";
 import { cardLabels, FeaturedList, ListingCard, listingListClass } from "@/components/listing-card";
 import { LoadMore } from "@/components/load-more";
+import { SaveSearch } from "@/components/save-search";
 import { SearchForm } from "@/components/search-form";
 import { FilterDrawer } from "@/components/filter-drawer";
 import { hasLocale, localePath, type Locale } from "@/i18n/config";
@@ -68,6 +69,17 @@ async function Results({
         </p>
       )}
 
+      {/* Only when the search names at least a deal, type or governorate (else it would match every ad). */}
+      {((filters.deal && filters.deal !== "all") || (filters.type && filters.type !== "all") || filters.city) && (
+        <div className="mb-3">
+          <SaveSearch
+            filters={filters}
+            loginHref={`${localePath(locale, "/login")}?next=${encodeURIComponent(localePath(locale, "/search") + filtersToQuery(filters))}`}
+            manageHref={localePath(locale, "/my/follows")}
+            text={dict.saveSearch}
+          />
+        </div>
+      )}
       <section className="mt-1" aria-live="polite">
         <FeaturedList listings={featured} title={dict.search.featuredTitle} locale={locale} labels={labels} />
         <h2 className="sr-only">{dict.search.resultsTitle}</h2>
