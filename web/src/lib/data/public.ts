@@ -218,6 +218,7 @@ async function applyFilters(query: ListingQuery, filters: SearchFilters, ref: Re
     if (verifiedSellers.length === 0) return null;
     q = q.in("seller_id", verifiedSellers);
   }
+  if (filters.own) q = q.eq("poster_type", "owner");
   if (filters.deal && filters.deal !== "all") q = q.eq("deal_type", filters.deal);
   if (filters.type && filters.type !== "all") {
     const type = ref.propertyTypes.find((t) => t.slug === filters.type);

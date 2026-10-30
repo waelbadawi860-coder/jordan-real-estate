@@ -2,7 +2,7 @@ import { BadgeCheck, Clock, ImageOff, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { ListingCard as Card } from "@/lib/data/public";
-import { formatNumber, formatPrice, t } from "@/lib/format";
+import { formatNumber, formatPrice, pricePerSqm, t } from "@/lib/format";
 import { listingPath } from "@/lib/paths";
 import { TimeAgo } from "./time-ago";
 
@@ -20,6 +20,8 @@ export type CardLabels = {
   noPhoto: string;
   featured: string;
   verifiedOffice: string;
+  /** "{n} JOD/m²" template. */
+  perSqm: string;
 };
 
 /** Classes for the list that holds listing rows (one ad per line, like a classifieds board). */
@@ -37,6 +39,8 @@ export function ListingCard({
   priority?: boolean;
 }) {
   const location = [listing.neighborhood?.[locale], listing.city[locale]].filter(Boolean).join(locale === "ar" ? "، " : ", ");
+  // Per square metre only for sales: that is how buyers compare (rent is quoted per month).
+  const perSqm = listing.dealType === "sale" ? pricePerSqm(listing.price, listing.areaSqm) : null;
   const period = listing.rentPeriod === "monthly" ? labels.perMonth : listing.rentPeriod === "yearly" ? labels.perYear : null;
   const facts = [
     listing.areaSqm !== null && t(labels.areaValue, { n: formatNumber(listing.areaSqm, locale) }),
@@ -67,6 +71,7 @@ export function ListingCard({
         <p className="text-sm">
           <span className="font-bold text-brand-strong">{formatPrice(listing.price, locale, labels.currency)}</span>
           {period && <span className="text-muted"> / {period}</span>}
+          {perSqm !== null && <span className="text-muted"> ({t(labels.perSqm, { n: formatNumber(perSqm, locale) })})</span>}
           <span className="text-muted">
             {" · "}
             {listing.dealType === "sale" ? labels.sale : labels.rent}
@@ -151,7 +156,7 @@ export function FeaturedList({
 export function cardLabels(dict: {
   search: { sale: string; rent: string };
   common: { currency: string };
-  listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string; featured: string };
+  listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string; featured: string; perSqm: string };
   office: { verifiedBadge: string };
 }): CardLabels {
   return {
@@ -166,5 +171,6 @@ export function cardLabels(dict: {
     noPhoto: dict.listing.noPhoto,
     featured: dict.listing.featured,
     verifiedOffice: dict.office.verifiedBadge,
+    perSqm: dict.listing.perSqm,
   };
 }

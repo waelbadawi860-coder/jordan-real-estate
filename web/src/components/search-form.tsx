@@ -261,6 +261,10 @@ export function SearchForm({
         <input type="checkbox" name="vo" value="1" defaultChecked={f.vo === "1"} className="size-4 accent-brand" />
         {s.verifiedOnly}
       </label>
+      <label className="flex items-center gap-2 text-sm font-semibold">
+        <input type="checkbox" name="own" value="1" defaultChecked={f.own === "1"} className="size-4 accent-brand" />
+        {s.ownerOnly}
+      </label>
 
       {/* Stays at the bottom of the filters panel while the fields scroll. */}
       <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center gap-3 border-t border-border bg-surface px-4 py-3">

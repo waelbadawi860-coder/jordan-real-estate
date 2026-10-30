@@ -73,7 +73,9 @@
     "featuredTitle": "Featured listings",
     "verifiedOnly": "Verified offices’ listings only",
     "verifiedChip": "Verified offices",
-    "closeFilters": "Close filters"
+    "closeFilters": "Close filters",
+    "ownerChip": "Direct from owner",
+    "ownerOnly": "Ads posted by the owner only (no broker or office)"
   },
   "home": {
     "latest": "Latest properties",
@@ -135,7 +137,8 @@
     "unfollowSimilar": "Click to stop following",
     "followLimit": "You have reached the maximum (20 follows). Remove one in “My follows”.",
     "followError": "Could not follow. Please try again.",
-    "followHint": "You will be notified when a similar listing is published, with a daily e-mail digest. You can stop at any time."
+    "followHint": "You will be notified when a similar listing is published, with a daily e-mail digest. You can stop at any time.",
+    "perSqm": "{n} JOD/m²"
   },
   "auth": {
     "loginTitle": "Log in",

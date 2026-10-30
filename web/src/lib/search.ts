@@ -27,6 +27,8 @@ const fieldSchemas = {
   sort: z.enum(sortOptions),
   // "1" = only listings of verified offices.
   vo: z.enum(["1"]),
+  // "1" = only listings posted by the owner (no broker or office in between).
+  own: z.enum(["1"]),
 } as const;
 
 export type SearchFilters = {
@@ -45,6 +47,7 @@ export type SearchFilters = {
   floor?: FloorLevel;
   sort: SortOption;
   vo?: "1";
+  own?: "1";
 };
 
 export type FilterKey = keyof typeof fieldSchemas;

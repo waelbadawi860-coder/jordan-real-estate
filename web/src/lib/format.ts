@@ -14,6 +14,15 @@ export function formatNumber(value: number | string, locale: Locale): string {
   return new Intl.NumberFormat(numberLocale[locale], { maximumFractionDigits: 3 }).format(Number(value));
 }
 
+/** Sale price per square metre, for comparing ads; null without an area. */
+export function pricePerSqm(price: number | string, areaSqm: number | string | null): number | null {
+  const p = Number(price);
+  const a = areaSqm === null ? 0 : Number(areaSqm);
+  if (!(p > 0) || !(a > 0)) return null;
+  const v = p / a;
+  return v >= 10 ? Math.round(v) : Math.round(v * 100) / 100;
+}
+
 /** Price in JOD. Prices are stored as exact decimals and arrive as strings or numbers. */
 export function formatPrice(value: number | string, locale: Locale, currencyLabel: string): string {
   return `${formatNumber(value, locale)} ${currencyLabel}`;

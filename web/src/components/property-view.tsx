@@ -6,7 +6,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import type { LocalizedName } from "@/lib/data/public";
 import type { FloorLevel } from "@/lib/floor";
 import type { ListingExtras } from "@/lib/listing-details";
-import { formatDate, formatNumber, formatPrice, t } from "@/lib/format";
+import { formatDate, formatNumber, formatPrice, pricePerSqm, t } from "@/lib/format";
 import { googleMapsUrl } from "@/lib/geo";
 import { ApproxMap } from "./map/approx-map";
 import { TimeAgo } from "./time-ago";
@@ -56,6 +56,7 @@ export function PropertyView({
 }) {
   const d = dict.listing;
   const where = [listing.neighborhood?.[locale], listing.city[locale]].filter(Boolean).join(locale === "ar" ? "، " : ", ");
+  const perSqm = listing.dealType === "sale" ? pricePerSqm(listing.price, listing.areaSqm) : null;
   const period = listing.rentPeriod === "monthly" ? d.perMonth : listing.rentPeriod === "yearly" ? d.perYear : null;
 
   const x = listing.extras;
@@ -138,6 +139,9 @@ export function PropertyView({
           <p className="text-2xl font-extrabold text-brand-strong">
             {formatPrice(listing.price, locale, dict.common.currency)}
             {period && <span className="ms-2 text-base font-semibold text-muted">/ {period}</span>}
+            {perSqm !== null && (
+              <span className="ms-2 text-base font-semibold text-muted">({t(d.perSqm, { n: formatNumber(perSqm, locale) })})</span>
+            )}
           </p>
         </header>
 
