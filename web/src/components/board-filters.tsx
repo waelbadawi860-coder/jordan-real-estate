@@ -77,10 +77,12 @@ export function BoardTags({
     active: filters.deal === value,
     href: href(afterDeal(value)),
   }));
-  // Visible on the first row, so visitors notice verified offices (and offices see the value of the badge).
-  dealTags.push({ text: `✓ ${s.verifiedChip}`, active: filters.vo === "1", href: href({ vo: filters.vo ? undefined : "1" }) });
-  // Many visitors look for ads straight from the owner, without a broker's fee.
-  dealTags.push({ text: `✓ ${s.ownerChip}`, active: filters.own === "1", href: href({ own: filters.own ? undefined : "1" }) });
+  // Who posted the ad: their own gold row on top, so visitors notice it on a
+  // phone without scrolling (many look for ads straight from the owner).
+  const advertiserTags = [
+    { text: `✓ ${s.ownerChip}`, active: filters.own === "1", href: href({ own: filters.own ? undefined : "1" }) },
+    { text: `✓ ${s.verifiedChip}`, active: filters.vo === "1", href: href({ vo: filters.vo ? undefined : "1" }) },
+  ];
 
   // Only the types that can be listed for the chosen deal, after an "All" tag.
   const typeTags = [
@@ -139,6 +141,23 @@ export function BoardTags({
 
   return (
     <div className="flex flex-col gap-2">
+      <nav aria-label={s.advertiserRow}>
+        <ul className="flex flex-wrap gap-2">
+          {advertiserTags.map((tag) => (
+            <li key={tag.href}>
+              <Link
+                href={tag.href}
+                aria-current={tag.active ? "page" : undefined}
+                className={`block whitespace-nowrap rounded-full border-2 px-3 py-1 text-sm font-bold ${
+                  tag.active ? "border-gold bg-gold text-gold-ink" : "border-gold bg-gold-soft text-gold-ink hover:bg-gold/30"
+                }`}
+              >
+                {tag.text}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
       <TagRow label={s.deal} tags={dealTags} />
       {dealChosen && <TagRow label={s.type} tags={typeTags} variant="type" />}
       {typeChosen && <TagRow label={s.city} tags={cityTags} variant="city" />}

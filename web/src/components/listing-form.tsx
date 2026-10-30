@@ -96,6 +96,12 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
     setHoodId("");
   }
   const fe = state.fieldErrors ?? {};
+  const hasExtras =
+    initial.features.length > 0 ||
+    initial.nearby.length > 0 ||
+    initial.services.length > 0 ||
+    Boolean(initial.zoning || initial.frontageM || initial.mortgaged) ||
+    Boolean(fe.frontageM);
   const err = (key: string) => (fe[key] ? ((f.errors as Record<string, string>)[fe[key]] ?? f.errors.generic) : undefined);
   const aria = (key: string) => (fe[key] ? { "aria-invalid": true, "aria-describedby": `${key}-error` } : {});
 
@@ -316,58 +322,6 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             )}
           </div>
         )}
-        {hasLandDetails && (
-          <fieldset className="flex flex-col gap-4">
-            <legend className="mb-2 font-bold">
-              {x.landTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
-            </legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="zoning" className={label}>
-                  {x.zoning}
-                </label>
-                <select id="zoning" name="zoning" defaultValue={initial.zoning} className={inputClass}>
-                  <option value="">{f.notSpecified}</option>
-                  {ZONINGS.map((zone) => (
-                    <option key={zone} value={zone}>
-                      {x.zonings[zone]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <NumberInput name="frontageM" text={x.frontage} value={initial.frontageM} error={err("frontageM")} />
-            </div>
-            <CheckGroup name="services" title={x.services} keys={LAND_SERVICES} labels={x.servicesList} checked={initial.services} />
-          </fieldset>
-        )}
-        {hasAmenities && (
-          <fieldset className="flex flex-col gap-3">
-            <legend className="font-bold">
-              {x.featuresTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
-            </legend>
-            <p className="text-sm text-muted">{x.tickHint}</p>
-            <CheckGroup name="features" title={x.insideTitle} keys={FEATURE_GROUPS.inside} labels={x.features} checked={initial.features} />
-            <CheckGroup name="features" title={x.buildingTitle} keys={FEATURE_GROUPS.building} labels={x.features} checked={initial.features} />
-          </fieldset>
-        )}
-        {type && (
-          <div className="sm:w-1/2">
-            <label htmlFor="mortgaged" className={label}>
-              {x.mortgaged} <span className="font-normal text-muted">({f.optional})</span>
-            </label>
-            <select id="mortgaged" name="mortgaged" defaultValue={initial.mortgaged} className={inputClass} aria-describedby="mortgaged-hint">
-              <option value="">{f.notSpecified}</option>
-              <option value="yes">{f.yes}</option>
-              <option value="no">{f.no}</option>
-            </select>
-            <p id="mortgaged-hint" className="mt-1 text-xs text-muted">
-              {x.mortgagedHint}
-            </p>
-          </div>
-        )}
-        {type && (
-          <CheckGroup name="nearby" title={`${x.nearbyTitle} (${f.optional})`} keys={NEARBY} labels={x.nearby} checked={initial.nearby} />
-        )}
         <div>
           <label htmlFor="description" className={label}>
             {f.description} <span className="font-normal text-muted">({f.optional})</span>
@@ -396,6 +350,73 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             ))}
           </div>
         </fieldset>
+        {type && (
+          // Optional extras stay folded so the form looks short; it opens by
+          // itself when editing an ad that already has some of them.
+          <details open={hasExtras} className="group rounded-xl border border-border">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-bold">
+              <span>
+                {x.moreTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
+              </span>
+              <span className="text-sm font-semibold text-brand group-open:hidden">{x.moreOpen}</span>
+            </summary>
+            <div className="flex flex-col gap-5 border-t border-border p-4">
+              <p className="text-sm text-muted">{x.moreHint}</p>
+            {hasLandDetails && (
+              <fieldset className="flex flex-col gap-4">
+                <legend className="mb-2 font-bold">
+                  {x.landTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
+                </legend>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="zoning" className={label}>
+                      {x.zoning}
+                    </label>
+                    <select id="zoning" name="zoning" defaultValue={initial.zoning} className={inputClass}>
+                      <option value="">{f.notSpecified}</option>
+                      {ZONINGS.map((zone) => (
+                        <option key={zone} value={zone}>
+                          {x.zonings[zone]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <NumberInput name="frontageM" text={x.frontage} value={initial.frontageM} error={err("frontageM")} />
+                </div>
+                <CheckGroup name="services" title={x.services} keys={LAND_SERVICES} labels={x.servicesList} checked={initial.services} />
+              </fieldset>
+            )}
+            {hasAmenities && (
+              <fieldset className="flex flex-col gap-3">
+                <legend className="font-bold">
+                  {x.featuresTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
+                </legend>
+                <p className="text-sm text-muted">{x.tickHint}</p>
+                <CheckGroup name="features" title={x.insideTitle} keys={FEATURE_GROUPS.inside} labels={x.features} checked={initial.features} />
+                <CheckGroup name="features" title={x.buildingTitle} keys={FEATURE_GROUPS.building} labels={x.features} checked={initial.features} />
+              </fieldset>
+            )}
+            {type && (
+              <div className="sm:w-1/2">
+                <label htmlFor="mortgaged" className={label}>
+                  {x.mortgaged} <span className="font-normal text-muted">({f.optional})</span>
+                </label>
+                <select id="mortgaged" name="mortgaged" defaultValue={initial.mortgaged} className={inputClass} aria-describedby="mortgaged-hint">
+                  <option value="">{f.notSpecified}</option>
+                  <option value="yes">{f.yes}</option>
+                  <option value="no">{f.no}</option>
+                </select>
+                <p id="mortgaged-hint" className="mt-1 text-xs text-muted">
+                  {x.mortgagedHint}
+                </p>
+              </div>
+            )}
+            {type && (
+              <CheckGroup name="nearby" title={`${x.nearbyTitle} (${f.optional})`} keys={NEARBY} labels={x.nearby} checked={initial.nearby} />
+            )}
+            </div>
+          </details>
+        )}
       </section>
 
       <section className={section} aria-labelledby="s-contact">

@@ -87,17 +87,6 @@ async function Results({
         </p>
       )}
 
-      {/* Only when the search names at least a deal, type or governorate (else it would match every ad). */}
-      {((filters.deal && filters.deal !== "all") || (filters.type && filters.type !== "all") || filters.city) && (
-        <div className="mb-3">
-          <SaveSearch
-            filters={filters}
-            loginHref={`${localePath(locale, "/login")}?next=${encodeURIComponent(localePath(locale, "/search") + filtersToQuery(filters))}`}
-            manageHref={localePath(locale, "/my/follows")}
-            text={dict.saveSearch}
-          />
-        </div>
-      )}
       <section className="mt-1" aria-live="polite">
         <FeaturedList listings={featured} title={dict.search.featuredTitle} locale={locale} labels={labels} />
         <h2 className="sr-only">{dict.search.resultsTitle}</h2>
@@ -125,6 +114,17 @@ async function Results({
           </>
         )}
       </section>
+      {/* After the results: the page starts with ads. Only when the search names at least a deal, type or governorate (else it would match every ad). */}
+      {((filters.deal && filters.deal !== "all") || (filters.type && filters.type !== "all") || filters.city) && (
+        <div className="mt-6 rounded-xl border border-border bg-surface p-4">
+          <SaveSearch
+            filters={filters}
+            loginHref={`${localePath(locale, "/login")}?next=${encodeURIComponent(localePath(locale, "/search") + filtersToQuery(filters))}`}
+            manageHref={localePath(locale, "/my/follows")}
+            text={dict.saveSearch}
+          />
+        </div>
+      )}
     </Filters>
   );
 }

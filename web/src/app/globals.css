@@ -18,6 +18,9 @@
   --types-soft: #e7eff8;
   --cities: #475a63; /* governorate tags: calm slate; white text on it: 7.1:1 */
   --cities-soft: #eef2f3;
+  --gold: #e29932; /* logo orange-gold; dark text on it: 6.7:1 */
+  --gold-soft: #fdf4e3;
+  --gold-ink: #3a2400;
   color-scheme: light;
 }
 
@@ -38,6 +41,9 @@
   --color-types-soft: var(--types-soft);
   --color-cities: var(--cities);
   --color-cities-soft: var(--cities-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-ink: var(--gold-ink);
   --font-sans: var(--font-cairo), system-ui, sans-serif;
 }
 

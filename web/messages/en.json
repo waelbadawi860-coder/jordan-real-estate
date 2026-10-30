@@ -75,7 +75,8 @@
     "verifiedChip": "Verified offices",
     "closeFilters": "Close filters",
     "ownerChip": "Direct from owner",
-    "ownerOnly": "Ads posted by the owner only (no broker or office)"
+    "ownerOnly": "Ads posted by the owner only (no broker or office)",
+    "advertiserRow": "Advertiser"
   },
   "home": {
     "latest": "Latest properties",
@@ -1326,7 +1327,10 @@
     },
     "mortgaged": "Is the property mortgaged?",
     "mortgagedHint": "Shown as you choose it and on your responsibility, so pick the correct answer.",
-    "mortgagedNote": "\"Is the property mortgaged?\" is as stated by the advertiser. Check it with the Department of Lands and Survey before committing to anything."
+    "mortgagedNote": "\"Is the property mortgaged?\" is as stated by the advertiser. Check it with the Department of Lands and Survey before committing to anything.",
+    "moreTitle": "More details",
+    "moreOpen": "Show",
+    "moreHint": "Property features, what's nearby and more. Shown on the ad page and help buyers compare."
   },
   "saveSearch": {
     "save": "Save this search",
