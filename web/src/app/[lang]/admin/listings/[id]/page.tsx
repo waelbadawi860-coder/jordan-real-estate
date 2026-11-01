@@ -5,7 +5,7 @@ import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireAdminPage } from "@/lib/admin";
 import { getReferenceData } from "@/lib/data/public";
-import { displayPhone, formatDate, formatDateTime, formatPrice } from "@/lib/format";
+import { displayPhone, formatDate, formatDateTime, formatPrice, t } from "@/lib/format";
 import { listingPath } from "@/lib/paths";
 import { createClient } from "@/lib/supabase/server";
 
@@ -86,9 +86,7 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
           ? Object.keys(data)
               .filter((key) => JSON.stringify(data[key]) !== JSON.stringify(before[key]))
               .map((key) => ({ field: key, before: show(before[key]), after: show(data[key]) }))
-          : row.kind.startsWith("photo")
-            ? [{ field: "path", before: "", after: show(data.path) }]
-            : [];
+          : [];
       previous[row.kind] = data;
       return {
         id: row.id,
@@ -102,6 +100,16 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
   }
 
   const box = "rounded-2xl border border-border bg-surface p-4";
+  const fold = "rounded-2xl border border-border bg-surface";
+  const foldTitle = "cursor-pointer p-4 font-extrabold";
+  const photos = (signed ?? []).flatMap((s) => (s.signedUrl ? [s.signedUrl] : []));
+  const flags = risk?.flags ?? [];
+  const openReports = (reports ?? []).filter((r) => r.status === "open" || r.status === "reviewing");
+  const closedReports = (reports ?? []).filter((r) => !openReports.includes(r));
+  const lastDeclaration = declarations?.[0];
+
+  // Order for the reviewer: what to do, warnings (only if any), the photos
+  // large, the text, then the decision. Promotion and records stay folded.
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -116,128 +124,43 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
         )}
       </div>
 
-      <section className={`${box} flex flex-col gap-2`} aria-labelledby="risk-heading">
-        <h3 id="risk-heading" className="font-extrabold">
-          {a.risk.title}
-        </h3>
-        {!risk ? (
-          <p className="text-sm text-muted">{a.risk.notChecked}</p>
-        ) : risk.flags.length === 0 ? (
-          <p className="text-sm">{a.risk.none}</p>
-        ) : (
+      {listing.status === "pending_approval" && (
+        <section className="rounded-2xl border border-brand/30 bg-brand-soft p-4" aria-labelledby="steps-heading">
+          <h3 id="steps-heading" className="font-extrabold">
+            {a.review.stepsTitle}
+          </h3>
+          <ol className="mt-1 list-inside list-decimal text-sm font-semibold">
+            {a.review.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+          <a href="#decision" className="mt-2 inline-block text-sm font-bold text-brand hover:underline">
+            {a.review.goToDecision}
+          </a>
+        </section>
+      )}
+
+      {flags.length > 0 && (
+        <section className="flex flex-col gap-2 rounded-2xl border border-accent/40 bg-surface p-4" aria-labelledby="risk-heading">
+          <h3 id="risk-heading" className="font-extrabold">
+            {a.risk.title}
+          </h3>
           <ul className="flex flex-wrap gap-2">
-            {risk.flags.map((flag) => (
+            {flags.map((flag) => (
               <li key={flag} className="rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent">
                 {a.risk.flags[flag as keyof typeof a.risk.flags] ?? flag}
               </li>
             ))}
           </ul>
-        )}
-        <p className="text-xs text-muted">
-          {risk && `${a.risk.checkedAt}: ${formatDateTime(risk.checked_at, lang)} · `}
-          {a.risk.hint}
-        </p>
-        <RecheckRiskButton listingId={listing.id} a={a} />
-      </section>
+          <p className="text-sm">{a.risk.hint}</p>
+        </section>
+      )}
 
-      <ListingModeration listingId={listing.id} status={listing.status} a={a} />
-
-      <section className={`${box} flex flex-col gap-3`} aria-label={a.promotion.title}>
-        <p className="text-sm">
-          {listing.featured_until && new Date(listing.featured_until) > new Date()
-            ? `${a.promotion.featuredUntil}: ${formatDateTime(listing.featured_until, lang)}`
-            : a.promotion.notFeatured}
-          {listing.bumped_at && ` · ${a.promotion.lastBump}: ${formatDateTime(listing.bumped_at, lang)}`}
-        </p>
-        <PromotionControls listingId={listing.id} published={listing.status === "published"} a={a} />
-        {promotions && promotions.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-muted">
-                <tr className="text-start">
-                  <th className="p-1 text-start">{a.promotion.when}</th>
-                  <th className="p-1 text-start">{a.promotion.what}</th>
-                  <th className="p-1 text-start">{a.promotion.amount}</th>
-                  <th className="p-1 text-start">{a.promotion.paymentRef}</th>
-                  <th className="p-1 text-start">{a.promotion.note}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {promotions.map((row) => (
-                  <tr key={row.id} className="border-t border-border">
-                    <td className="p-1">{formatDateTime(row.created_at, lang)}</td>
-                    <td className="p-1">
-                      {a.promotion.kinds[row.kind as keyof typeof a.promotion.kinds] ?? row.kind}
-                      {row.days ? ` (${row.days})` : ""}
-                    </td>
-                    <td className="p-1">{row.amount === null ? "—" : formatPrice(Number(row.amount), lang, dict.common.currency)}</td>
-                    <td className="p-1" dir="auto">{row.payment_ref ?? "—"}</td>
-                    <td className="p-1" dir="auto">{row.note ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      <div className="grid gap-4 lg:grid-cols-2">
+      {openReports.length > 0 && (
         <section className={box}>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-            <dt className="text-muted">{dict.listing.price}</dt>
-            <dd className="font-bold">{formatPrice(Number(listing.price), lang, dict.common.currency)}</dd>
-            <dt className="text-muted">{dict.listing.type}</dt>
-            <dd>
-              {type?.name[lang]} · {listing.deal_type === "sale" ? dict.search.sale : dict.search.rent}
-            </dd>
-            <dt className="text-muted">{dict.listing.location}</dt>
-            <dd>{[hood?.name[lang], city?.name[lang]].filter(Boolean).join(" · ")}</dd>
-            <dt className="text-muted">{dict.listing.area}</dt>
-            <dd>{listing.area_sqm ?? "—"}</dd>
-            <dt className="text-muted">{a.listing.seller}</dt>
-            <dd>
-              <Link href={localePath(lang, `/admin/users/${listing.seller_id}`)} className="font-semibold text-brand hover:underline">
-                {seller?.display_name ?? "—"}
-              </Link>{" "}
-              ({dict.listing[listing.poster_type === "agent" ? "agent" : "owner"]})
-            </dd>
-            <dt className="text-muted">{a.listing.contactPhone}</dt>
-            <dd dir="ltr" className="text-start">
-              {contact ? displayPhone(contact.phone) : a.listing.noContact}
-            </dd>
-            <dt className="text-muted">{a.listing.submitted}</dt>
-            <dd>{listing.submitted_at ? formatDate(listing.submitted_at, lang) : "—"}</dd>
-            <dt className="text-muted">{a.listing.expiry}</dt>
-            <dd>{listing.expires_at ? formatDate(listing.expires_at, lang) : "—"}</dd>
-          </dl>
-          <p className="mt-3 whitespace-pre-line text-sm" dir="auto">
-            {listing.description || dict.listing.noDescription}
-          </p>
-        </section>
-
-        <section className={box} aria-label={dict.listing.photos}>
-          {signed?.length ? (
-            <ul className="grid grid-cols-3 gap-2">
-              {signed.flatMap((s) => (s.signedUrl ? [s.signedUrl] : [])).map((src) => (
-                <li key={src}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted">{dict.photos.none}</p>
-          )}
-        </section>
-      </div>
-
-      <section className={box}>
-        <h3 className="mb-2 font-extrabold">{a.listing.reports}</h3>
-        {!reports?.length ? (
-          <p className="text-sm text-muted">{a.listing.noReports}</p>
-        ) : (
+          <h3 className="mb-2 font-extrabold">{a.listing.reports}</h3>
           <ul className="flex flex-col gap-3">
-            {reports.map((r) => (
+            {openReports.map((r) => (
               <li key={r.id} className="flex flex-col gap-1 border-b border-border pb-3 last:border-b-0">
                 <p className="text-sm">
                   <span className="font-bold">{dict.reportReasons[r.reason as keyof typeof dict.reportReasons] ?? r.reason}</span> ·{" "}
@@ -252,68 +175,193 @@ export default async function AdminListingPage({ params }: PageProps<"/[lang]/ad
               </li>
             ))}
           </ul>
-        )}
-      </section>
+        </section>
+      )}
 
-      <section className={box}>
-        <h3 className="mb-2 font-extrabold">{a.listing.declarations}</h3>
-        {!declarations?.length ? (
-          <p className="text-sm text-muted">{a.listing.noDeclarations}</p>
-        ) : (
-          <ol className="flex flex-col gap-1 text-sm">
-            {declarations.map((d) => (
-              <li key={d.id}>
-                {formatDateTime(d.created_at, lang)} · {a.listing.declarationVersion}: <span dir="ltr">{d.version}</span>
+      <section className={box} aria-labelledby="photos-heading">
+        <h3 id="photos-heading" className="mb-3 font-extrabold">
+          {dict.listing.photos} ({photos.length})
+        </h3>
+        {photos.length ? (
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {photos.map((src, i) => (
+              <li key={src}>
+                <a href={src} target="_blank" rel="noopener noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="aspect-[4/3] w-full rounded-xl object-cover" loading={i < 2 ? "eager" : "lazy"} />
+                </a>
               </li>
             ))}
-          </ol>
+          </ul>
+        ) : (
+          <p className="text-sm font-semibold text-accent">{dict.photos.none}</p>
         )}
       </section>
 
       <section className={box}>
-        <h3 className="mb-1 font-extrabold">{a.listing.versions}</h3>
-        <p className="mb-2 text-xs text-muted">{a.listing.versionsHint}</p>
-        <ol className="flex flex-col gap-2 text-sm">
-          {versionChanges(versions ?? []).map((v) => (
-            <li key={v.id} className="border-b border-border pb-2 last:border-b-0">
-              <p>
-                <span className="text-muted">{formatDateTime(v.createdAt, lang)}</span> ·{" "}
-                <span className="font-bold">{a.listing.versionKinds[v.kind]}</span> ·{" "}
-                {v.byAdmin ? a.listing.byAdmin : v.bySeller ? a.listing.bySeller : a.listing.system}
-              </p>
-              {v.changes.length > 0 && (
-                <ul className="mt-1 flex flex-col gap-0.5 ps-4 text-xs">
-                  {v.changes.map((c) => (
-                    <li key={c.field} dir="auto">
-                      <span className="font-semibold">{c.field}</span>: <del className="text-muted">{c.before}</del> → {c.after}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ol>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+          <dt className="text-muted">{dict.listing.price}</dt>
+          <dd className="font-bold">{formatPrice(Number(listing.price), lang, dict.common.currency)}</dd>
+          <dt className="text-muted">{dict.listing.type}</dt>
+          <dd>
+            {type?.name[lang]} · {listing.deal_type === "sale" ? dict.search.sale : dict.search.rent}
+          </dd>
+          <dt className="text-muted">{dict.listing.location}</dt>
+          <dd>{[hood?.name[lang], city?.name[lang]].filter(Boolean).join(" · ")}</dd>
+          <dt className="text-muted">{dict.listing.area}</dt>
+          <dd>{listing.area_sqm ?? "—"}</dd>
+          <dt className="text-muted">{a.listing.seller}</dt>
+          <dd>
+            <Link href={localePath(lang, `/admin/users/${listing.seller_id}`)} className="font-semibold text-brand hover:underline">
+              {seller?.display_name ?? "—"}
+            </Link>{" "}
+            ({dict.listing[listing.poster_type === "agent" ? "agent" : "owner"]})
+          </dd>
+          <dt className="text-muted">{a.listing.contactPhone}</dt>
+          <dd dir="ltr" className="text-start">
+            {contact ? displayPhone(contact.phone) : a.listing.noContact}
+          </dd>
+          <dt className="text-muted">{a.listing.submitted}</dt>
+          <dd>{listing.submitted_at ? formatDate(listing.submitted_at, lang) : "—"}</dd>
+          <dt className="text-muted">{a.listing.expiry}</dt>
+          <dd>{listing.expires_at ? formatDate(listing.expires_at, lang) : "—"}</dd>
+        </dl>
+        <p className="mt-3 whitespace-pre-line text-sm" dir="auto">
+          {listing.description || dict.listing.noDescription}
+        </p>
       </section>
 
-      <section className={box}>
-        <h3 className="mb-2 font-extrabold">{a.listing.history}</h3>
-        <ol className="flex flex-col gap-1 text-sm">
-          {(history ?? []).map((h) => (
-            <li key={h.id}>
-              <span className="text-muted">{formatDate(h.created_at, lang)}</span> ·{" "}
-              {h.from_status ? `${dict.status[h.from_status]} → ` : ""}
-              <span className="font-bold">{dict.status[h.to_status]}</span> ·{" "}
-              {(h.profiles as { display_name: string } | null)?.display_name ?? a.listing.system}
-              {h.reason && (
-                <span className="text-muted" dir="auto">
-                  {" "}
-                  — {h.reason}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </section>
+      <div id="decision" className="scroll-mt-20">
+        <ListingModeration listingId={listing.id} status={listing.status} a={a} />
+      </div>
+
+      <details className={fold}>
+        <summary className={foldTitle}>{a.promotion.title}</summary>
+        <div className="flex flex-col gap-3 px-4 pb-4">
+          <p className="text-sm">
+            {listing.featured_until && new Date(listing.featured_until) > new Date()
+              ? `${a.promotion.featuredUntil}: ${formatDateTime(listing.featured_until, lang)}`
+              : a.promotion.notFeatured}
+            {listing.bumped_at && ` · ${a.promotion.lastBump}: ${formatDateTime(listing.bumped_at, lang)}`}
+          </p>
+          <PromotionControls listingId={listing.id} published={listing.status === "published"} a={a} />
+          {promotions && promotions.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-muted">
+                  <tr className="text-start">
+                    <th className="p-1 text-start">{a.promotion.when}</th>
+                    <th className="p-1 text-start">{a.promotion.what}</th>
+                    <th className="p-1 text-start">{a.promotion.amount}</th>
+                    <th className="p-1 text-start">{a.promotion.paymentRef}</th>
+                    <th className="p-1 text-start">{a.promotion.note}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {promotions.map((row) => (
+                    <tr key={row.id} className="border-t border-border">
+                      <td className="p-1">{formatDateTime(row.created_at, lang)}</td>
+                      <td className="p-1">
+                        {a.promotion.kinds[row.kind as keyof typeof a.promotion.kinds] ?? row.kind}
+                        {row.days ? ` (${row.days})` : ""}
+                      </td>
+                      <td className="p-1">{row.amount === null ? "—" : formatPrice(Number(row.amount), lang, dict.common.currency)}</td>
+                      <td className="p-1" dir="auto">
+                        {row.payment_ref ?? "—"}
+                      </td>
+                      <td className="p-1" dir="auto">
+                        {row.note ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </details>
+
+      <details className={fold}>
+        <summary className={foldTitle}>{a.listing.records}</summary>
+        <div className="flex flex-col gap-4 px-4 pb-4 text-sm">
+          <div>
+            <h4 className="mb-1 font-bold">{a.listing.declarations}</h4>
+            <p>
+              {lastDeclaration
+                ? `${t(a.listing.declarationsCount, { n: declarations!.length })} · ${formatDateTime(lastDeclaration.created_at, lang)}`
+                : a.listing.noDeclarations}
+            </p>
+          </div>
+
+          <div>
+            <h4 className="mb-1 font-bold">{a.listing.history}</h4>
+            <ol className="flex flex-col gap-1">
+              {(history ?? []).map((h) => (
+                <li key={h.id}>
+                  <span className="text-muted">{formatDate(h.created_at, lang)}</span> ·{" "}
+                  {h.from_status ? `${dict.status[h.from_status]} → ` : ""}
+                  <span className="font-bold">{dict.status[h.to_status]}</span> ·{" "}
+                  {(h.profiles as { display_name: string } | null)?.display_name ?? a.listing.system}
+                  {h.reason && (
+                    <span className="text-muted" dir="auto">
+                      {" "}
+                      — {h.reason}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div>
+            <h4 className="mb-1 font-bold">{a.listing.versions}</h4>
+            <p className="mb-2 text-xs text-muted">{a.listing.versionsHint}</p>
+            <ol className="flex flex-col gap-2">
+              {versionChanges(versions ?? []).map((v) => (
+                <li key={v.id} className="border-b border-border pb-2 last:border-b-0">
+                  <p>
+                    <span className="text-muted">{formatDateTime(v.createdAt, lang)}</span> ·{" "}
+                    <span className="font-bold">{a.listing.versionKinds[v.kind]}</span> ·{" "}
+                    {v.byAdmin ? a.listing.byAdmin : v.bySeller ? a.listing.bySeller : a.listing.system}
+                  </p>
+                  {v.changes.length > 0 && (
+                    <ul className="mt-1 flex flex-col gap-0.5 ps-4 text-xs">
+                      {v.changes.map((c) => (
+                        <li key={c.field} dir="auto">
+                          <span className="font-semibold">{c.field}</span>: <del className="text-muted">{c.before}</del> → {c.after}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {closedReports.length > 0 && (
+            <div>
+              <h4 className="mb-1 font-bold">{a.listing.closedReports}</h4>
+              <ul className="flex flex-col gap-1">
+                {closedReports.map((r) => (
+                  <li key={r.id}>
+                    {dict.reportReasons[r.reason as keyof typeof dict.reportReasons] ?? r.reason} · {a.reports.statuses[r.status]} ·{" "}
+                    {formatDate(r.created_at, lang)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex flex-col items-start gap-1">
+            <h4 className="font-bold">{a.risk.title}</h4>
+            <p className="text-xs text-muted">
+              {risk ? `${a.risk.checkedAt}: ${formatDateTime(risk.checked_at, lang)}` : a.risk.notChecked}
+              {risk && flags.length === 0 && ` · ${a.risk.none}`}
+            </p>
+            <RecheckRiskButton listingId={listing.id} a={a} />
+          </div>
+        </div>
+      </details>
     </div>
   );
 }

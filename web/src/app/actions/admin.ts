@@ -12,7 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Every admin action starts by confirming, on the server, that the caller is
 // an active administrator. The database repeats the check (RLS + is_admin()).
 
-export type AdminResult = { ok: true } | { ok: false; error: "notAllowed" | "reasonRequired" | "invalid" | "invalidTransition" | "ownAccount" | "duplicate" | "draftAgreement" | "needSecondStep" | "generic" };
+export type AdminResult = { ok: true } | { ok: false; error: "notAllowed" | "reasonRequired" | "invalid" | "invalidTransition" | "ownAccount" | "duplicate" | "draftAgreement" | "needSecondStep" | "needTwoStep" | "generic" };
 
 const idSchema = z.number().int().positive();
 const uuidSchema = z.string().uuid();
@@ -299,6 +299,23 @@ export async function completeDeletionAction(userId: unknown, reason: unknown): 
 
   await syncSellerPhotos(id.data);
   updateTag("listings");
+  return { ok: true };
+}
+
+/** "Make admin" / "Remove admin": only for an admin signed in with the two-step code. */
+export async function setUserRoleAction(userId: unknown, role: unknown, reason: unknown): Promise<AdminResult> {
+  const id = uuidSchema.safeParse(userId);
+  const r = z.enum(["user", "admin"]).safeParse(role);
+  const why = reasonSchema.min(1).safeParse(reason);
+  if (!id.success || !r.success) return { ok: false, error: "invalid" };
+  if (!why.success) return { ok: false, error: "reasonRequired" };
+
+  const actor = await getAdminActor();
+  if (!actor) return { ok: false, error: "notAllowed" };
+  if (actor.aal !== "aal2") return { ok: false, error: "needTwoStep" };
+
+  const { error } = await actor.supabase.rpc("admin_set_user_role", { p_user_id: id.data, p_role: r.data, p_reason: why.data });
+  if (error) return errorOf(error);
   return { ok: true };
 }
 

@@ -10,6 +10,7 @@ import { BUILDING_AGES, FEATURE_GROUPS, LAND_SERVICES, NEARBY, ZONINGS } from "@
 import { FormMessage, inputClass, keepValuesOnSubmit, SubmitButton } from "./form-controls";
 import { AreaCombobox } from "./area-combobox";
 import { LocationInput } from "./location-input";
+import { DeclarationText } from "./declaration-text";
 
 export type ListingFormValues = {
   dealType: "sale" | "rent" | "";
@@ -203,14 +204,8 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
             dir="ltr"
             defaultValue={initial.price}
             className={inputClass}
-            aria-describedby={dealType === "rent" ? "price-hint" : undefined}
             {...aria("price")}
           />
-          {dealType === "rent" && (
-            <p id="price-hint" className="mt-1 text-xs text-muted">
-              {f.priceRentHint}
-            </p>
-          )}
           <ErrorText name="price" message={err("price")} />
         </div>
       </section>
@@ -366,7 +361,6 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
               <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-sm font-bold text-gold-ink group-open:hidden">{x.moreOpen}</span>
             </summary>
             <div className="flex flex-col gap-5 border-t border-gold/40 p-4">
-              <p className="text-sm text-muted">{x.moreHint}</p>
             {hasLandDetails && (
               <fieldset className="flex flex-col gap-4">
                 <legend className="mb-2 font-bold">
@@ -396,7 +390,6 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
                 <legend className="font-bold">
                   {x.featuresTitle} <span className="text-sm font-normal text-muted">({f.optional})</span>
                 </legend>
-                <p className="text-sm text-muted">{x.tickHint}</p>
                 <CheckGroup name="features" title={x.insideTitle} keys={FEATURE_GROUPS.inside} labels={x.features} checked={initial.features} />
                 <CheckGroup name="features" title={x.buildingTitle} keys={FEATURE_GROUPS.building} labels={x.features} checked={initial.features} />
               </fieldset>
@@ -406,14 +399,11 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
                 <label htmlFor="mortgaged" className={label}>
                   {x.mortgaged} <span className="font-normal text-muted">({f.optional})</span>
                 </label>
-                <select id="mortgaged" name="mortgaged" defaultValue={initial.mortgaged} className={inputClass} aria-describedby="mortgaged-hint">
+                <select id="mortgaged" name="mortgaged" defaultValue={initial.mortgaged} className={inputClass}>
                   <option value="">{f.notSpecified}</option>
                   <option value="yes">{f.yes}</option>
                   <option value="no">{f.no}</option>
                 </select>
-                <p id="mortgaged-hint" className="mt-1 text-xs text-muted">
-                  {x.mortgagedHint}
-                </p>
               </div>
             )}
             {type && (
@@ -457,13 +447,12 @@ export function ListingForm({ locale, dict, refData, initial, listingId, warning
           </label>
           <ErrorText name="allowWhatsapp" message={err("allowWhatsapp")} />
         </div>
-        <p className="text-sm text-muted">{f.contactNote}</p>
       </section>
 
       {requireDeclaration && (
         <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-3">
           <p className="font-bold">{dict.declaration.title}</p>
-          <p className="text-sm leading-relaxed">{dict.declaration.text}</p>
+          <DeclarationText locale={locale} d={dict.declaration} />
           <label className="flex items-start gap-2 font-semibold">
             <input type="checkbox" name="declaration" className="mt-1 size-5 shrink-0 accent-brand" {...aria("declaration")} />
             {dict.declaration.label}

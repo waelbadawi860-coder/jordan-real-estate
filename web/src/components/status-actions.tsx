@@ -9,6 +9,7 @@ import { localePath } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { ListingStatus } from "@/lib/data/owner";
 import { t } from "@/lib/format";
+import { DeclarationText } from "@/components/declaration-text";
 
 type Confirm =
   | { kind: "submit"; message: string }
@@ -179,7 +180,7 @@ export function StatusActions({
           <p className="font-semibold">{confirm.message}</p>
           {confirm.kind === "submit" && (
             <>
-              <p className="text-sm leading-relaxed">{dict.declaration.text}</p>
+              <DeclarationText locale={locale} d={dict.declaration} />
               <label className="flex items-start gap-2 text-sm font-semibold">
                 <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-brand" />
                 {dict.declaration.label}

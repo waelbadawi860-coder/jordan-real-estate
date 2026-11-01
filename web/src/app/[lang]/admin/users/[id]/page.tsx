@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ReportControls, UserStatusControls } from "@/components/admin/admin-controls";
+import { ReportControls, UserRoleControls, UserStatusControls } from "@/components/admin/admin-controls";
 import { hasLocale, localePath } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireAdminPage } from "@/lib/admin";
@@ -70,6 +70,7 @@ export default async function AdminUserPage({ params }: PageProps<"/[lang]/admin
       </section>
 
       <UserStatusControls userId={user.id} status={user.status} isSelf={user.id === me.id} a={a} />
+      {user.id !== me.id && <UserRoleControls userId={user.id} role={user.role} status={user.status} a={a} />}
 
       <section className={box}>
         <h3 className="mb-2 font-extrabold">{u.theirListings}</h3>

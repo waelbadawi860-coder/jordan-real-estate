@@ -29,11 +29,16 @@ export default async function EditListingPage({ params, searchParams }: PageProp
   if (!hasLocale(lang) || !/^[0-9]{1,15}$/.test(rawId)) notFound();
   const id = Number(rawId);
   const user = await requireUser(lang, `/my/listings/${id}/edit`);
-  const [dict, listing, ref, sp] = await Promise.all([getDictionary(lang), getMyListing(user.id, id), getReferenceData(), searchParams]);
-  if (!listing) notFound();
   // The exact pin is private: only the owner (and admins) can read it.
   const supabase = await createClient();
-  const { data: location } = await supabase.rpc("get_listing_location", { p_listing_id: id });
+  const [dict, listing, ref, sp, { data: location }] = await Promise.all([
+    getDictionary(lang),
+    getMyListing(user.id, id),
+    getReferenceData(),
+    searchParams,
+    supabase.rpc("get_listing_location", { p_listing_id: id }),
+  ]);
+  if (!listing) notFound();
   const pin = location?.[0];
 
   const Arrow = lang === "ar" ? ArrowLeft : ArrowRight;

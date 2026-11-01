@@ -228,7 +228,6 @@
     "description": "Description",
     "descriptionHint": "Mention features: floor, building age, view, finishing…",
     "price": "Price (JOD)",
-    "priceRentHint": "Rent amount per rent period.",
     "area": "Area (m²)",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
@@ -245,7 +244,6 @@
     "phoneHint": "e.g. 0791234567",
     "allowCalls": "Accept phone calls",
     "allowWhatsapp": "Accept WhatsApp messages",
-    "contactNote": "Your number only appears when a visitor taps “Show phone number”.",
     "createButton": "Save and continue to photos",
     "saveButton": "Save changes",
     "saving": "Saving…",
@@ -277,11 +275,11 @@
     "stepDetails": "Step 1 of 2: ad details, then photos",
     "stepPhotos": "Step 2 of 2",
     "photosStepTitle": "Add photos",
-    "photosStepIntro": "Your ad details are saved. Add the photos now, then press “Continue to preview” to check and submit it.",
+    "photosStepIntro": "Your ad details are saved.",
     "backToDetails": "Back to edit the ad details"
   },
   "photos": {
-    "hint": "Add 1 to {max} photos. We compress them automatically and remove hidden location data.",
+    "hint": "1 to {max} photos.",
     "add": "Add photos",
     "uploading": "Uploading photos… {percent}%",
     "processing": "Preparing photos…",
@@ -372,7 +370,7 @@
       "listing_status_changed": "Your listing #{id} is now: {status}",
       "listing_expiring": "Your listing #{id} expires in a few days. Renew it to keep it visible.",
       "listing_expired": "Your listing #{id} has expired. You can renew it from “My listings”.",
-      "listing_submitted": "New listing #{id} is awaiting review.",
+      "listing_submitted": "New ad #{id}: open it, look at the photos and text, then approve or reject it.",
       "listing_reported": "New report on listing #{id}.",
       "user_reported": "New report about a user.",
       "contact_message": "New contact message.",
@@ -741,7 +739,10 @@
       "byAdmin": "Administrator",
       "bySeller": "Seller",
       "hold": "Hold for checking",
-      "release": "Release (publish again unchanged)"
+      "release": "Release (publish again unchanged)",
+      "records": "Records (declaration, statuses, edits)",
+      "declarationsCount": "The advertiser accepted the declaration ({n})",
+      "closedReports": "Closed reports"
     },
     "users": {
       "search": "Email, name or phone",
@@ -772,7 +773,15 @@
       "deletionRequestedOn": "Deletion requested on {date}",
       "statusReason": "Status reason: {reason}",
       "ownAccount": "This is your account.",
-      "theirListings": "This user's listings"
+      "theirListings": "This user's listings",
+      "roleTitle": "Admin rights",
+      "makeAdmin": "Make admin",
+      "revokeAdmin": "Remove admin",
+      "makeAdminHint": "Admins approve and reject ads and run the site. They will be asked to turn on two-step verification on their first visit to the panel.",
+      "revokeAdminHint": "They go back to a normal user at once.",
+      "confirmMakeAdmin": "Give this user admin rights?",
+      "confirmRevokeAdmin": "Remove admin rights from this user?",
+      "needTwoStep": "Sign in with your two-step code first."
     },
     "reports": {
       "listingReports": "Listing reports",
@@ -893,12 +902,12 @@
       "ownAccount": "You can't change your own account's status."
     },
     "risk": {
-      "title": "Risk signals (administrators only)",
+      "title": "Notes for the reviewer",
       "none": "No signals.",
       "notChecked": "Not checked yet. Ads are checked when submitted.",
       "checkedAt": "Last checked",
       "recheck": "Check again now",
-      "hint": "Signals only alert the reviewer; they don't mean the ad is fraudulent.",
+      "hint": "Only a hint; it doesn't mean the ad is a scam. Check the photos and text carefully, then approve or reject below.",
       "flags": {
         "payment_request": "Asks for a deposit or money transfer",
         "external_link": "External link in the text",
@@ -948,31 +957,39 @@
       }
     },
     "review": {
-      "title": "Review checklist before approving",
-      "hint": "Tick every item to enable Approve. If an item does not apply, reject the listing with a reason.",
+      "title": "Before approving, check:",
+      "hint": "Tick every item to enable Approve, or reject with a reason.",
       "fillReason": "Fill the reason from unticked items",
       "items": [
         {
-          "check": "The photos show this property and are not from the internet or another listing (see any \"duplicate photo\" warning above).",
+          "check": "The photos are of this property, not from the internet.",
           "reason": "The photos are not of this property or were taken from another source."
         },
         {
-          "check": "No faces, car plates or personal details are clearly visible in the photos.",
+          "check": "No clear faces or car plates in the photos.",
           "reason": "The photos show faces, car plates or personal details."
         },
         {
-          "check": "The title, description and property type match the property.",
+          "check": "Title and description match the property.",
           "reason": "The title, description or property type does not match the property."
         },
         {
-          "check": "The price is realistic and in Jordanian dinars, and the governorate and area are correct.",
+          "check": "Price and location are right.",
           "reason": "The price or location is wrong or unrealistic."
         },
         {
-          "check": "No phone numbers, links or upfront-payment requests in the title or description (see the risk warnings above).",
+          "check": "No phone numbers, links or payment requests in the text.",
           "reason": "The text contains phone numbers, links or an upfront-payment request."
         }
-      ]
+      ],
+      "stepsTitle": "How to review",
+      "steps": [
+        "Look at the photos.",
+        "Read the title, description and price.",
+        "Approve, or reject with a reason, below."
+      ],
+      "goToDecision": "Go to approve or reject ↓",
+      "allGood": "All items are fine"
     },
     "offices": {
       "nav": "Offices",
@@ -1069,7 +1086,12 @@
   },
   "declaration": {
     "title": "Seller declaration",
+    "short": "I confirm the ad's details and photos are true, that I own the property or am authorised by the owner, and that I am responsible for its content, under the",
+    "postingLink": "Posting policy",
+    "and": "and ",
+    "termsLink": "Terms and conditions",
     "text": "I confirm that all information and photos in this ad are true and current, that I own the property or am authorised by its owner to offer it, that I have the right to publish these photos, and that the phone number, the property's location and any personal data in the ad are published with their owners' consent. I undertake to provide proof of ownership or authorisation when the platform or the competent authorities ask. I alone am fully responsible for the ad's content and any dealing that results from it. I know that a false declaration may expose me to legal liability, and that the platform may provide this declaration and my data to the competent authorities. I understand that the platform's acceptance of the ad only checks it against the Posting Policy and does not mean it verified its details, my ownership or my role.",
+    "fullText": "Full text of the declaration",
     "label": "I have read and accept the seller declaration",
     "required": "You must accept the seller declaration before submitting."
   },
@@ -1270,7 +1292,6 @@
     "featuresTitle": "Property features",
     "insideTitle": "Inside the property",
     "buildingTitle": "Building and services",
-    "tickHint": "Tick only what applies. Shown on the ad page.",
     "features": {
       "central_heating": "Central heating",
       "air_conditioning": "Air conditioning",
@@ -1326,11 +1347,9 @@
       "sewage": "Sewage"
     },
     "mortgaged": "Is the property mortgaged?",
-    "mortgagedHint": "Shown as you choose it, on your responsibility.",
     "mortgagedNote": "\"Is the property mortgaged?\" is as stated by the advertiser. Check it with the Department of Lands and Survey before committing to anything.",
     "moreTitle": "More details",
     "moreOpen": "+ Add",
-    "moreHint": "Property features, what's nearby and more. Shown on the ad page and help buyers compare.",
     "moreTeaser": "Add features and what's nearby"
   },
   "saveSearch": {

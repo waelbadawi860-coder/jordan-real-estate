@@ -1891,6 +1891,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_set_user_role: {
+        Args: {
+          p_reason: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       admin_set_user_status: {
         Args: {
           p_reason: string

@@ -207,6 +207,27 @@ describe("profiles", () => {
       .eq("action", "user_status_change");
     expect(log.data).toHaveLength(2);
   });
+
+  it("only an admin (two-step) can make or remove admins, never their own role, and it is audited", async () => {
+    const denied = await alice.client.rpc("admin_set_user_role", { p_user_id: alice.id, p_role: "admin", p_reason: "test" });
+    expect(denied.error?.message).toContain("not_allowed");
+    const self = await admin.client.rpc("admin_set_user_role", { p_user_id: admin.id, p_role: "user", p_reason: "test" });
+    expect(self.error?.message).toContain("cannot_change_own_status");
+    const noReason = await admin.client.rpc("admin_set_user_role", { p_user_id: alice.id, p_role: "admin", p_reason: " " });
+    expect(noReason.error?.message).toContain("reason_required");
+    const suspended = await admin.client.rpc("admin_set_user_role", { p_user_id: carol.id, p_role: "admin", p_reason: "test" });
+    expect(suspended.error?.message).toContain("invalid_status_transition");
+
+    const grant = await admin.client.rpc("admin_set_user_role", { p_user_id: alice.id, p_role: "admin", p_reason: "Automated test" });
+    expect(grant.error).toBeNull();
+    expect((await service.from("profiles").select("role").eq("id", alice.id).single()).data!.role).toBe("admin");
+    const revoke = await admin.client.rpc("admin_set_user_role", { p_user_id: alice.id, p_role: "user", p_reason: "Automated test reverted" });
+    expect(revoke.error).toBeNull();
+    expect((await service.from("profiles").select("role").eq("id", alice.id).single()).data!.role).toBe("user");
+
+    const log = await admin.client.from("admin_audit_logs").select("action").eq("entity_id", alice.id).in("action", ["grant_admin", "revoke_admin"]);
+    expect(log.data!.map((l) => l.action).sort()).toEqual(["grant_admin", "revoke_admin"]);
+  });
 });
 
 describe("listings: ownership and visibility", () => {
@@ -725,6 +746,14 @@ describe("stage 7: location privacy and notifications", () => {
 
     const submitted = await admin.client.from("notifications").select("type").eq("type", "listing_submitted");
     expect(submitted.data!.length).toBeGreaterThan(0);
+  });
+
+  it("deleting an ad removes the notifications about it (no empty pages in the admins' bell)", async () => {
+    const listing = await createListing(alice, "Alice ad to delete");
+    await service.from("notifications").insert({ user_id: admin.id, type: "listing_submitted", data: { listing_id: listing.id } });
+    await service.from("listings").delete().eq("id", listing.id);
+    const left = await service.from("notifications").select("id").eq("data->>listing_id", String(listing.id));
+    expect(left.data).toHaveLength(0);
   });
 
   it("users can only mark their own notifications as read, and can't create any", async () => {

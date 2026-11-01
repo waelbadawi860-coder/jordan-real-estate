@@ -19,6 +19,7 @@ import {
   savePropertyTypeAction,
   saveSettingAction,
   setListingExpiryAction,
+  setUserRoleAction,
   setUserStatusAction,
   type AdminResult,
 } from "@/app/actions/admin";
@@ -53,6 +54,7 @@ function useRun(a: AdminText) {
           duplicate: a.locations.duplicate,
           draftAgreement: a.settings.draftAgreement,
           needSecondStep: a.settings.needSecondStep,
+          needTwoStep: a.users.needTwoStep,
         };
         setFeedback({ ok: false, text: map[result.error] ?? a.errors.generic });
       }
@@ -105,7 +107,14 @@ export function ListingModeration({ listingId, status, a }: { listingId: number;
               {item.check}
             </label>
           ))}
-          {!allChecked && <p className="text-xs text-muted">{review.hint}</p>}
+          {!allChecked && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className={btn} onClick={() => setChecked(review.items.map(() => true))}>
+                ✓ {review.allGood}
+              </button>
+              <p className="text-xs text-muted">{review.hint}</p>
+            </div>
+          )}
         </fieldset>
       )}
       <div className="flex flex-wrap gap-2">
@@ -308,6 +317,35 @@ export function UserStatusControls({ userId, status, isSelf, a }: { userId: stri
           </button>
         </div>
       )}
+      {message}
+    </Box>
+  );
+}
+
+/** Makes a user an admin, or takes the rights away again (logged, two-step only). */
+export function UserRoleControls({ userId, role, status, a }: { userId: string; role: "user" | "admin"; status: string; a: AdminText }) {
+  const { run, pending, message } = useRun(a);
+  const [reason, setReason] = useState("");
+  const u = a.users;
+  if (status !== "active" && role !== "admin") return null;
+  const next = role === "admin" ? "user" : "admin";
+
+  return (
+    <Box>
+      <h3 className="font-extrabold">{u.roleTitle}</h3>
+      <p className="text-sm text-muted">{role === "admin" ? u.revokeAdminHint : u.makeAdminHint}</p>
+      <label className="text-sm font-semibold" htmlFor="role-reason">
+        {u.reason}
+      </label>
+      <input id="role-reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} dir="auto" className={field} />
+      <button
+        type="button"
+        className={`${next === "admin" ? primary : danger} w-fit`}
+        disabled={pending}
+        onClick={() => window.confirm(next === "admin" ? u.confirmMakeAdmin : u.confirmRevokeAdmin) && run(() => setUserRoleAction(userId, next, reason))}
+      >
+        {next === "admin" ? u.makeAdmin : u.revokeAdmin}
+      </button>
       {message}
     </Box>
   );

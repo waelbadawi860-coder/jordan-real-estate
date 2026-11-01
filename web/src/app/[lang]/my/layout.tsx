@@ -16,9 +16,15 @@ export default async function MyLayout({ children, params }: LayoutProps<"/[lang
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const user = await requireUser(lang, "/my/listings");
-  await requireCurrentConsent(lang, "/my/listings");
-  const [dict, profile, hasCommissions] = await Promise.all([getDictionary(lang), getOwnProfile(), hasAnyCommission(user.id)]);
-  const showCommissions = hasCommissions || (await isCommissionEnabled());
+  // All at once: one database round trip instead of three in a row.
+  const [, dict, profile, hasCommissions, commissionEnabled] = await Promise.all([
+    requireCurrentConsent(lang, "/my/listings"),
+    getDictionary(lang),
+    getOwnProfile(),
+    hasAnyCommission(user.id),
+    isCommissionEnabled(),
+  ]);
+  const showCommissions = hasCommissions || commissionEnabled;
 
   const tabs = [
     { href: "/my/listings", label: dict.account.navListings, icon: LayoutList },
