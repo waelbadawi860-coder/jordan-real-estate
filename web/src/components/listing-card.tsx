@@ -56,7 +56,8 @@ export function ListingCard({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         {listing.featured && (
           // Shows "Featured" only; the paid-ad disclosure stays on hover and for screen readers.
-          <span title={labels.featuredPaid} className="flex w-fit items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
+          // Above the card's full-size link, or the hover text never shows.
+          <span title={labels.featuredPaid} className="relative z-10 flex w-fit cursor-help items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
             <Star className="size-3" aria-hidden />
             {labels.featured}
             <span className="sr-only"> · {labels.featuredPaid}</span>
