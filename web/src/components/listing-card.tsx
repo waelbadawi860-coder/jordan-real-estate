@@ -19,6 +19,7 @@ export type CardLabels = {
   bathrooms: string;
   noPhoto: string;
   featured: string;
+  featuredPaid: string;
   verifiedOffice: string;
   /** "{n} JOD/m²" template. */
   perSqm: string;
@@ -54,9 +55,11 @@ export function ListingCard({
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         {listing.featured && (
-          <span className="flex w-fit items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
+          // Shows "Featured" only; the paid-ad disclosure stays on hover and for screen readers.
+          <span title={labels.featuredPaid} className="flex w-fit items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
             <Star className="size-3" aria-hidden />
             {labels.featured}
+            <span className="sr-only"> · {labels.featuredPaid}</span>
           </span>
         )}
         <h3 className="line-clamp-2 text-base font-bold leading-snug sm:text-lg" dir="auto">
@@ -156,7 +159,7 @@ export function FeaturedList({
 export function cardLabels(dict: {
   search: { sale: string; rent: string };
   common: { currency: string };
-  listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string; featured: string; perSqm: string };
+  listing: { perMonth: string; perYear: string; areaValue: string; bedsValue: string; bathsValue: string; noPhoto: string; featured: string; featuredPaid: string; perSqm: string };
   office: { verifiedBadge: string };
 }): CardLabels {
   return {
@@ -170,6 +173,7 @@ export function cardLabels(dict: {
     bathrooms: dict.listing.bathsValue,
     noPhoto: dict.listing.noPhoto,
     featured: dict.listing.featured,
+    featuredPaid: dict.listing.featuredPaid,
     verifiedOffice: dict.office.verifiedBadge,
     perSqm: dict.listing.perSqm,
   };
